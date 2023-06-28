@@ -98,7 +98,7 @@ You can also copy data and create a file with a complete directory content.
 
 ./cps --unit=MB /home/user/Documents/dir1 /home/user/Documents/dir2
  
-
+<code>
 --copy-surplus-back or -a              Copy the surplus data from the secondary (directory 2) location into the main location (directory 1) while synchronizing the directories.
 --delete-surplus or -b                 Delete the surplus data from the secondary (directory 2) location while synchronizing the with the directories from the main location (directory 1).
 --overwrite-smaller or -c              If two files with the same name are found, overwrite the larger file in the secondary location with the smaller from the main location.
@@ -118,3 +118,4 @@ You can also copy data and create a file with a complete directory content.
 --no-questions or -q                   Don't ask for confirmation to write the data.
 --unit=OPTION                          Show sizes in unit of choice (KB, MB, GB, TB, example: --unit=MB) insted of the default unit appropriate for the size.
 --si-units                             Use powers of 1000 instead of the default 1024
+</code>
