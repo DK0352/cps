@@ -66,7 +66,7 @@ Such files and directories are identified in the statistical output of the progr
 Same files with different size (main location smaller): 6
 Same files with different size (main location larger): 7
 ```
-6. If you don't want to answer yes or no, you can specify --no-questions or -q option.
+6. If you don't want to be asked whether or not you want to copy data, you can specify --no-questions or -q option. cps then proceeds with copying immediately after scaning the directories.
 ```
 ./cps -q /home/user/Documents/dir1 /home/user/Documents/dir2
 ```
@@ -91,11 +91,11 @@ You can also copy data and create a file with a complete directory content.
 ```
 ./cps --dont-list-data-to-copy /home/user/Documents/dir1 /home/user/Documents/dir2
 ```
-10. By default, if program encounters file or directory for which it doesn't have read or write permissions, it will quit. To just skip over such files for read and write errors using short options, use:
+10. By default, if program encounters a file or directory for which it doesn't have read or write permissions, it will quit. To skip over such files for read and write errors, using short options, use:
 ```
 ./cps -no /home/user/Documents/dir1 /home/user/Documents/dir2
 ```
-11. By default, program outputs sizes in bytes and another appropriate unit determined by the program. If you want to choose different second unit, use --unit option. For example to output size in megabytes:
+11. By default, program outputs sizes in bytes and another appropriate unit determined by the program. If you want to choose different second unit, use --unit option. For example, to output the size in megabytes:
 ```
 ./cps --unit=MB /home/user/Documents/dir1 /home/user/Documents/dir2
 ```
