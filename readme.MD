@@ -1,5 +1,3 @@
-#cps
-		
 cps compares and syncronizes two directories by copying only the missing files and directories from directory1 to a directory2, but it will notify you in the statistical info about surplus files
 (files that exist in the directory2, but not in the directory1), files with the same name but different size, and with the proper options, those files can be copied or overwritten as well.
 
@@ -48,7 +46,7 @@ Answer yes, or no if you don't want to.
 
 4. If you want to add new data from a directory2 to a directory1 without copying (syncing) data to a directory2 from a directory1, specify --copy-surplus-back. 
 ```
-./cps --delete-surplus /home/user/Documents/dir1 /home/user/Documents/dir2
+./cps --copy-surplus-back /home/user/Documents/dir1 /home/user/Documents/dir2
 ```
 After you are asked if you want to copy missing files and directories, answer no. Then when you are asked: Do you want to write the surplus data from the destionation directory back to the source? Answer yes.
 
