@@ -6,6 +6,8 @@ cps compares and syncronizes two directories by copying only the missing files a
 Before any writing operation begins, cps lists all the files and directories that are about to be copied, and asks you for the confirmation. It also allows you to create the text file with all the files and 
 directories that are about to be copied without actually copying anything, as well as creating the text file with the complete file and directory content of both directory1 and directory2.
 
+For help, run the program without any arguments or --help, -h.
+
 Some examples of use:
 
 1. To copy missing files and directories from (directory1) or /home/user/Documents/photos to (directory2) or /mnt/backup/photos 
@@ -97,25 +99,3 @@ You can also copy data and create a file with a complete directory content.
 11. By default, program outputs sizes in bytes and another appropriate unit determined by the program. If you want to choose different second unit, use --unit option. For example to output size in megabytes:
 
 ./cps --unit=MB /home/user/Documents/dir1 /home/user/Documents/dir2
- 
-<code>
---copy-surplus-back or -a              Copy the surplus data from the secondary (directory 2) location into the main location (directory 1) while synchronizing the directories.
---delete-surplus or -b                 Delete the surplus data from the secondary (directory 2) location while synchronizing the with the directories from the main location (directory 1).
---overwrite-smaller or -c              If two files with the same name are found, overwrite the larger file in the secondary location with the smaller from the main location.
---overwrite-larger or -d               If two files with the same name are found, overwrite the smaller file in secondary location with the larger file from the main location.
---overwrite-type or -e                 Overwrite the secondary location file type with the main location file type.
---list-surplus or -f                   Just list surplus files and directories, but dont copy them.
---dont-list-data-to-copy or -g         Don't list the files and directories, their sizes and location, to copy.
---help or -h                           Show help and options.
---content-file=[FILE] or -i            Write the file trees of both directories before copying.
---just-content-file=[FILE] or -j       Just write the file trees of both directories, but don't copy anything.
---copy-content-file=[FILE] or -k       Write files and directories to copy into the file.
---just-copy-content-file=[FILE] or -l  Just write files and directories to copy into the file, but don't copy anything.
---dont-list-stats or -m                Don't list statistics about file and directory size, number, etc.
---dont-quit-read-errors or -n          Don't quit on read errors. Useful for unexpected permissions on a directory.
---dont-quit-write-errors or -o         Don't quit on write errors. Useful for unexpected permissions on a directory.
---dont-quit-delete-errors or -p        Don't quit if deleting file or directory fails. Useful for unexpected permissions on a directory.
---no-questions or -q                   Don't ask for confirmation to write the data.
---unit=OPTION                          Show sizes in unit of choice (KB, MB, GB, TB, example: --unit=MB) insted of the default unit appropriate for the size.
---si-units                             Use powers of 1000 instead of the default 1024
-</code>
