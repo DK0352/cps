@@ -87,7 +87,7 @@ You can also copy data and create a file with a complete directory content.
 ```
 ./cps --content-file=/home/user/dir_content /home/user/Documents/dir1 /home/user/Documents/dir2
 ```
-9. By default, program outputs all files and directories to copy alnog with their current pathname, new pathname and size in bytes. If you don't want that:
+9. By default, program outputs all files and directories to copy along with their current pathname, new pathname and size in bytes. If you don't want that:
 ```
 ./cps --dont-list-data-to-copy /home/user/Documents/dir1 /home/user/Documents/dir2
 ```
