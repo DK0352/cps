@@ -1,3 +1,37 @@
+```
+SOURCE DIRECTORY
+
+Number of files: 4124
+Number of directories (excluding the top directory): 393
+Size of directory in bytes: 1409287736
+Size in gigabytes: 1.31 GB
+
+
+DESTINATION DIRECTORY
+
+Number of files: 2430
+Number of directories (excluding the top directory): 264
+Size of directory in bytes: 1190539251
+Size in gigabytes: 1.11 GB
+
+
+Number of individual files to copy: 1694
+Size of individual files to copy in bytes: 132287675
+Size in megabytes: 126.16 MB
+Number of directories to copy: 129
+Size of directories to copy in bytes: 86460810
+Size in megabytes: 82.46 MB
+Files and directories to copy, Size in megabytes: 208.61 MB
+Number of surplus files: 0
+Size of surplus files in bytes: 0
+Number of surplus directories: 0
+Size of surplus directories in bytes: 0
+Same files with different size (main location smaller): 0
+Same files with different size (main location larger): 0
+Files with the same name, different type (main): 0
+Files with the same name, different type (secondary): 0
+```
+
 cps compares and syncronizes two directories by copying only the missing files and directories from directory1 to a directory2, but it will notify you in the statistical info about surplus files
 (files that exist in the directory2, but not in the directory1), files with the same name but different size, and with the proper options, those files can be copied or overwritten as well.
 
@@ -7,6 +41,40 @@ directories that are about to be copied without actually copying anything, as we
 For help, run the program without any arguments or --help, -h.
 
 Some examples of use:
+
+```
+SOURCE DIRECTORY
+
+Number of files: 4124
+Number of directories (excluding the top directory): 393
+Size of directory in bytes: 1409287736
+Size in gigabytes: 1.31 GB
+
+
+DESTINATION DIRECTORY
+
+Number of files: 2430
+Number of directories (excluding the top directory): 264
+Size of directory in bytes: 1190539251
+Size in gigabytes: 1.11 GB
+
+
+Number of individual files to copy: 1694
+Size of individual files to copy in bytes: 132287675
+Size in megabytes: 126.16 MB
+Number of directories to copy: 129
+Size of directories to copy in bytes: 86460810
+Size in megabytes: 82.46 MB
+Files and directories to copy, Size in megabytes: 208.61 MB
+Number of surplus files: 0
+Size of surplus files in bytes: 0
+Number of surplus directories: 0
+Size of surplus directories in bytes: 0
+Same files with different size (main location smaller): 0
+Same files with different size (main location larger): 0
+Files with the same name, different type (main): 0
+Files with the same name, different type (secondary): 0
+
 
 1. To copy missing files and directories from (directory1) or /home/user/Documents/photos to (directory2) or /mnt/backup/photos 
 
