@@ -49,15 +49,15 @@ cps --copy-surplus-back /home/user/Documents/dir1 /home/user/Documents/dir2
 After you are asked if you want to copy missing files and directories, answer no. Then when you are asked: Do you want to write the surplus data from the destionation directory back to the source? Answer yes.
 
 5. cps copies only the missing files and directories from directory1 to a directory2 and ignores the files with the same name, but different size. If you want to overwrite such files: in case you want to overwrite the smaller files from
-the directory2 with the larger files from directory1, specify --overwrite-larger. 
+the directory2 with the larger files from directory1, specify --overwrite-with-larger. 
 ```
-cps --overwrite-larger /home/user/Documents/dir1 /home/user/Documents/dir2
+cps --overwrite-with-larger /home/user/Documents/dir1 /home/user/Documents/dir2
 ```
 If you want to overwrite the larger files from the directory2 with the smaller files from the directory1:
 ```
-cps --overwrite-smaller /home/user/Documents/dir1 /home/user/Documents/dir2
+cps --overwrite-with-smaller /home/user/Documents/dir1 /home/user/Documents/dir2
 ```
-In case you want to overwrite the larger files from the directory2 with the smaller files from the directory1, specify --overwrite-smaller
+In case you want to overwrite the larger files from the directory2 with the smaller files from the directory1, specify --overwrite-with-smaller
 
 Such files and directories are identified in the statistical output of the program even during default operation of the program, for example:
 ```
