@@ -10,7 +10,6 @@ Some examples of use:
 
 1. To copy missing files and directories from (directory1) or /home/user/Documents/photos to (directory2) or /mnt/backup/photos 
 
-or
 ```
 cps /home/user/Documents/photos /mnt/backup/photos
 ```
