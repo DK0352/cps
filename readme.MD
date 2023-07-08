@@ -2,7 +2,7 @@ cps compares and syncronizes two directories by copying only the missing files a
 (files that exist in the directory2, but not in the directory1), files with the same name but different size, and with the proper options, those files can be copied or overwritten as well.
 
 Before any writing operation begins, cps lists all the files and directories that are about to be copied, and asks you for the confirmation. It also allows you to create the text file with all the files and 
-directories that are about to be copied without actually copying anything, as well as creating the text file with the complete file and directory content of both directory1 and directory2.
+directories that are about to be copied without actually copying anything, as well as creating a text file with the complete file and directory content of both directory1 and directory2.
 
 For help, run the program without any arguments or --help, -h.
 
