@@ -19,7 +19,7 @@ After you are asked if you want to copy missing files and directories, answer ye
 ```
 cps --copy-surplus-back /home/user/Documents/dir1 /home/user/Documents/dir2
 ```
-After you are asked if you want to copy missing files and directories, answer yes or no if you don't want to. Then you will be asked: Do you want to write the surplus data from the destionation directory back to the source? 
+After you are asked if you want to copy missing files and directories, answer yes or no if you don't want to. Then you will be asked: Do you want to write the surplus data from the destination directory back to the source? 
 Answer yes, or no if you don't want to. 
 
 Surplus files and directories are identified in the statistical output of the program even during default operation of the program, for example:
