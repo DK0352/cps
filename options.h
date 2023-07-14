@@ -1,3 +1,23 @@
+/*
+    cps - a program that copies and synchronizes files and directories
+    Copyright (C) 2023  Danilo Kovljanić
+
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License along
+    with this program; if not, write to the Free Software Foundation, Inc.,
+    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+*/
+
+// 
 struct options_menu {
 	int	pause_read_errors;		// if read error occurs, pause any operations; the default is ignore read/write error, but mark all such files and directories
 	int	pause_write_errors;		// if write error occurs, pause any operations; the default is to quit on read error.
@@ -23,14 +43,4 @@ struct options_menu {
 	int	other_unit;			// if 1, use nondefault, user specified size unit (KB, MB, GB)
 	int	si_units;			// if 1, use multiples of 1000 insted of 1024 for units (KB, MB, GB)
 	char	unit[2];			// unit to display for size: KB, MB, GB
-	//short	newer_mod_time;			// compare last modification time and copy the files that have been modified more recently
-	//short	preserve_time;			// don't modify read/write time
-	//short	preserve_attributes;		// don't modify file attributes
-	//short	preserve_permissions;		// preserve permissions into new locatioin
-	//short	retry_interval;			// if file cannot be read or written, retry operation every x seconds. default is =
-	//short	retry_attempts;			// number of attempts to retry operation if unsuccessful. default is =
-	//short suppress_all_output_msgs;	// supress all informative output messages, like the files, dires copied, etc...
-	//short main_larger;			// by default, larger files in the main location will overwrite smaller files in the secodary location
-	//short main_smaller;			// by default, smaller files in the main location will overwrite larger files in the secodary location
-	//short ignore_diff_type;		// ignore same name - different type files
 };

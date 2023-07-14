@@ -1,3 +1,22 @@
+/*
+    cps - a program that copies and synchronizes files and directories
+    Copyright (C) 2023  Danilo Kovljanić
+
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License along
+    with this program; if not, write to the Free Software Foundation, Inc.,
+    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+*/
+
 #include "main.h"
 #include "dlist.h"
 #include "data_copy_info.h"
@@ -36,7 +55,7 @@ int main(int argc, char *argv[])
 	extern struct errors_data error;				// errors information
 
 	extern int full_dir_write;					// if 1, the destination is empty, so copy the complete source. if 2, the source is empty, so copy the complete destination if you wish
-	int use_threads;						// in case source and destination directories are on different disk, use threads is set to 1
+	int use_threads = 0;						// in case source and destination directories are on different disk, use threads is set to 1
 	int open_linearly = 0;
 	int len;
 	char *pathname1, *pathname2;
@@ -65,10 +84,10 @@ int main(int argc, char *argv[])
 	char *help_string2 = "Copy the surplus data from the secondary (directory 2) location into the main location (directory 1) while synchronizing the directories.";
 	char *help_string3 = "--delete-surplus or -b";
 	char *help_string4 = "Delete the surplus data from the secondary (directory 2) location while synchronizing the with the directories from the main location (directory 1).";
-	char *help_string5 = "--overwrite-smaller or -c";
+	char *help_string5 = "--overwrite-with-smaller or -c";
 	char *help_string6 = "If two files with the same name are found, overwrite the larger file in the secondary location with the smaller from the main location.";
-	char *help_string7 = "--overwrite-larger or -d";
-	char *help_string8 = "If two files with the same name are found, overwrite the smaller file in secondary location with the larger file from the main location.";
+	char *help_string7 = "--overwrite-with-larger or -d";
+	char *help_string8 = "If two files with the same name are found, overwrite the smaller file in the secondary location with the larger file from the main location.";
 	char *help_string9 = "--overwrite-type or -e";
 	char *help_string10 = "Overwrite the secondary location file type with the main location file type.";
 	char *help_string11 = "--list-surplus or -f";
@@ -162,8 +181,8 @@ int main(int argc, char *argv[])
 		static struct option long_options[] = {
 			{"copy-surplus-back", no_argument, 0, 'a' },
 			{"delete-surplus", no_argument, 0, 'b' },
-			{"overwrite-smaller", no_argument, 0, 'c' },
-			{"overwrite-larger", no_argument, 0, 'd' },
+			{"overwrite-with-smaller", no_argument, 0, 'c' },
+			{"overwrite-with-larger", no_argument, 0, 'd' },
 			{"overwrite-type", no_argument, 0, 'e' },
 			{"just-list-surplus", no_argument, 0, 'f' },
 			{"dont-list-data-to-copy", no_argument, 0, 'g' },
@@ -313,7 +332,7 @@ int main(int argc, char *argv[])
 	}
 
 	if (options.ow_main_smaller == 1 && options.ow_main_larger == 1) {
-		printf("Error: two contradicting options: --overwrite-smaller and --overwrite-larger. Specify either one or the other.\n");
+		printf("Error: two contradicting options: --overwrite-with-smaller and --overwrite-with-larger. Specify either one or the other.\n");
 		exit(1);
 	}
 	if (options.write_content_file == 1 && options.just_write_content_file == 1) {
@@ -1073,11 +1092,10 @@ void list_stats(int after_c)
 		printf("\n");
 		printf("Number of files: %ld\n", data_copy_info.global_file_num_a);
 		printf("Number of directories (excluding the top directory): %ld\n", data_copy_info.global_dir_num_a);
-		// sto ako je odbio kopiranje iz a u b, a prihvaio copy surplus back? dodat jos jedan arg funkciji?
 		if (options.copy_surplus_back == 1) {
 			after_copying_size_surp = 0;
 			after_copying_size_surp = data_copy_info.global_files_size_a + data_copy_info.global_files_surplus_size + data_copy_info.global_dirs_surplus_size;
-			printf("Size of directory in bytes after copying: %ld\n", after_copying_size);
+			printf("Size of directory in bytes after copying: %ld\n", after_copying_size_surp);
 			// calc_size(): size of files/directories in the more appropriate or user specified unit
 			calc_size(after_copying_size_surp,options.other_unit);
 		}
