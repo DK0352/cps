@@ -67,6 +67,8 @@ int open_dirs(struct thread_struct *thread_data)
 		thread_data->files = NULL;
 		return 0;
 	}
+	if (options.show_read_proc != 0)
+		printf("Opening: %s\n", thread_data->directory);
 	thread_data->files = malloc(sizeof(DList));
 	if (thread_data->files == NULL) {
 		printf("open_dirs(): malloc error 1\n");
@@ -119,6 +121,9 @@ int open_dirs(struct thread_struct *thread_data)
 		strcpy(location,thread_data->directory);
 		strcat(location,"/");
 		strcat(location,name);
+
+		if (options.show_read_proc != 0)
+			printf("%s\n", location);
 
 		if (file_t_init != 1) {
 			file_t = malloc(sizeof(struct stat));
