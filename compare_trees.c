@@ -67,24 +67,12 @@ int compare_trees(struct thread_struct *thread_data_a, struct thread_struct *thr
 	/* this if/elses determine the situations in which either the source or destination directory is empty and difference in file size/number of the top directory */
 	if (no_files_and_dirs_a == 1 && no_files_and_dirs_b == 1)
 		return -1;
-	else if (data_copy_info.global_dir_num_a != data_copy_info.global_dir_num_b 
-		&& data_copy_info.global_dir_num_a > 0 && data_copy_info.global_dir_num_b == 0 
-		&& top_location_a->files_size > 0 && top_location_b->files_size == 0 
-		&& top_location_a->file_num > 0 && top_location_b->file_num == 0) {
+	else if (no_files_and_dirs_a == 0 && no_files_and_dirs_b == 1) {
 		full_dir_write = 1;
 		return 0;
 	}
-	else if (data_copy_info.global_dir_num_a != data_copy_info.global_dir_num_b 
-		&& data_copy_info.global_dir_num_a == 0 && data_copy_info.global_dir_num_b > 0 
-		&& top_location_a->files_size == 0 && top_location_b->files_size > 0 
-		&& top_location_a->file_num == 0 && top_location_b->file_num > 0) {
+	else if (no_files_and_dirs_a == 1 && no_files_and_dirs_b == 0) {
 		full_dir_write = 2;
-		return 0;
-	}
-	else if (top_location_a->complete_dir_size != top_location_b->complete_dir_size 
-		&& top_location_a->complete_dir_num == 0 && top_location_b->complete_dir_num == 0 
-		&& data_copy_info.global_file_num_a != 0 && data_copy_info.global_file_num_b != 0) {
-		loop_files(top_location_a, top_location_b);
 		return 0;
 	}
 	else if (top_location_a->file_num != top_location_b->file_num 
@@ -96,8 +84,7 @@ int compare_trees(struct thread_struct *thread_data_a, struct thread_struct *thr
 	in subdirectory size/number. it increments sam_dir_num variable for each directory with the same name, and if it matches the number of directories in each directory, the function
 	returns. If not, function does additional comparation and determines which directories are missing in the destination, or which directories are surplus. */
 
-	if (top_location_a->complete_dir_size != top_location_b->complete_dir_size || top_location_a->complete_dir_num != top_location_b->complete_dir_num
-		|| top_location_a->complete_file_num != top_location_b->complete_file_num) {
+	if (top_location_a->complete_dir_size != top_location_b->complete_dir_size || top_location_a->complete_dir_num != top_location_b->complete_dir_num) {
 		if (file_tree_element_a != NULL && file_tree_element_b != NULL && dirlist_size_a != 0 && dirlist_size_b != 0) {
 			for (file_tree_element_a = top_location_a->first_dir_in_chain; file_tree_element_a != NULL; file_tree_element_a = file_tree_element_a->next) {
 				for (file_tree_element_b = top_location_b->first_dir_in_chain; file_tree_element_b != NULL; file_tree_element_b = file_tree_element_b->next) {
