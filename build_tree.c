@@ -224,17 +224,7 @@ void build_rest_of_the_tree(struct thread_struct *thread_data, unsigned long *p_
 				exit(1);
 			}
 			alloc->dirname = file_tree_element->dirname;
-			/*alloc->dirname = strdup(file_tree_element->dirname);
-			if (alloc->dirname == NULL) {
-				printf("built_the_rest_of_the_tree(): strdup() error 1.\n");
-				exit(1);
-			}*/
 			alloc->dir_location = file_tree_element->dir_location;
-			/*alloc->dir_location = strdup(file_tree_element->dir_location);
-			if (alloc->dir_location == NULL) {
-				printf("build_the_rest_of_the_tree(): strdup() error 2.\n");
-				exit(1);
-			}*/
 			file_tree_element->down = alloc;
 			file_tree_element = file_tree_element->down;
 			file_tree_element->up = save_up_position;
@@ -257,17 +247,7 @@ void build_rest_of_the_tree(struct thread_struct *thread_data, unsigned long *p_
 			}
 			init_to_zero(alloc);
 			alloc->dirname = file_tree_element->dirname;
-			/*alloc->dirname = strdup(file_tree_element->dirname);
-			if (alloc->dirname == NULL) {
-				printf("build_the_rest_of_the_tree(): strdup() error 3.\n");
-				exit(1);
-			}*/
 			alloc->dir_location = file_tree_element->dir_location;
-			/*alloc->dir_location = strdup(file_tree_element->dir_location);
-			if (alloc->dir_location == NULL) {
-				printf("build_the_rest_of_the_tree(): strdup() error 4.\n");
-				exit(1);
-			}*/
 			file_tree_element->down = alloc;
 			file_tree_element = file_tree_element->down;
 			file_tree_element->up = save_up_position;
@@ -306,17 +286,7 @@ void build_rest_of_the_tree(struct thread_struct *thread_data, unsigned long *p_
 			}
 			init_to_zero(alloc);
 			alloc->dirname = file_tree_element->dirname;
-			/*alloc->dirname = strdup(file_tree_element->dirname);
-			if (alloc->dirname == NULL) {
-				printf("build_the_rest_of_the_tree(): strdup() error 5.\n");
-				exit(1);
-			}*/
 			alloc->dir_location = file_tree_element->dir_location;
-			/*alloc->dir_location = strdup(file_tree_element->dir_location);
-			if (alloc->dir_location == NULL) {
-				printf("build_the_rest_of_the_tree(): strdup() error 6.\n");
-				exit(1);
-			}*/
 			file_tree_element->down = alloc;
 			file_tree_element = file_tree_element->down;
 			// file_tree_element is now subdir/this directory
@@ -344,17 +314,7 @@ void build_rest_of_the_tree(struct thread_struct *thread_data, unsigned long *p_
 		}
 		init_to_zero(alloc);
 		alloc->dirname = file_tree_element->dirname;
-		/*alloc->dirname = strdup(file_tree_element->dirname);
-		if (alloc->dirname == NULL) {
-			printf("build_the_rest_of_the_tree(): strdup() error 7.\n");
-			exit(1);
-		}*/
 		alloc->dir_location = file_tree_element->dir_location;
-		/*alloc->dir_location = strdup(file_tree_element->dir_location);
-		if (alloc->dir_location == NULL) {
-			printf("build_the_rest_of_the_tree(): strdup() error 8.\n");
-			exit(1);
-		}*/
 		file_tree_element->down = alloc;
 		file_tree_element = file_tree_element->down;
 		file_tree_element->up = save_up_position;
