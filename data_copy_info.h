@@ -43,8 +43,10 @@ struct Data_Copy_Info {
         unsigned long	global_diff_type_size_secondary;        // size of files with the same name, but different type, destination directory
         unsigned long 	global_diff_size_ms_num;        // number of files with the same name, but different size, source location smaller
         unsigned long	global_diff_size_ms_size;       // size of files with the same name, but different size, source location smaller
+	unsigned long	global_diff_size_ms_orig_size;	// size of files with the same name, but different size, source location smaller, but this one is for the original file
         unsigned long 	global_diff_size_ml_num;        // number of files with the same name, but different size, source location larger
         unsigned long	global_diff_size_ml_size;       // number of files with the same name, but different size, source location larger
+	unsigned long	global_diff_size_ml_orig_size;	// size of files with the same name, but different size, source location larger, but this one is for the original file
         unsigned long 	global_dir_num_a;               // complete number of directories in the source directory
         unsigned long 	global_dir_num_b;               // complete number of directories in the destination directory
         unsigned long 	global_file_num_a;              // complete number of files in the source directory
