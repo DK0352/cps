@@ -6,6 +6,13 @@ directories that are about to be copied without actually copying anything, as we
 
 For help, run the program without any arguments or --help, -h.
 
+Build and install:
+```
+./configure
+make
+sudo make install
+```
+
 Some examples of use:
 
 1. To copy missing files and directories from (directory1) or /home/user/Documents/photos to (directory2) or /mnt/backup/photos 
