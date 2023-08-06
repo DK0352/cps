@@ -109,6 +109,7 @@ int loop_files(DList_of_lists *file_tree_element_a, DList_of_lists *file_tree_el
 
 								data_copy_info.global_diff_size_ml_num++;
 								data_copy_info.global_diff_size_ml_size += compare_l->size;
+								data_copy_info.global_diff_size_ml_orig_size += compare_s->size;
 
 								break;
 							}
@@ -126,6 +127,7 @@ int loop_files(DList_of_lists *file_tree_element_a, DList_of_lists *file_tree_el
 
 								data_copy_info.global_diff_size_ms_num++;
 								data_copy_info.global_diff_size_ms_size += compare_s->size;
+								data_copy_info.global_diff_size_ms_orig_size += compare_l->size;
 
 								break;
 							}
@@ -145,6 +147,7 @@ int loop_files(DList_of_lists *file_tree_element_a, DList_of_lists *file_tree_el
 
 								data_copy_info.global_diff_size_ms_num++;
 								data_copy_info.global_diff_size_ms_size += compare_l->size;
+								data_copy_info.global_diff_size_ms_orig_size += compare_s->size;
 
 								break;
 							}
@@ -162,6 +165,7 @@ int loop_files(DList_of_lists *file_tree_element_a, DList_of_lists *file_tree_el
 
 								data_copy_info.global_diff_size_ml_num++;
 								data_copy_info.global_diff_size_ml_size += compare_s->size;
+								data_copy_info.global_diff_size_ml_orig_size += compare_l->size;
 
 								break;
 							}
