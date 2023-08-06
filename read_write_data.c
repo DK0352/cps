@@ -26,8 +26,7 @@
 
 extern struct options_menu options;
 
-/* Function that writes data; data argument is linked list or NULL, choose is explained before each if/else, source and destination are used when data argument is NULL, and function dives into directory tree by itself
- * reading and writing files and directories, or overwriting, deleting, depending on the choose argument number. */
+/* Function that writes data; data argument is linked list or NULL, choose is explained before each if/else, source and destination are used when data argument is NULL, and function dives into directory tree by itself, reading and writing files and directories, or overwriting, deleting, depending on the choose argument number. */
 int read_write_data(DList *data, int choose, char *source, char *destination) // kasnije dodat optionss argument
 {
 	DIR		*dir;
@@ -81,6 +80,7 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 						if (options.quit_write_errors == 1)
 							exit(1);
 					}
+					printf("%s\n", read_file_list->new_location);
 					for (link_del = 0; link_del < link_len; link_del++)
 						linkpath[link_del] = '\0';
 					continue;
@@ -113,6 +113,8 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 				printf("read_write_data() 1: error reading the data.\n");
 				exit(1);
 			}
+			if (options.show_write_proc != 0)
+				printf("%s\n", read_file_list->new_location);
 			if (close(read_descriptor) == -1) {
 				printf("read_write_data() 1: error closing the read descriptor.\n");
 				if (options.quit_read_errors == 1)
@@ -141,10 +143,10 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 					exit(1);
 			}
 			strcpy(source_path,read_dir_list->dir_location);
-			//printf("read_write_data(): %s\n", read_dir_list->dir_location);
 
 			strcpy(destination_path,read_dir_list->new_location);
-			//printf("read_write_data(): %s\n", read_dir_list->new_location);
+			if (options.show_write_proc != 0)
+				printf("Directory: %s\n", read_dir_list->new_location);
 
 			// read and copy directories and files and paste them to the destination
 			read_write_data(NULL,3,read_dir_list->dir_location,read_dir_list->new_location);	/* 2 je izaberi direktorije */
@@ -227,6 +229,8 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 					if (options.quit_write_errors == 1)
 						exit(1);
 				}
+				if (options.show_write_proc != 0)
+					printf("Directory: %s\n", new_destination);
 				read_write_data(NULL,3,new_source,new_destination);
 			}
 			else if (S_ISREG(file_t->st_mode)) {
@@ -266,6 +270,8 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 					if (options.quit_read_errors == 1)
 						exit(1);
 				}
+				if (options.show_write_proc != 0)
+					printf("%s\n", new_destination);
 				if (close(read_descriptor) == -1) {
 					printf("read_write_data: error closing the read descriptor.\n");
 					if (options.quit_read_errors == 1)
@@ -302,6 +308,8 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 					if (options.quit_write_errors == 1)
 						exit(1);
 				}
+				if (options.show_write_proc != 0)
+					printf("%s\n", new_destination);
 				for (link_del = 0; link_del < link_len; link_del++)
 					linkpath[link_del] = '\0';
 			}
@@ -356,6 +364,8 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 						if (options.quit_write_errors == 1)
 							exit(1);
 					}
+					if (options.show_write_proc != 0)
+						printf("Overwriting: %s\n", read_file_list->new_location);
 					for (link_del = 0; link_del < link_len; link_del++)
 						linkpath[link_del] = '\0';
 					continue;
@@ -389,6 +399,8 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 				if (options.quit_read_errors == 1)
 					exit(1);
 			}
+			if (options.show_write_proc != 0)
+				printf("Overwriting: %s\n", read_file_list->new_location);
 			if (close(read_descriptor) == -1) {
 				printf("read_write_data: error closing the read descriptor.\n");
 				if (options.quit_read_errors == 1)
@@ -414,6 +426,8 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 				if (options.quit_delete_errors == 1)
 					exit(1);
 			}
+			if (options.show_write_proc != 0)
+				printf("Deleting: %s\n", read_file_list->dir_location);
 		}
 		return 0;
 	}
@@ -421,7 +435,6 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 	// delete directories
 	else if (choose == 6) {
 		dir_list = data;
-		//rekurzivno, sad sam umoran. provjeri jel dir_location il new_location il sta vec.
 		for (read_dir_list = dir_list->head; read_dir_list != NULL; read_dir_list = read_dir_list->next) {
 			read_write_data(NULL,7,read_dir_list->dir_location,NULL);
 			errno = 0;
@@ -431,11 +444,13 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 				if (options.quit_delete_errors == 1)
 					exit(1);
 			}
+			if (options.show_write_proc != 0)
+				printf("Deleting: %s\n", read_dir_list->dir_location);
 		}
 		return 0;
 	}
 
-	/* open directories and delete all files from them, and then after they are empty, delete directories */
+	/* open directories and delete all files from them, and after they are empty, delete these directories */
 	else if (choose == 7) {
 		errno = 0;
 		dir = opendir(source);
@@ -497,7 +512,6 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 				strcpy(deeper,source);
 				strcat(deeper,"/");
 				strcat(deeper,direntry->d_name);
-				printf("read_write_data() 7: test: %s\n", test);
 				read_write_data(NULL,7,deeper,NULL);
 				errno = 0;
 				if (rmdir(deeper) != 0) {
@@ -505,6 +519,9 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 					if (options.quit_delete_errors == 1)
 						exit(1);
 				}
+				if (options.show_write_proc != 0)
+					printf("Deleting: %s\n", deeper);
+
 			}
 			if (S_ISREG(file_t->st_mode)) {
 				errno = 0;
@@ -514,6 +531,8 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 					if (options.quit_delete_errors == 1)
 						exit(1);
 				}
+				if (options.show_write_proc != 0)
+					printf("Deleting: %s\n", test);
 			}
 			else if (S_ISLNK(file_t->st_mode)) {
 				errno = 0;
@@ -523,42 +542,8 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 					if (options.quit_delete_errors == 1)
 						exit(1);
 				}
-			}
-			else if (S_ISSOCK(file_t->st_mode)) {
-				errno = 0;
-				if (unlink(test) != 0) {
-					perror("unlink");
-					printf("read_write_data() 7: %s\n", test);
-					if (options.quit_delete_errors == 1)
-						exit(1);
-				}
-			}
-			else if (S_ISFIFO(file_t->st_mode)) {
-				errno = 0;
-				if (unlink(test) != 0) {
-					perror("unlink");
-					printf("read_write_data() 7: %s\n", test);
-					if (options.quit_delete_errors == 1)
-						exit(1);
-				}
-			}
-			else if (S_ISCHR(file_t->st_mode)) {
-				errno = 0;
-				if (unlink(test) != 0) {
-					perror("unlink");
-					printf("read_write_data() 7: %s\n", test);
-					if (options.quit_delete_errors == 1)
-						exit(1);
-				}
-			}
-			else if (S_ISBLK(file_t->st_mode)) {
-				errno = 0;
-				if (unlink(test) != 0) {
-					perror("unlink");
-					printf("read_write_data() 7: %s\n", test);
-					if (options.quit_delete_errors == 1)
-						exit(1);
-				}
+				if (options.show_write_proc != 0)
+					printf("Deleting: %s\n", test);
 			}
 		}
 		return 0;
@@ -585,6 +570,8 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 				if (options.quit_write_errors == 1)
 					exit(1);
 			}
+			if (options.show_write_proc != 0)
+				printf("%s\n", read_file_list->new_location);
 			for (link_del = 0; link_del < link_len; link_del++)
 				linkpath[link_del] = '\0';
 		}
@@ -620,6 +607,8 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 				if (options.quit_write_errors == 1)
 					exit(1);
 			}
+			if (options.show_write_proc != 0)
+				printf("Overwriting %s\n", read_file_list->new_location);
 			for (link_del = 0; link_del < link_len; link_del++)
 				linkpath[link_del] = '\0';
 		}
