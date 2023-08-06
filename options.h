@@ -42,5 +42,7 @@ struct options_menu {
 	int	dont_list_stats;		// dont list statistics about files and dirs, their size, number, etc...
 	int	other_unit;			// if 1, use nondefault, user specified size unit (KB, MB, GB)
 	int	si_units;			// if 1, use multiples of 1000 insted of 1024 for units (KB, MB, GB)
+	int	show_read_proc;			// show read process (listing file or directory currently reading) if 1
+	int	show_write_proc;		// show write process (listing file or directory currently writing) if 1
 	char	unit[2];			// unit to display for size: KB, MB, GB
 };
