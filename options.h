@@ -26,7 +26,8 @@ struct options_menu {
 	int	quit_delete_errors;		// if delete error occurs, if 1 (default) quit the program. if 0, don't quit the program.
 	int	ignore_read_errors;		// ignore read errors. files or dirs that failed to be read will be added to list.
 	int	ignore_write_errors;		// ignore write errors. files or dirs that failed to be written will be added to list.
-	int	copy_surplus_back;		// copy the surplus from the secondary location into the main
+	int	copy_surplus_back;		// copy surplus data from secondary location into main along with syncing directories
+	int	just_copy_surplus_back;		// copy surplus data from secondary location into main, without syncing directories
 	int	delete_surplus; 		// delete surplus files from main location after equating data with secondary location
 	int	ow_main_smaller;		// if two files with the same name are found, overwrite the larger file in the secondary location with the smaller from the main location
 	int	ow_main_larger;			// if two files with the same name are found, overwrite the smaller file in the secondary location with the larger file from the main location
