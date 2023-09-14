@@ -46,4 +46,7 @@ struct options_menu {
 	int	show_read_proc;			// show read process (listing file or directory currently reading) if 1
 	int	show_write_proc;		// show write process (listing file or directory currently writing) if 1
 	char	unit[2];			// unit to display for size: KB, MB, GB
+	int	follow_sym_links;		// follow symbolic links if 1
+	int	(*stat_f)(const char *pathname, struct stat *statbuf);		// pointer to stat() or lstat() function depending on follow_sym_links option
+	int	open_flags;			// flags for open() syscall
 };
