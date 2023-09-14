@@ -70,7 +70,14 @@ int main(int argc, char *argv[])
 	int use_threads = 0;						// in case source and destination directories are on different disk, use threads is set to 1
 	int open_linearly = 0;
 	int len;
-	char *pathname1, *pathname2;
+	//char *pathname1, *pathname2;
+	char pathname1[PATH_MAX], pathname2[PATH_MAX];			// pathnames for directory1 and directory2
+	char pathname1_resolved[PATH_MAX], pathname2_resolved[PATH_MAX];	// pathname resolved after realpath -s shell command
+	char command1[PATH_MAX+13], command2[PATH_MAX+13];		// comand for popen() + pathname
+	char *command = "realpath -s ";					// command for popen()
+	int len1;							// length of pathname1_resolved string
+	int len2;							// length of pathname2_resolved string
+	FILE *fp1, *fp2;						// file pointers for popen()
 	extern char file_loc1[PATH_MAX];				// location of the text file with the complete source and destination file trees
 	char file_loc2[PATH_MAX];					// location of the text file with the data to copy content file location
 	const char *src = "source";
@@ -112,6 +119,8 @@ int main(int argc, char *argv[])
 	char *help_string8 = "If two files with the same name are found, overwrite the smaller file in the secondary location with the larger file from the main location.";
 	char *help_string9 = "--overwrite-type or -e";
 	char *help_string10 = "Overwrite the secondary location file type with the main location file type.";
+	char *help_string45 = "--follow-sym-links or -u";
+	char *help_string46 = "Follow symbolic links.";
 	char *help_string11 = "--list-surplus or -f";
 	char *help_string12 = "Just list surplus files and directories, but dont copy them.";
 	char *help_string13 = "--dont-list-data-to-copy or -g";
@@ -155,6 +164,7 @@ int main(int argc, char *argv[])
 	options.ow_main_smaller = 0;
 	options.ow_main_larger = 0;
 	options.ow_type_main = 0;
+	options.follow_sym_links = 0;
 	options.list_surplus = 0;
 	options.dont_list_data_to_copy = 0;
 	options.help = 0;
@@ -168,6 +178,7 @@ int main(int argc, char *argv[])
 	options.si_units = 0;
 	options.show_read_proc = 1;		// on by default
 	options.show_write_proc = 1;		// on by default
+	options.open_flags = 0;
 	
 	copied.copied_data = 0;		// if 1, add size in stats
 	copied.aborted_copying;		// if 1, user aborted copying missing files and dirs
@@ -242,10 +253,11 @@ int main(int argc, char *argv[])
 			{"si-units", no_argument, &options.si_units, 1 },
 			{"dont-show-read-process", no_argument, 0, 'r' },
 			{"dont-show-write-process", no_argument, 0, 'w' },
+			{"follow-sym-links", no_argument, 0, 'u' },
 			{0, 0, 0, 0}
 		};
 
-		c = getopt_long(argc, argv, "abcdefghi:j:k:l:mnopqrwt", long_options, &option_index);
+		c = getopt_long(argc, argv, "abcdefghi:j:k:l:mnopqrwtu", long_options, &option_index);
 		if (c == -1)
 			break;
 		switch (c) {
@@ -331,6 +343,9 @@ int main(int argc, char *argv[])
 			case 't':
 				options.just_copy_surplus_back = 1;
 				break;
+			case 'u':
+				options.follow_sym_links = 1;
+				break;
 			case '?':
 				printf("%c Unknown option. Exiting.\n", optopt);
 				exit(1);
@@ -357,6 +372,7 @@ int main(int argc, char *argv[])
 		printf("%-37s  %s\n", help_string5, help_string6);
 		printf("%-37s  %s\n", help_string7, help_string8);
 		printf("%-37s  %s\n", help_string9, help_string10);
+		printf("%-37s  %s\n", help_string45, help_string46);
 		printf("%-37s  %s\n", help_string11, help_string12);
 		printf("%-37s  %s\n", help_string13, help_string14);
 		printf("%-37s  %s\n", help_string15, help_string16);
@@ -377,12 +393,19 @@ int main(int argc, char *argv[])
 		exit(1);
 	}
 
+	if (options.follow_sym_links == 0) {
+		options.open_flags |= O_NOFOLLOW;
+		options.stat_f = lstat;
+	}
+	else if (options.follow_sym_links == 1)
+		options.stat_f = stat;
+
 	if (options.copy_surplus_back == 1 && options.delete_surplus == 0)
 		options.list_surplus = 1;
 	if (options.copy_surplus_back == 0 && options.delete_surplus == 1)
 		options.delete_surplus = 1;
 	// or maybe allow this, one after the other?
-	if (options.copy_surplus_back == 1 && options.delete_surplus == 1) {
+	if (options.copy_surplus_back == 1 && options.delete_surplus == 1 || options.just_copy_surplus_back == 1 && options.delete_surplus == 1) {
 		printf("Error: two contradicting options: --copy-surplus-back and --delete-surplus. Specify either the one or the other.\n");
 		exit(1);
 	}
@@ -436,54 +459,81 @@ int main(int argc, char *argv[])
 		exit(1);
 	}
 
-	errno = 0;
-	pathname1 = realpath(argv[ind1],NULL);
-	if (pathname1 == NULL) {
-		perror("realpath");
-		printf("Exiting.\n");
+	strcpy(pathname1,argv[ind1]);
+	strcpy(command1,"realpath -s ");
+	strcat(command1,pathname1);
+	if ((fp1 = popen(command1,"r")) != NULL) {
+		if (fgets(pathname1_resolved, PATH_MAX, fp1) != NULL) {
+			len1 = strlen(pathname1_resolved);
+			pathname1_resolved[len1-1] = '\0';
+			if (lstat(pathname1_resolved, &buf1) < 0) {
+				printf("directory1: \n");
+				perror("lstat");
+				exit(1);
+			}
+			if (!S_ISDIR(buf1.st_mode)) {
+				if (S_ISLNK(buf1.st_mode)) {
+					if (options.follow_sym_links == 1)
+						; // tu onda ponovo stat()?????????????????????????????
+					else if (options.follow_sym_links == 0) {
+						printf("Directory 1 is a symbolic link. Exiting.\n");
+						exit(1);
+					}
+				}
+				else {
+					printf("Directory 1 specified is actually not a directory. Exiting.\n");
+					exit(1);
+				}
+			}
+		}
+	}
+	else {
+		perror("popen");
 		exit(1);
 	}
-	errno = 0;
-	if (lstat(pathname1, &buf1) < 0) {
-		if (errno == EFAULT)
-			printf("Specified directory1 does not exist. Exiting.\n");
-		else
-			perror("stat");
+	pclose(fp1);
+
+	strcpy(pathname2,argv[ind2]);
+	strcpy(command2,"realpath -s ");
+	strcat(command2,pathname2);
+	if ((fp2 = popen(command2,"r")) != NULL) {
+		if (fgets(pathname2_resolved, PATH_MAX, fp2) != NULL) {
+			len2 = strlen(pathname2_resolved);
+			pathname2_resolved[len2-1] = '\0';
+			if (lstat(pathname2_resolved, &buf2) < 0) {
+				printf("directory2: \n");
+				perror("lstat");
+				exit(1);
+			}
+			if (!S_ISDIR(buf2.st_mode)) {
+				if (S_ISLNK(buf2.st_mode)) {
+					if (options.follow_sym_links == 1)
+						; // tu onda ponovo stat()????????????????????????
+					else if (options.follow_sym_links == 0) {
+						printf("Directory 2 is a symbolic link. Exiting.\n");
+						exit(1);
+					}
+				}
+				else {
+					printf("Directory 2 specified is actually not a directory. Exiting.\n");
+					exit(1);
+				}
+			}
+		}
+	}
+	else {
+		perror("popen");
 		exit(1);
 	}
-	// test whether pathname arguments are directories
-	if (!S_ISDIR(buf1.st_mode)) {
-		printf("Pathname 1 is not a directory. Exiting.\n");
-		exit(1);
-	}
+	pclose(fp2);
+
 	major1 = major(buf1.st_dev);
 	minor1 = minor(buf1.st_dev);
 
-	errno = 0;
-	pathname2 = realpath(argv[ind2],NULL);
-	if (pathname2 == NULL) {
-		perror("realpath");
-		printf("Exiting.\n");
-		exit(1);
-	}
-	errno = 0;
-	if (lstat(pathname2, &buf2) < 0) {
-		if (errno == EFAULT)
-			printf("Specified directory2 does not exist. Exiting.\n");
-		else
-			perror("stat");
-		exit(1);
-	}
-	// test whether pathname arguments are directories
-	if (!S_ISDIR(buf2.st_mode)) {
-		printf("Pathname 2 is not a directory. Exiting.\n");
-		exit(1);
-	}
-
-	// test whether directories are on the same or different disks
 	major2 = major(buf2.st_dev);
 	minor2 = minor(buf2.st_dev);
 
+	// test whether directories are on the same or different disks
 	if (major1 == major2)
 		open_linearly = 1;
 
@@ -561,8 +611,8 @@ int main(int argc, char *argv[])
 			printf("Empty directories. Exiting.\n");
 			clean_tree(thread_data_a->file_tree_top_dir,0);
 			clean_tree(thread_data_b->file_tree_top_dir,0);
-			free(pathname1);
-			free(pathname2);
+			//free(pathname1);
+			//free(pathname2);
 			if (thread_data_a->id != NULL)
 				free(thread_data_a->id);
 			if (thread_data_b->id != NULL)
@@ -590,8 +640,8 @@ int main(int argc, char *argv[])
 				printf("Empty directories. Exiting.\n");
 				clean_tree(thread_data_a->file_tree_top_dir,0);
 				clean_tree(thread_data_b->file_tree_top_dir,0);
-				free(pathname1);
-				free(pathname2);
+				//free(pathname1);
+				//free(pathname2);
 				if (thread_data_a->id != NULL)
 					free(thread_data_a->id);
 				if (thread_data_b->id != NULL)
@@ -613,8 +663,8 @@ int main(int argc, char *argv[])
 		write_contents_to_file(thread_data_b->file_tree_top_dir,0,0);
 		clean_tree(thread_data_a->file_tree_top_dir,0);
 		clean_tree(thread_data_b->file_tree_top_dir,0);
-		free(pathname1);
-		free(pathname2);
+		//free(pathname1);
+		//free(pathname2);
 		if (thread_data_a->id != NULL)
 			free(thread_data_a->id);
 		if (thread_data_b->id != NULL)
@@ -638,8 +688,8 @@ int main(int argc, char *argv[])
 					if (options.dont_list_stats != 1)
 						list_stats(2,copied);
 					clean_tree(thread_data_a->file_tree_top_dir,0);
-					free(pathname1);
-					free(pathname2);
+					//free(pathname1);
+					//free(pathname2);
 					if (thread_data_a->id != NULL)
 						free(thread_data_a->id);
 					if (thread_data_b->id != NULL)
@@ -661,8 +711,8 @@ int main(int argc, char *argv[])
 			if (options.dont_list_stats != 1)
 				list_stats(2,copied);
 			clean_tree(thread_data_a->file_tree_top_dir,0);
-			free(pathname1);
-			free(pathname2);
+			//free(pathname1);
+			//free(pathname2);
 			if (thread_data_a->id != NULL)
 				free(thread_data_a->id);
 			if (thread_data_b->id != NULL)
@@ -687,8 +737,8 @@ int main(int argc, char *argv[])
 					if (options.dont_list_stats != 1)
 						list_stats(2,copied);
 					clean_tree(thread_data_b->file_tree_top_dir,0);
-					free(pathname1);
-					free(pathname2);
+					//free(pathname1);
+					//free(pathname2);
 					if (thread_data_a->id != NULL)
 						free(thread_data_a->id);
 					if (thread_data_b->id != NULL)
@@ -710,8 +760,8 @@ int main(int argc, char *argv[])
 			if (options.dont_list_stats != 1)
 				list_stats(2,copied);
 			clean_tree(thread_data_b->file_tree_top_dir,0);
-			free(pathname1);
-			free(pathname2);
+			//free(pathname1);
+			//free(pathname2);
 			if (thread_data_a->id != NULL)
 				free(thread_data_a->id);
 			if (thread_data_b->id != NULL)
@@ -903,8 +953,8 @@ int main(int argc, char *argv[])
 			if (options.just_write_copy_content_file == 1) {
 				clean_tree(thread_data_a->file_tree_top_dir,0);
 				clean_tree(thread_data_b->file_tree_top_dir,0);
-				free(pathname1);
-				free(pathname2);
+				//free(pathname1);
+				//free(pathname2);
 				if (thread_data_a->id != NULL)
 					free(thread_data_a->id);
 				if (thread_data_b->id != NULL)
@@ -1131,8 +1181,8 @@ int main(int argc, char *argv[])
 	if (data_copy_info.diff_type_list_secondary != NULL)
 		dlist_destroy(data_copy_info.diff_type_list_secondary);
 
-	free(pathname1);
-	free(pathname2);
+	//free(pathname1);
+	//free(pathname2);
 	if (thread_data_a->id != NULL)
 		free(thread_data_a->id);
 	if (thread_data_b->id != NULL)
