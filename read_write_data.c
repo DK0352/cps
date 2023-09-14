@@ -59,7 +59,7 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 		file_list = data;
 		for (read_file_list = file_list->head; read_file_list != NULL; read_file_list = read_file_list->next) {
 			errno = 0;
-			read_descriptor = open(read_file_list->dir_location, O_RDONLY | O_NOFOLLOW);
+			read_descriptor = open(read_file_list->dir_location, O_RDONLY | options.open_flags);
 			if (read_descriptor == -1) {
 				if (errno == ELOOP) {
 					errno = 0;
@@ -210,8 +210,12 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 			strcat(test,"/");
 			strcat(test,direntry->d_name);
 			errno = 0;
-			if (lstat(test,file_t) != 0)
-				perror("lstat");
+			if (options.stat_f(test,file_t) != 0) {
+				if (options.follow_sym_links == 1)
+					perror("stat");
+				else if (options.follow_sym_links == 0)
+					perror("lstat");
+			}
 			if (S_ISDIR(file_t->st_mode)) {
 				strcpy(new_source,source_path);
 				strcat(new_source,"/");
@@ -500,8 +504,12 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 			strcat(test,direntry->d_name);
 
 			errno = 0;
-			if (lstat(test,file_t) != 0)
-				perror("lstat");
+			if (options.stat_f(test,file_t) != 0) {
+				if (options.follow_sym_links == 1)
+					perror("stat");
+				else if (options.follow_sym_links == 0)
+					perror("lstat");
+			}
 			if (S_ISDIR(file_t->st_mode)) {
 				len1 = strlen(source) + 1;
 				len2 = strlen(direntry->d_name) + 1;
