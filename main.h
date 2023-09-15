@@ -17,6 +17,9 @@
     51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
+#define _DEFAULT_SOURCE
+#define _GNU_SOURCE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -36,5 +39,4 @@
 #include <sys/times.h>
 #include <time.h>
 
-#define _BSD_SOURCE
 #include <sys/sysmacros.h>
