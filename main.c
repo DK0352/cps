@@ -153,6 +153,8 @@ int main(int argc, char *argv[])
 	char *help_string40 = "Don't list files and directories currently reading.";
 	char *help_string41 = "--dont-show-write-process or -w";
 	char *help_string42 = "Don't list files and directories currently writing.";
+	char *help_string47 = "--no-access-time or -v";
+	char *help_string48 = "Do not update the file last access time when the file is read. (linux specific)";
 
 	// 0 option is inactive, 1 option is active
 	options.quit_read_errors = 1;		// on by default
@@ -179,7 +181,8 @@ int main(int argc, char *argv[])
 	options.show_read_proc = 1;		// on by default
 	options.show_write_proc = 1;		// on by default
 	options.open_flags = 0;
-	
+	options.noatime = 0;
+
 	copied.copied_data = 0;		// if 1, add size in stats
 	copied.aborted_copying;		// if 1, user aborted copying missing files and dirs
 	copied.copied_surplus = 0;	// if 1, add size in stats
@@ -254,10 +257,11 @@ int main(int argc, char *argv[])
 			{"dont-show-read-process", no_argument, 0, 'r' },
 			{"dont-show-write-process", no_argument, 0, 'w' },
 			{"follow-sym-links", no_argument, 0, 'u' },
+			{"no-access-time", no_argument, 0, 'v' },
 			{0, 0, 0, 0}
 		};
 
-		c = getopt_long(argc, argv, "abcdefghi:j:k:l:mnopqrwtu", long_options, &option_index);
+		c = getopt_long(argc, argv, "abcdefghi:j:k:l:mnopqrwtuv", long_options, &option_index);
 		if (c == -1)
 			break;
 		switch (c) {
@@ -346,6 +350,10 @@ int main(int argc, char *argv[])
 			case 'u':
 				options.follow_sym_links = 1;
 				break;
+			case 'v':
+				options.noatime = 1;
+				options.open_flags |= O_NOATIME;
+				break;
 			case '?':
 				printf("%c Unknown option. Exiting.\n", optopt);
 				exit(1);
@@ -389,6 +397,7 @@ int main(int argc, char *argv[])
 		printf("%-37s  %s\n", help_string37, help_string38);
 		printf("%-37s  %s\n", help_string39, help_string40);
 		printf("%-37s  %s\n", help_string41, help_string42);
+		printf("%-37s  %s\n", help_string47, help_string48);
 		printf("\n");
 		exit(1);
 	}
@@ -428,7 +437,7 @@ int main(int argc, char *argv[])
 	ow_type_main = 0;
 
 	// optind is the first non-option argument, so it should be a pathname for the first directory. 
-	// then increment it to point to a second directory if there are more arguments, or exit with error if there aren't
+	// then increment it to point to a second directory if there are more arguments, or exit with an error if there aren't
 	index = 1;
 	if (optind < argc) {
 		while (optind < argc) {
