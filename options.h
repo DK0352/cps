@@ -49,4 +49,5 @@ struct options_menu {
 	int	follow_sym_links;		// follow symbolic links if 1
 	int	(*stat_f)(const char *pathname, struct stat *statbuf);		// pointer to stat() or lstat() function depending on follow_sym_links option
 	int	open_flags;			// flags for open() syscall
+	int	noatime;			// do not update the file last access time when the file is read
 };
