@@ -246,7 +246,7 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 				strcat(new_destination,direntry->d_name);
 
 				errno = 0;
-				read_descriptor = open(new_source, O_RDONLY);
+				read_descriptor = open(new_source, O_RDONLY | options.open_flags);
 				if (read_descriptor == -1) {	
 					perror("open");
 					printf("read_write_data() 3: %s\n", source_path);
@@ -340,7 +340,7 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 		file_list = data;
 		for (read_file_list = file_list->head; read_file_list != NULL; read_file_list = read_file_list->next) {
 			errno = 0;
-			read_descriptor = open(read_file_list->dir_location, O_RDONLY | O_NOFOLLOW);
+			read_descriptor = open(read_file_list->dir_location, O_RDONLY | options.open_flags);
 			if (read_descriptor == -1) {
 				if (errno == ELOOP) {
 					errno = 0;
