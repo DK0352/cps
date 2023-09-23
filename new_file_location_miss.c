@@ -20,8 +20,8 @@
 #include "main.h"
 #include "dlist.h"
 
-// This function is used to concatenate name of a file from the main location onto a directory of a new location. It is called because the file from the one location is missing in the other location.
-// It can be used to invert location in case of adding a file to a surplus list, so the file is read from the destination directory, and written to a source directory.
+// This function is used to concatenate the name of a file from a main location to a directory of a new location. It is called because the file from one location is missing in the other location.
+// It can be used to invert location in case of adding a file to a surplus list, so the file is read from a destination directory, and written to a source directory.
 char *new_file_location_miss(DListElmt *main_location, DList_of_lists *new_location, DList *insert_to)
 {
 	int size1, size2, size3;
