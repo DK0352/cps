@@ -97,6 +97,7 @@ int main(int argc, char *argv[])
 	int ind1 = 0;				// used for checking argv arguments
 	int ind2 = 0;				// used for checking argv arguments
 	int index;				// used for checking argv arguments
+	char *version = "1.0.3";		// cps version number
 
 	char *string1 = "Files copied:\n";
 	char *string2 = "Directories copied:\n";
@@ -398,6 +399,8 @@ int main(int argc, char *argv[])
 		printf("%-37s  %s\n", help_string39, help_string40);
 		printf("%-37s  %s\n", help_string41, help_string42);
 		printf("%-37s  %s\n", help_string47, help_string48);
+		printf("\n");
+		printf("cps %s\n", version);
 		printf("\n");
 		exit(1);
 	}
