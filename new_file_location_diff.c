@@ -20,8 +20,8 @@
 #include "main.h"
 #include "dlist.h"
 
-// This function is used when two files with a same name are found, but different size or type. It just adds a file to a list to copy. It can be used to invert location in case of adding file
-// to a surplus list, so file is read from the destionation directory and written to a source directory
+// This function is used when two files with the same name are found, but different size or type. It just adds a file to a list to copy. It can be used to invert location in case of adding the file
+// to a surplus list, so the file is read from the destionation directory and written to the source directory
 char *new_file_location_diff(DListElmt *main_location, DListElmt *new_location, DList *insert_to)
 {
 	int size1, size2, size3;
