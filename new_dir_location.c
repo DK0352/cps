@@ -35,7 +35,7 @@ char *new_dir_location(DList_of_lists *main_location, DList_of_lists *new_locati
 	}
 	perm = main_location->st_mode;
 	size = main_location->complete_dir_size;
-	// location of b directory to which a directory from main location will be concatenated
+	// location of a B directory to which an A directory from a main location will be concatenated
 	dir_location = strdup(main_location->dir_location);
 	if (dir_location == NULL) {
 		printf("new_dir_location(): strdup error 2. exiting.\n");
