@@ -114,8 +114,14 @@ int compare_trees(struct thread_struct *thread_data_a, struct thread_struct *thr
 
 	/* determine missing or surplus directories within the top directory */
 
-	file_tree_element_a = thread_data_a->file_tree_top_dir->first_dir_in_chain;
-	file_tree_element_b = thread_data_b->file_tree_top_dir->first_dir_in_chain;
+	if (top_location_a->first_dir_in_chain != NULL)
+		file_tree_element_a = top_location_a->first_dir_in_chain;
+	else
+		file_tree_element_a = top_location_a;
+	if (top_location_b->first_dir_in_chain != NULL)
+		file_tree_element_b = top_location_b->first_dir_in_chain;
+	else
+		file_tree_element_b = top_location_b;
 
 	if (dirlist_size_a > same_dir_num && dirlist_size_b == same_dir_num) {
 		while (file_tree_element_a != NULL) {
@@ -129,7 +135,6 @@ int compare_trees(struct thread_struct *thread_data_a, struct thread_struct *thr
 						exit(1);
 					}
 				}
-				file_tree_element_b = file_tree_element_b->this_directory;
 				new_dir_location(file_tree_element_a,file_tree_element_b,data_copy_info.dirs_to_copy_list);
 
 				data_copy_info.global_dirs_to_copy_num++;
@@ -157,7 +162,6 @@ int compare_trees(struct thread_struct *thread_data_a, struct thread_struct *thr
 						exit(1);
 					}
 				}
-				file_tree_element_a = file_tree_element_a->this_directory;
 				new_dir_location(file_tree_element_b,file_tree_element_a,data_copy_info.dirs_surplus_list);
 
 				data_copy_info.global_dirs_surplus_num++;
@@ -185,7 +189,6 @@ int compare_trees(struct thread_struct *thread_data_a, struct thread_struct *thr
 						exit(1);
 					}
 				}
-				file_tree_element_b = file_tree_element_b->this_directory;
 				new_dir_location(file_tree_element_a,file_tree_element_b,data_copy_info.dirs_to_copy_list);
 
 				data_copy_info.global_dirs_to_copy_num++;
@@ -199,8 +202,10 @@ int compare_trees(struct thread_struct *thread_data_a, struct thread_struct *thr
 			else
 				file_tree_element_a = file_tree_element_a->next;
 		}
-		file_tree_element_a = thread_data_a->file_tree_top_dir->first_dir_in_chain;
-		file_tree_element_b = thread_data_b->file_tree_top_dir->first_dir_in_chain;
+		if (top_location_a->first_dir_in_chain != NULL)
+			file_tree_element_a = top_location_a->first_dir_in_chain;
+		else
+			file_tree_element_a = top_location_a;
 		while (file_tree_element_b != NULL) {
 			if (file_tree_element_b->found_dir_match != 1) {
 				if (data_copy_info.dirs_surplus_list == NULL) {
@@ -212,7 +217,6 @@ int compare_trees(struct thread_struct *thread_data_a, struct thread_struct *thr
 						exit(1);
 					}
 				}
-				file_tree_element_a = file_tree_element_a->this_directory;
 				new_dir_location(file_tree_element_b,file_tree_element_a,data_copy_info.dirs_surplus_list);
 
 				data_copy_info.global_dirs_surplus_num++;
