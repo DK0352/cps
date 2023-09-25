@@ -244,7 +244,7 @@ int main(int argc, char *argv[])
 			{"just-list-surplus", no_argument, 0, 'f' },
 			{"dont-list-data-to-copy", no_argument, 0, 'g' },
 			{"help", no_argument, 0, 'h' },
-			{"write-content-file", required_argument, 0, 'i' },
+			{"content-file", required_argument, 0, 'i' },
 			{"just-content-file", required_argument, 0, 'j' },
 			{"copy-content-file", required_argument, 0, 'k' },
 			{"just-copy-content-file", required_argument, 0, 'l' },
