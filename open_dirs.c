@@ -42,6 +42,8 @@ int open_dirs(struct thread_struct *thread_data)
 
 	errno = 0;
 	dir = opendir(thread_data->directory);
+	if (strcmp("/proc",thread_data->directory) == 0)
+		return 0;
 	if (dir == NULL) {
 		if (errno == EACCES) {
 			if (options.quit_read_errors != 0) {
@@ -119,7 +121,8 @@ int open_dirs(struct thread_struct *thread_data)
 			exit(1);
 		}
 		strcpy(location,thread_data->directory);
-		strcat(location,"/");
+		if (strcmp(location,"/") != 0)
+			strcat(location,"/");
 		strcat(location,name);
 
 		if (options.show_read_proc != 0)
