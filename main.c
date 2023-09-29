@@ -241,7 +241,7 @@ int main(int argc, char *argv[])
 			{"overwrite-with-smaller", no_argument, 0, 'c' },
 			{"overwrite-with-larger", no_argument, 0, 'd' },
 			{"overwrite-type", no_argument, 0, 'e' },
-			{"just-list-surplus", no_argument, 0, 'f' },
+			{"list-surplus", no_argument, 0, 'f' },
 			{"dont-list-data-to-copy", no_argument, 0, 'g' },
 			{"help", no_argument, 0, 'h' },
 			{"content-file", required_argument, 0, 'i' },
@@ -590,15 +590,15 @@ int main(int argc, char *argv[])
 
 	// open the source and destination directories, linearly if they are on the same disk, use threads otherwise
 	if (open_linearly == 1 && use_threads == 0) {
-		thread_data_a->directory = pathname1;
-		thread_data_b->directory = pathname2;
+		thread_data_a->directory = pathname1_resolved;
+		thread_data_b->directory = pathname2_resolved;
 
 		open_dirs(thread_data_a);
 		open_dirs(thread_data_b);
 	}
 	else if (open_linearly == 0 && use_threads == 1) {
-		thread_data_a->directory = pathname1;
-		thread_data_b->directory = pathname2;
+		thread_data_a->directory = pathname1_resolved;
+		thread_data_b->directory = pathname2_resolved;
 		th1_status = pthread_create(&th1,NULL,(void *)open_dirs,(void *)thread_data_a);
 		if (th1_status != 0)
 			exit(1);
@@ -790,7 +790,7 @@ int main(int argc, char *argv[])
 		if (file_list->num != 0) {
 			copy_files = 1;
 			if (options.dont_list_data_to_copy != 1) {
-				printf("Files to copy:\n\n");
+				printf("\nFiles to copy:\n\n");
 				for (file_list_element = file_list->head; file_list_element != NULL; file_list_element = file_list_element->next)
 					printf("file: %s\n location: %s\n new location: %s\n  size: %ld\n\n\n", file_list_element->name, file_list_element->dir_location,
 					file_list_element->new_location, file_list_element->size);
@@ -802,7 +802,7 @@ int main(int argc, char *argv[])
 		if (dir_list->num != 0) {
 			copy_dirs = 1;
 			if (options.dont_list_data_to_copy != 1) {
-				printf("Directories to copy:\n\n");
+				printf("\nDirectories to copy:\n\n");
 				for (dir_list_element = dir_list->head; dir_list_element != NULL; dir_list_element = dir_list_element->next)
 					printf("directory: %s\n location: %s\n new location: %s\n size: %ld\n\n\n", dir_list_element->name, dir_list_element->dir_location, 
 					dir_list_element->new_location, dir_list_element->size);
@@ -814,8 +814,8 @@ int main(int argc, char *argv[])
 		if (file_surp_list->num != 0) {
 			files_surplus = 1;
 			if (options.list_surplus == 1) {
-				printf("Surplus files:\n\n");
-				if (options.copy_surplus_back == 1) {
+				printf("\nSurplus files:\n\n");
+				if (options.delete_surplus != 1) {
 					for (file_list_element = file_surp_list->head; file_list_element != NULL; file_list_element = file_list_element->next)
 						printf("file: %s\n location: %s\n new location: %s\n size: %ld\n\n\n", file_list_element->name, file_list_element->dir_location, 
 						file_list_element->new_location, file_list_element->size);
@@ -833,10 +833,17 @@ int main(int argc, char *argv[])
 		if (dir_surp_list->num != 0) {
 			dirs_surplus = 1;
 			if (options.list_surplus == 1) {
-				printf("Surplus directories\n\n");
-				for (dir_list_element = dir_surp_list->head; dir_list_element != NULL; dir_list_element = dir_list_element->next)
-					printf("directory: %s\n location: %s\n new location: %s\n size: %ld\n\n\n", dir_list_element->name, dir_list_element->dir_location, 
-					dir_list_element->new_location, dir_list_element->size);
+				printf("\nSurplus directories\n\n");
+				if (options.delete_surplus != 1) {
+					for (dir_list_element = dir_surp_list->head; dir_list_element != NULL; dir_list_element = dir_list_element->next)
+						printf("directory: %s\n location: %s\n new location: %s\n size: %ld\n\n\n", dir_list_element->name, dir_list_element->dir_location, 
+						dir_list_element->new_location, dir_list_element->size);
+				}
+				else if (options.delete_surplus == 1) {
+					for (dir_list_element = dir_surp_list->head; dir_list_element != NULL; dir_list_element = dir_list_element->next)
+						printf("directory: %s\n location: %s\n size: %ld\n\n\n", dir_list_element->name, dir_list_element->dir_location, 
+						dir_list_element->size);
+				}
 			}
 		}
 	}
@@ -846,7 +853,7 @@ int main(int argc, char *argv[])
 			if (options.ow_main_smaller == 1)
 				ow_main_smaller = 1; // overwrite main smaller
 			if (options.dont_list_data_to_copy != 1) {
-				printf("Files to overwrite. (source location files smaller than the destination)\n\n");
+				printf("\nFiles to overwrite. (source location files smaller than the destination)\n\n");
 				for (file_list_element = file_ms_list->head; file_list_element != NULL; file_list_element = file_list_element->next) {
 					printf("file: %s\n location: %s\n new location: %s\n size: %ld\n\n\n", file_list_element->name, file_list_element->dir_location, 
 					file_list_element->new_location, file_list_element->size);
@@ -860,7 +867,7 @@ int main(int argc, char *argv[])
 			if (options.ow_main_larger == 1)
 				ow_main_larger = 1; // overwrite main larger
 			if (options.dont_list_data_to_copy != 1) {
-				printf("Files to overwrite. (source location files larger than the destination)\n\n");
+				printf("\nFiles to overwrite. (source location files larger than the destination)\n\n");
 				for (file_list_element = file_ml_list->head; file_list_element != NULL; file_list_element = file_list_element->next) {
 					printf("file: %s\n location: %s\n new location: %s\n size: %ld\n\n\n", file_list_element->name, file_list_element->dir_location, 
 					file_list_element->new_location, file_list_element->size);
@@ -874,7 +881,7 @@ int main(int argc, char *argv[])
 			if (options.ow_type_main == 1)
 				ow_type_main = 1; // overwrite the location secondary file with the main location file
 			if (options.dont_list_data_to_copy != 1) {
-				printf("Files to overwrite. (source location type will overwrite the destination file type)\n\n");
+				printf("\nFiles to overwrite. (source location type will overwrite the destination file type)\n\n");
 				for (file_list_element = diff_type_main->head; file_list_element != NULL; file_list_element = file_list_element->next) {
 					printf("file: %s\n location %s\n new location: %s\n size: %ld\n\n\n", file_list_element->name, file_list_element->dir_location,
 					file_list_element->new_location, file_list_element->size);
