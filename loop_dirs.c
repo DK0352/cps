@@ -61,10 +61,12 @@ int loop_dirs(DList_of_lists *file_tree_element_a, DList_of_lists *file_tree_ele
 						file_tree_element_a->found_dir_match = 1;
 						file_tree_element_b->found_dir_match = 1;
 						same_dir_num++;
+						/*if (options.overwrite_time == 1) {
+							file_tree_element_b->atime = file_tree_element_a->atime;
+							file_tree_element_b->mtime = file_tree_element_a->mtime;
+						}*/
 						if (file_tree_element_a->files_size != file_tree_element_b->files_size || file_tree_element_a->file_num != file_tree_element_b->file_num) {
-							//if (file_tree_element_a->this_is_top_dir != 1 && file_tree_element_b->this_is_top_dir != 1) {
-								loop_files(file_tree_element_a,file_tree_element_b);
-							//}
+							loop_files(file_tree_element_a,file_tree_element_b);
 						}
 						if (file_tree_element_a->subdirs_size != file_tree_element_b->subdirs_size || 
 							file_tree_element_a->subdir_num != file_tree_element_b->subdir_num ||
