@@ -53,7 +53,7 @@ void dlist_destroy(DList *list) {
 }
 
 /* dlist_ins_next */
-int dlist_ins_next(DList *list, DListElmt *element, char *name, mode_t perm, long size, char *dir_location, int match, char *new_location) {
+int dlist_ins_next(DList *list, DListElmt *element, char *name, mode_t perm, long size, char *dir_location, int match, char *new_location, time_t atime, time_t mtime) {
 
 	DListElmt	*new_element;
 
@@ -72,6 +72,8 @@ int dlist_ins_next(DList *list, DListElmt *element, char *name, mode_t perm, lon
 	new_element->dir_location = dir_location;
 	new_element->match = match;
 	new_element->new_location = new_location;
+	new_element->atime = atime;
+	new_element->mtime = mtime;
 
 	if (list->num == 0) {
 		/* handle insertation when the list is empty */
