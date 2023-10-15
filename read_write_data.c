@@ -80,6 +80,26 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 						if (options.quit_write_errors == 1)
 							exit(1);
 					}
+					if (options.time_mods == 1) {
+						if (options.preserve_a_time == 1) {
+							options.times[0].tv_sec = read_file_list->atime;
+							errno = 0;
+							if (utimensat(0, read_file_list->new_location, options.times, AT_SYMLINK_NOFOLLOW) == -1) {
+								perror("utimensat");
+								if (options.quit_write_errors == 1)
+									exit(1);
+							}
+						}
+						if (options.preserve_m_time == 1) {
+							options.times[1].tv_sec = read_file_list->mtime;
+							errno = 0;
+							if (utimensat(0, read_file_list->new_location, options.times, AT_SYMLINK_NOFOLLOW) == -1) {
+								perror("utimensat");
+								if (options.quit_write_errors == 1)
+									exit(1);
+							}
+						}
+					}
 					printf("%s\n", read_file_list->new_location);
 					for (link_del = 0; link_del < link_len; link_del++)
 						linkpath[link_del] = '\0';
@@ -102,16 +122,42 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 				if (options.quit_write_errors == 1)	
 					exit(1);
 			}
-			errno = 0;
-			while ((num_read = read(read_descriptor,buf,BUF_SIZE)) > 0) {
-				if (write(write_descriptor, buf, num_read) != num_read) {
-					printf("read_write_data() 1: coudn't write the whole buffer.\n");
+			// novo 14.10.2023
+			else {
+				errno = 0;
+				while ((num_read = read(read_descriptor,buf,BUF_SIZE)) > 0) {
+					if (write(write_descriptor, buf, num_read) != num_read) {
+						printf("read_write_data() 1: coudn't write the whole buffer.\n");
+					}
+				}
+				if (num_read == -1) {
+					perror("read");
+					printf("read_write_data() 1: error reading the data.\n");
+					exit(1);
 				}
 			}
-			if (num_read == -1) {
-				perror("read");
-				printf("read_write_data() 1: error reading the data.\n");
-				exit(1);
+			// ak budes jos time opcija dodavao, treba prvi if if (time_mods == 1), ak da onda koji tip time manipulacija!
+			// vidi sutra with futimens, you need to open the file to change its time. the utimensat proveides a way to change a files times using the files name.
+			// pa vidi jel bi mogao odmah iza opena ubacit to ili sta? takodjer umjesto .tvsec da samo za times[x] = vrijeme.
+			if (options.time_mods == 1) {
+				if (options.preserve_a_time == 1) {
+					options.times[0].tv_sec = read_file_list->atime;
+					errno = 0;
+					if (utimensat(0, read_file_list->new_location, options.times, 0) == -1) {
+						perror("utimensat");
+						if (options.quit_write_errors == 1)
+							exit(1);
+					}
+				}
+				if (options.preserve_m_time == 1) {
+					options.times[1].tv_sec = read_file_list->mtime;
+					errno = 0;
+					if (utimensat(0, read_file_list->new_location, options.times, 0) == -1) {
+						perror("utimensat");
+						if (options.quit_write_errors == 1)
+							exit(1);
+					}
+				}
 			}
 			if (options.show_write_proc != 0)
 				printf("%s\n", read_file_list->new_location);
@@ -121,8 +167,8 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 					exit(1);
 			}
 			if (close(write_descriptor) == -1) {
-				printf("read_write_data() 1: error closing the write descriptor.\n");
-				if (options.quit_write_errors == 1)	
+				printf("read_write_data: error closing the write descriptor.\n");
+				if (options.quit_write_errors == 1)
 					exit(1);
 			}
 		} // for (read_file_list = file_list->head...
@@ -142,9 +188,30 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 				if (options.quit_write_errors == 1)
 					exit(1);
 			}
+			if (options.time_mods == 1) {
+				if (options.preserve_a_time == 1) {
+					options.times[0].tv_sec = read_dir_list->atime;
+					errno = 0;
+					if (utimensat(0, read_dir_list->new_location, options.times, AT_SYMLINK_NOFOLLOW) == -1) {
+						perror("utimensat");
+						if (options.quit_write_errors == 1)
+							exit(1);
+					}
+				}
+				if (options.preserve_m_time == 1) {
+					options.times[1].tv_sec = read_dir_list->mtime;
+					errno = 0;
+					if (utimensat(0, read_dir_list->new_location, options.times, AT_SYMLINK_NOFOLLOW) == -1) {
+						perror("utimensat");
+						if (options.quit_write_errors == 1)
+							exit(1);
+					}
+				}
+			}
+			// ?????????????
 			strcpy(source_path,read_dir_list->dir_location);
-
 			strcpy(destination_path,read_dir_list->new_location);
+
 			if (options.show_write_proc != 0)
 				printf("Directory: %s\n", read_dir_list->new_location);
 
@@ -236,6 +303,26 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 				if (options.show_write_proc != 0)
 					printf("Directory: %s\n", new_destination);
 				read_write_data(NULL,3,new_source,new_destination);
+				if (options.time_mods == 1) {
+					if (options.preserve_a_time == 1) {
+						options.times[0].tv_sec = file_t->st_atime;
+						errno = 0;
+						if (utimensat(0, new_destination, options.times, AT_SYMLINK_NOFOLLOW) == -1) {
+							perror("utimensat");
+								if (options.quit_write_errors == 1)
+							exit(1);
+						}
+					}
+					if (options.preserve_m_time == 1) {
+						options.times[1].tv_sec = file_t->st_mtime;
+						errno = 0;
+						if (utimensat(0, new_destination, options.times, AT_SYMLINK_NOFOLLOW) == -1) {
+							perror("utimensat");
+							if (options.quit_write_errors == 1)
+								exit(1);
+						}
+					}
+				}
 			}
 			else if (S_ISREG(file_t->st_mode)) {
 				strcpy(new_source,source_path);
@@ -263,16 +350,39 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 					if (options.quit_write_errors == 1)
 						exit(1);
 				}
-				errno = 0;
-				while ((num_read = read(read_descriptor,buf,BUF_SIZE)) > 0)
-					if (write(write_descriptor, buf, num_read) != num_read) {
-						printf("read_write_data: coudn't write the whole buffer.\n");
+				// 14.10.2023
+				else {
+					errno = 0;
+					while ((num_read = read(read_descriptor,buf,BUF_SIZE)) > 0)
+						if (write(write_descriptor, buf, num_read) != num_read) {
+							printf("read_write_data: coudn't write the whole buffer.\n");
+						}
+					if (num_read == -1) {
+						perror("read");
+						printf("read_write_data() 3.\n");
+						if (options.quit_read_errors == 1)
+							exit(1);
 					}
-				if (num_read == -1) {
-					perror("read");
-					printf("read_write_data() 3.\n");
-					if (options.quit_read_errors == 1)
-						exit(1);
+				}
+				if (options.time_mods == 1) {
+					if (options.preserve_a_time == 1) {
+						options.times[0].tv_sec = file_t->st_atime;
+						errno = 0;
+						if (utimensat(0, new_destination, options.times, AT_SYMLINK_NOFOLLOW) == -1) {
+							perror("utimensat");
+							if (options.quit_write_errors == 1)
+								exit(1);
+						}
+					}
+					if (options.preserve_m_time == 1) {
+						options.times[1].tv_sec = file_t->st_mtime;
+						errno = 0;
+						if (utimensat(0, new_destination, options.times, AT_SYMLINK_NOFOLLOW) == -1) {
+							perror("utimensat");
+							if (options.quit_write_errors == 1)
+								exit(1);
+						}
+					}
 				}
 				if (options.show_write_proc != 0)
 					printf("%s\n", new_destination);
@@ -287,7 +397,7 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 						exit(1);
 				}
 			}
-			else if (S_ISLNK(file_t->st_mode)) {  /*case S_IFCHR: case S_IFBLK: case S_IFLNK: case S_IFIFO: case S_IFSOCK:*/
+			else if (S_ISLNK(file_t->st_mode)) {
 				strcpy(new_source,source_path);
 				strcat(new_source,"/");
 				strcat(new_source,direntry->d_name);
@@ -311,6 +421,26 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 					printf("read_write_data 3: %s\n", new_destination);
 					if (options.quit_write_errors == 1)
 						exit(1);
+				}
+				if (options.time_mods == 1) {
+					if (options.preserve_a_time == 1) {
+						options.times[0].tv_sec = file_t->st_atime;
+						errno = 0;
+						if (utimensat(0, new_destination, options.times, AT_SYMLINK_NOFOLLOW) == -1) {
+							perror("utimensat");
+							if (options.quit_write_errors == 1)
+								exit(1);
+						}
+					}
+					if (options.preserve_m_time == 1) {
+						options.times[1].tv_sec = file_t->st_mtime;
+						errno = 0;
+						if (utimensat(0, new_destination, options.times, AT_SYMLINK_NOFOLLOW) == -1) {
+							perror("utimensat");
+							if (options.quit_write_errors == 1)
+								exit(1);
+						}
+					}
 				}
 				if (options.show_write_proc != 0)
 					printf("%s\n", new_destination);
@@ -368,6 +498,26 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 						if (options.quit_write_errors == 1)
 							exit(1);
 					}
+					if (options.time_mods == 1) {
+						if (options.preserve_a_time == 1) {
+							options.times[0].tv_sec = read_file_list->atime;
+							errno = 0;
+							if (utimensat(0, read_file_list->new_location, options.times, AT_SYMLINK_NOFOLLOW) == -1) {
+								perror("utimensat");
+								if (options.quit_write_errors == 1)
+									exit(1);
+							}
+						}
+						if (options.preserve_m_time == 1) {
+							options.times[1].tv_sec = read_file_list->mtime;
+							errno = 0;
+							if (utimensat(0, read_file_list->new_location, options.times, AT_SYMLINK_NOFOLLOW) == -1) {
+								perror("utimensat");
+								if (options.quit_write_errors == 1)
+									exit(1);
+							}
+						}
+					}
 					if (options.show_write_proc != 0)
 						printf("Overwriting: %s\n", read_file_list->new_location);
 					for (link_del = 0; link_del < link_len; link_del++)
@@ -391,17 +541,40 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 				if (options.quit_write_errors == 1)
 					exit(1);
 			}
-			errno = 0;
-			while ((num_read = read(read_descriptor,buf,BUF_SIZE)) > 0) {
-				if (write(write_descriptor, buf, num_read) != num_read) {
-					printf("read_write_data: coudn't write the whole buffer.\n");
+			// 14.10.2023
+			else {
+				errno = 0;
+				while ((num_read = read(read_descriptor,buf,BUF_SIZE)) > 0) {
+					if (write(write_descriptor, buf, num_read) != num_read) {
+						printf("read_write_data: coudn't write the whole buffer.\n");
+					}
+				}
+				if (num_read == -1) {
+					perror("read");
+					printf("read_write_data() 4: error reading the data.\n");
+					if (options.quit_read_errors == 1)
+						exit(1);
 				}
 			}
-			if (num_read == -1) {
-				perror("read");
-				printf("read_write_data() 4: error reading the data.\n");
-				if (options.quit_read_errors == 1)
-					exit(1);
+			if (options.time_mods == 1) {
+				if (options.preserve_a_time == 1) {
+					options.times[0].tv_sec = read_file_list->atime;
+					errno = 0;
+					if (utimensat(0, read_file_list->new_location, options.times, 0) == -1) {
+						perror("utimensat");
+						if (options.quit_write_errors == 1)
+							exit(1);
+					}
+				}
+				if (options.preserve_m_time == 1) {
+					options.times[1].tv_sec = read_file_list->mtime;
+					errno = 0;
+					if (utimensat(0, read_file_list->new_location, options.times, 0) == -1) {
+						perror("utimensat");
+						if (options.quit_write_errors == 1)
+							exit(1);
+					}
+				}
 			}
 			if (options.show_write_proc != 0)
 				printf("Overwriting: %s\n", read_file_list->new_location);
@@ -578,6 +751,26 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 				if (options.quit_write_errors == 1)
 					exit(1);
 			}
+			if (options.time_mods == 1) {
+				if (options.preserve_a_time == 1) {
+					options.times[0].tv_sec = read_file_list->atime;
+					errno = 0;
+					if (utimensat(0, read_file_list->new_location, options.times, AT_SYMLINK_NOFOLLOW) == -1) {
+						perror("utimensat");
+						if (options.quit_write_errors == 1)
+							exit(1);
+					}
+				}
+				if (options.preserve_m_time == 1) {
+					options.times[1].tv_sec = read_file_list->mtime;
+					errno = 0;
+					if (utimensat(0, read_file_list->new_location, options.times, AT_SYMLINK_NOFOLLOW) == -1) {
+						perror("utimensat");
+						if (options.quit_write_errors == 1)
+							exit(1);
+					}
+				}
+			}
 			if (options.show_write_proc != 0)
 				printf("%s\n", read_file_list->new_location);
 			for (link_del = 0; link_del < link_len; link_del++)
@@ -614,6 +807,26 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 				printf("read_write_data() 9: %s\n", read_file_list->new_location);
 				if (options.quit_write_errors == 1)
 					exit(1);
+			}
+			if (options.time_mods == 1) {
+				if (options.preserve_a_time == 1) {
+					options.times[0].tv_sec = read_file_list->atime;
+					errno = 0;
+					if (utimensat(0, read_file_list->new_location, options.times, AT_SYMLINK_NOFOLLOW) == -1) {
+						perror("utimensat");
+						if (options.quit_write_errors == 1)
+							exit(1);
+					}
+				}
+				if (options.preserve_m_time == 1) {
+					options.times[1].tv_sec = read_file_list->mtime;
+					errno = 0;
+					if (utimensat(0, read_file_list->new_location, options.times, AT_SYMLINK_NOFOLLOW) == -1) {
+						perror("utimensat");
+						if (options.quit_write_errors == 1)
+							exit(1);
+					}
+				}
 			}
 			if (options.show_write_proc != 0)
 				printf("Overwriting %s\n", read_file_list->new_location);
