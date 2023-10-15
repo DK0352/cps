@@ -25,6 +25,9 @@ typedef struct DListElmt_ {
 	char				*dir_location;	// location of a file
 	int				match;		// used in loop_files and loop_dirs function to signal that files has been compared
 	char				*new_location;	// new location for a file in case it needs to be copied to a new location
+	time_t				atime;		// access time
+	time_t				mtime;		// modification time
+	//DList_of_lists_			*tree_position;	// position in the file tree. (dlist of lists). used to refer back to it from the file or dir. lists to copy.
 	struct DListElmt_		*prev;
 	struct DListElmt_		*next;
 } DListElmt;
@@ -54,17 +57,14 @@ typedef struct DList_of_lists_ {
 	int				one_of_the_top_dirs_num; // number of the top subdirectory
 	int				this_is_top_dir;	// mark that this is a top subdirectory
 	mode_t				st_mode;		// type/permission
+	time_t				atime;			// acccess time
+	time_t				mtime;			// modification time
 	char				*source_pathname;	// source directory - is this needed?
 	char				*destination_pathname;	// destination directory - is this needed?
 	char				*dirname;		// name of directory
 	char				*dir_location;		// directory location
 	DList				*files;			// linked list of files
 	DList				*directories;		// linked list of directories
-	DList				*sym_links;		
-	DList				*sockets;		
-	DList				*fifos;
-	DList				*ch_devs;
-	DList				*bl_devs;
 	DList				*files_to_copy;		// files to copy
 	DList				*dirs_to_copy;		// directories to copy
 	DList				*files_surplus;		// file surplus
@@ -76,7 +76,7 @@ typedef struct DList_of_lists_ {
 	struct DList_of_lists_		*one_of_the_top_dirs;	// points to the top subdirectory of the file tree
 	struct DList_of_lists_		*first_dir_in_chain;	// first directory in a list of directories in a file tree
 	struct DList_of_lists_		*last_dir_in_chain;	// last directory in a list of directories in a file tree
-	struct DList_of_lists_		*this_directory;	// first element in the list of directories in the current subdirectory. if you specify directory->down on some directory, this is the element you will get to.
+	struct DList_of_lists_		*this_directory;	// first element in the list of directories in the current subdirectory.
 	struct DList_of_lists_		*up;			// to go up the directory hierarchy
 	struct DList_of_lists_		*down;			// to go down the directory hierarchy
 	struct DList_of_lists_		*next;			// next directory in a list
@@ -100,5 +100,5 @@ struct thread_struct {
 
 void dlist_init(DList *list);
 void dlist_destroy(DList *list);
-int dlist_ins_next(DList *list, DListElmt *element, char *name, mode_t perm, long size, char *dir_location, int match, char *new_location);
+int dlist_ins_next(DList *list, DListElmt *element, char *name, mode_t perm, long size, char *dir_location, int match, char *new_location, time_t atime, time_t ctime);
 int dlist_remove(DList *list, DListElmt *element, char **name, char **dir_location, char **new_location);
