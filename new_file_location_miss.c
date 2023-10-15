@@ -56,7 +56,7 @@ char *new_file_location_miss(DListElmt *main_location, DList_of_lists *new_locat
 	strcat(final_path,"/");
 	strcat(final_path,main_location->name);
 
-	dlist_ins_next(insert_to,insert_to->tail,name,st_mode,size,dir_location,0,final_path);
+	dlist_ins_next(insert_to,insert_to->tail,name,st_mode,size,dir_location,0,final_path,0,0);
 
 	return final_path;
 }
