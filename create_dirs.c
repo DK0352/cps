@@ -64,6 +64,8 @@ DList_of_lists *create_top_dirs(DList *list, DList_of_lists *file_tree_element)
 			file_tree_element->dirname = dirlist_pointer->name; /* using directory list created using open_dirs() function and creating dlist_of_lists file tree */
 			file_tree_element->dir_location = dirlist_pointer->dir_location; /* just using pointers as all the allocated data will be destroyed by using dlist_destroy function in process of destroying dlist_of_lists */
 			file_tree_element->st_mode = dirlist_pointer->st_mode;
+			file_tree_element->atime = dirlist_pointer->atime;
+			file_tree_element->mtime = dirlist_pointer->mtime;
 		}
 		// just one directory
 		if (limit == 1) {
@@ -93,6 +95,8 @@ DList_of_lists *create_top_dirs(DList *list, DList_of_lists *file_tree_element)
 			file_tree_element->dirname = dirlist_pointer->name;
 			file_tree_element->dir_location = dirlist_pointer->dir_location;
 			file_tree_element->st_mode = dirlist_pointer->st_mode;
+			file_tree_element->atime = dirlist_pointer->atime;
+			file_tree_element->mtime = dirlist_pointer->mtime;
 		}
 		else if (a == limit && limit != 1) {
 			save_old_position = file_tree_element;
@@ -116,6 +120,8 @@ DList_of_lists *create_top_dirs(DList *list, DList_of_lists *file_tree_element)
 			file_tree_element->dirname = dirlist_pointer->name;
 			file_tree_element->dir_location = dirlist_pointer->dir_location;
 			file_tree_element->st_mode = dirlist_pointer->st_mode;
+			file_tree_element->atime = dirlist_pointer->atime;
+			file_tree_element->mtime = dirlist_pointer->mtime;
 			save_old_position = file_tree_element;
 			file_tree_element = file_tree_element->first_dir_in_chain;
 			file_tree_element->last_dir_in_chain = save_old_position;
@@ -165,6 +171,8 @@ DList_of_lists *create_dirs(DList *list, DList_of_lists *file_tree_element, DLis
 			file_tree_element->dirname = dirlist_pointer->name; 
 			file_tree_element->dir_location = dirlist_pointer->dir_location;
 			file_tree_element->st_mode = dirlist_pointer->st_mode;
+			file_tree_element->atime = dirlist_pointer->atime;
+			file_tree_element->mtime = dirlist_pointer->mtime;
 			if (limit == 1) {
 				file_tree_element->last_dir = 1;
 				file_tree_element->first_dir_in_chain->last_dir_in_chain = file_tree_element;
@@ -190,6 +198,8 @@ DList_of_lists *create_dirs(DList *list, DList_of_lists *file_tree_element, DLis
 			file_tree_element->dirname = dirlist_pointer->name;
 			file_tree_element->dir_location = dirlist_pointer->dir_location;
 			file_tree_element->st_mode = dirlist_pointer->st_mode;
+			file_tree_element->atime = dirlist_pointer->atime;
+			file_tree_element->mtime = dirlist_pointer->mtime;
 		}
 
 		else if (a == limit && limit != 1) {
@@ -212,6 +222,8 @@ DList_of_lists *create_dirs(DList *list, DList_of_lists *file_tree_element, DLis
 			file_tree_element->dirname = dirlist_pointer->name;
 			file_tree_element->dir_location = dirlist_pointer->dir_location;
 			file_tree_element->st_mode = dirlist_pointer->st_mode;
+			file_tree_element->atime = dirlist_pointer->atime;
+			file_tree_element->mtime = dirlist_pointer->mtime;
 			save_old_position = file_tree_element;
 			file_tree_element = file_tree_element->first_dir_in_chain;
 			file_tree_element->last_dir_in_chain = save_old_position;
