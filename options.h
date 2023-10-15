@@ -50,4 +50,8 @@ struct options_menu {
 	int	(*stat_f)(const char *pathname, struct stat *statbuf);		// pointer to stat() or lstat() function depending on follow_sym_links option
 	int	open_flags;			// flags for open() syscall
 	int	noatime;			// do not update the file last access time when the file is read
+	int	time_mods;			// some timestamp options are enabled
+	struct	timespec times[2];		// for use with utimensat()
+	int	preserve_a_time;		// preserve access times
+	int	preserve_m_time;		// preserve modification times
 };
