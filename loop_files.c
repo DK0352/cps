@@ -56,7 +56,7 @@ int loop_files(DList_of_lists *file_tree_element_a, DList_of_lists *file_tree_el
 
 	same_file_num = 0;
 
-	/* compare_l is the larger file list, compare_s is the smaller file list. main_mark marks the source (main) directory. this is arranged so that smaller list is compared against larger, and
+	/* compare_l is the larger file list, compare_s is the smaller file list. main_mark marks the source (main) directory. this is arranged so that smaller list is compared against  the larger, and
 	the rest is simply added as the files to copy list, or the files surplus list if the same_file_num variable doesn't match the number of files in the source and destination directories. */
 	if (filelist_num_a > 0 && filelist_num_b > 0) {
 		if (filelist_num_a > filelist_num_b) {
@@ -86,12 +86,22 @@ int loop_files(DList_of_lists *file_tree_element_a, DList_of_lists *file_tree_el
 		after the loop takes care whether files are added to the copy or the surplus lists. */
 		for (compare_l = list_l; compare_l != NULL; compare_l = compare_l->next) {
 			for (compare_s = list_s; compare_s != NULL; compare_s = compare_s->next) {
-				/* Compare file names. If they are same and match isn't 1 (which means that that haven't already been compared, set match to 1, 
+				/* Compare file names. If they are same and match isn't 1 (which means that they haven't already been compared, set match to 1, 
 				increase same_file_num variable and countinue further with comparsion */
 				if (compare_l->match != 1 && compare_s->match != 1 && strcmp(compare_l->name,compare_s->name) == 0) {
 					compare_l->match = 1;
 					compare_s->match = 1;
-					same_file_num++; 
+					same_file_num++;
+					/*if (options.overwrite_time == 1) {
+						if (main_mark == COMPARE_L) {
+							compare_s->atime = compare_l->atime;
+							compare_s->mtime = compare_l->mtime;
+						}
+						else if (main_mark == COMPARE_S) {
+							compare_l->atime = compare_s->atime;
+							compare_l->mtime = compare_s->mtime;
+						}
+					}*/
 					// Found the files with the same name; compare their size, type, and add them to appropriate list if there is some difference...
 					if (compare_l->size != compare_s->size) {
 						if (compare_l->size > compare_s->size) {
