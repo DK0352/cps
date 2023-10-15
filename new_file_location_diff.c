@@ -50,8 +50,7 @@ char *new_file_location_diff(DListElmt *main_location, DListElmt *new_location, 
 		exit(1);
 	}
 
-	dlist_ins_next(insert_to,insert_to->tail,name,st_mode,size,dir_location_1,0,dir_location_2);
-	printf("new_file_location_diff poslije dlist_ins_next\n");
+	dlist_ins_next(insert_to,insert_to->tail,name,st_mode,size,dir_location_1,0,dir_location_2,0,0);
 
 	return dir_location_2;
 }
