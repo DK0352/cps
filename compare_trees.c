@@ -88,22 +88,26 @@ int compare_trees(struct thread_struct *thread_data_a, struct thread_struct *thr
 		if (file_tree_element_a != NULL && file_tree_element_b != NULL && dirlist_size_a != 0 && dirlist_size_b != 0) {
 			for (file_tree_element_a = top_location_a->first_dir_in_chain; file_tree_element_a != NULL; file_tree_element_a = file_tree_element_a->next) {
 				for (file_tree_element_b = top_location_b->first_dir_in_chain; file_tree_element_b != NULL; file_tree_element_b = file_tree_element_b->next) {
-						if (strcmp(file_tree_element_a->dirname,file_tree_element_b->dirname) == 0) {
-							++same_dir_num;
-							file_tree_element_a->found_dir_match = 1;
-							file_tree_element_b->found_dir_match = 1;
-							if (file_tree_element_a->files_size != file_tree_element_b->files_size ||
-								file_tree_element_a->file_num != file_tree_element_b->file_num) {
-								loop_files(file_tree_element_a, file_tree_element_b);
-							}
-							if (file_tree_element_a->subdirs_size != file_tree_element_b->subdirs_size ||
-								file_tree_element_a->complete_dir_num != file_tree_element_b->complete_dir_num ||
-								file_tree_element_a->subdir_file_num != file_tree_element_b->subdir_file_num) {
-								location_a_down = file_tree_element_a->down;
-								location_b_down = file_tree_element_b->down;
-								loop_dirs(location_a_down, location_b_down);
-							}
-						} // if strcmp(dirname,dirname)
+					if (strcmp(file_tree_element_a->dirname,file_tree_element_b->dirname) == 0) {
+						++same_dir_num;
+						file_tree_element_a->found_dir_match = 1;
+						file_tree_element_b->found_dir_match = 1;
+						/*if (options.overwrite_time == 1) {
+							file_tree_element_b->atime = file_tree_element_a->atime;
+							file_tree_element_b->mtime = file_tree_element_a->mtime;
+						}*/
+						if (file_tree_element_a->files_size != file_tree_element_b->files_size ||
+							file_tree_element_a->file_num != file_tree_element_b->file_num) {
+							loop_files(file_tree_element_a, file_tree_element_b);
+						}
+						if (file_tree_element_a->subdirs_size != file_tree_element_b->subdirs_size ||
+							file_tree_element_a->complete_dir_num != file_tree_element_b->complete_dir_num ||
+							file_tree_element_a->subdir_file_num != file_tree_element_b->subdir_file_num) {
+							location_a_down = file_tree_element_a->down;
+							location_b_down = file_tree_element_b->down;
+							loop_dirs(location_a_down, location_b_down);
+						}
+					} // if strcmp(dirname,dirname)
 				} // for loop b
 			} // for loop a
 		} // if prije for loop a
