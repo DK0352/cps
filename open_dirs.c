@@ -144,18 +144,14 @@ int open_dirs(struct thread_struct *thread_data)
 			printf("opendirs(): lstat(): file: %s\n", location);
 			exit(1);
 		}
-
-		// if (thread_data->file_function(location,file_t) != 0)
 		if (S_ISDIR(file_t->st_mode)) {
-			dlist_ins_next(thread_data->directories, thread_data->directories->tail, name, file_t->st_mode, 0, location, 0, NULL);
+			dlist_ins_next(thread_data->directories, thread_data->directories->tail, name, file_t->st_mode, 0, location, 0, NULL, file_t->st_atime, file_t->st_mtime);
 		}
 		else if (S_ISREG(file_t->st_mode)) {
-			size = file_t->st_size;
-			dlist_ins_next(thread_data->files, thread_data->files->tail, name, file_t->st_mode, size, location, 0, NULL);
+			dlist_ins_next(thread_data->files, thread_data->files->tail, name, file_t->st_mode, file_t->st_size, location, 0, NULL, file_t->st_atime, file_t->st_mtime);
 		}
 		else if (S_ISLNK(file_t->st_mode)) {
-			size = file_t->st_size;
-			dlist_ins_next(thread_data->files,thread_data->files->tail,name,file_t->st_mode,size,location,data5_val,NULL);
+			dlist_ins_next(thread_data->files, thread_data->files->tail, name, file_t->st_mode, file_t->st_size, location, data5_val, NULL, file_t->st_atime, file_t->st_mtime);
 		}
 	} // for (;;)
 
