@@ -37,15 +37,12 @@ void init_to_zero(DList_of_lists *file_tree_element)
 	file_tree_element->one_of_the_top_dirs_num = 0;
 	file_tree_element->this_is_top_dir = 0;
 	file_tree_element->st_mode = 0;
+	file_tree_element->atime = 0;
+	file_tree_element->mtime = 0;
 	file_tree_element->dirname = NULL;
 	file_tree_element->dir_location = NULL;
 	file_tree_element->files = NULL;
 	file_tree_element->directories = NULL;
-	file_tree_element->sym_links = NULL;
-	file_tree_element->sockets = NULL;
-	file_tree_element->fifos = NULL;
-	file_tree_element->ch_devs = NULL;
-	file_tree_element->bl_devs = NULL;
 	file_tree_element->files_to_copy = NULL;
 	file_tree_element->dirs_to_copy = NULL;
 	file_tree_element->files_surplus = NULL;
