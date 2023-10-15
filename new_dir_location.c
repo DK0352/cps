@@ -58,7 +58,7 @@ char *new_dir_location(DList_of_lists *main_location, DList_of_lists *new_locati
 	strcat(final_path,"/");
 	strcat(final_path,dirname);
 
-	dlist_ins_next(insert_to,insert_to->tail,dirname,perm,size,dir_location,0,final_path);
+	dlist_ins_next(insert_to,insert_to->tail,dirname,perm,size,dir_location,0,final_path,0,0);
 
 	return final_path;
 }
