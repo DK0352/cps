@@ -92,10 +92,6 @@ int compare_trees(struct thread_struct *thread_data_a, struct thread_struct *thr
 						++same_dir_num;
 						file_tree_element_a->found_dir_match = 1;
 						file_tree_element_b->found_dir_match = 1;
-						/*if (options.overwrite_time == 1) {
-							file_tree_element_b->atime = file_tree_element_a->atime;
-							file_tree_element_b->mtime = file_tree_element_a->mtime;
-						}*/
 						if (file_tree_element_a->files_size != file_tree_element_b->files_size ||
 							file_tree_element_a->file_num != file_tree_element_b->file_num) {
 							loop_files(file_tree_element_a, file_tree_element_b);
