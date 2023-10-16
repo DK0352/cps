@@ -138,7 +138,6 @@ int open_dirs(struct thread_struct *thread_data)
 		}
 
 		errno = 0;
-		//if (lstat(location,file_t) != 0) {
 		if (options.stat_f(location,file_t) != 0) {
 			perror("lstat");
 			printf("opendirs(): lstat(): file: %s\n", location);
