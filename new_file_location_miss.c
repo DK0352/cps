@@ -19,6 +19,8 @@
 
 #include "main.h"
 #include "dlist.h"
+#include "options.h"
+extern struct options_menu options;
 
 // This function is used to concatenate the name of a file from a main location to a directory of a new location. It is called because the file from one location is missing in the other location.
 // It can be used to invert location in case of adding a file to a surplus list, so the file is read from a destination directory, and written to a source directory.
@@ -29,6 +31,10 @@ char *new_file_location_miss(DListElmt *main_location, DList_of_lists *new_locat
 	mode_t st_mode;
 	long size;
 	char *final_path;
+	time_t atime, mtime;
+
+	atime = 0;
+	mtime = 0;
 
 	size1 = size2 = size3 = 0;
 
@@ -56,7 +62,15 @@ char *new_file_location_miss(DListElmt *main_location, DList_of_lists *new_locat
 	strcat(final_path,"/");
 	strcat(final_path,main_location->name);
 
-	dlist_ins_next(insert_to,insert_to->tail,name,st_mode,size,dir_location,0,final_path,0,0);
+	if (options.time_mods == 0)
+		dlist_ins_next(insert_to,insert_to->tail,name,st_mode,size,dir_location,0,final_path,main_location->atime,main_location->mtime);
+	else if (options.time_mods == 1) {
+		if (options.preserve_a_time == 1)
+			atime = main_location->atime;
+		if (options.preserve_m_time == 1)
+			mtime = main_location->mtime;
+		dlist_ins_next(insert_to,insert_to->tail,name,st_mode,size,dir_location,0,final_path,main_location->atime,main_location->mtime);
+	}
 
 	return final_path;
 }
