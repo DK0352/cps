@@ -92,16 +92,6 @@ int loop_files(DList_of_lists *file_tree_element_a, DList_of_lists *file_tree_el
 					compare_l->match = 1;
 					compare_s->match = 1;
 					same_file_num++;
-					/*if (options.overwrite_time == 1) {
-						if (main_mark == COMPARE_L) {
-							compare_s->atime = compare_l->atime;
-							compare_s->mtime = compare_l->mtime;
-						}
-						else if (main_mark == COMPARE_S) {
-							compare_l->atime = compare_s->atime;
-							compare_l->mtime = compare_s->mtime;
-						}
-					}*/
 					// Found the files with the same name; compare their size, type, and add them to appropriate list if there is some difference...
 					if (compare_l->size != compare_s->size) {
 						if (compare_l->size > compare_s->size) {
