@@ -19,6 +19,8 @@
 
 #include "main.h"
 #include "dlist.h"
+#include "options.h"
+extern struct options_menu options;
 
 char *new_dir_location(DList_of_lists *main_location, DList_of_lists *new_location, DList *insert_to)
 {
@@ -27,6 +29,10 @@ char *new_dir_location(DList_of_lists *main_location, DList_of_lists *new_locati
 	mode_t perm;
 	long size;
 	char *final_path;
+	time_t atime, mtime;
+
+	atime = 0;
+	mtime = 0;
 
 	dirname = strdup(main_location->dirname);
 	if (dirname == NULL) {
@@ -35,7 +41,7 @@ char *new_dir_location(DList_of_lists *main_location, DList_of_lists *new_locati
 	}
 	perm = main_location->st_mode;
 	size = main_location->complete_dir_size;
-	// location of a B directory to which an A directory from a main location will be concatenated
+	// location of a B directory to which an A directory from a main location will be copied
 	dir_location = strdup(main_location->dir_location);
 	if (dir_location == NULL) {
 		printf("new_dir_location(): strdup error 2. exiting.\n");
@@ -58,7 +64,15 @@ char *new_dir_location(DList_of_lists *main_location, DList_of_lists *new_locati
 	strcat(final_path,"/");
 	strcat(final_path,dirname);
 
-	dlist_ins_next(insert_to,insert_to->tail,dirname,perm,size,dir_location,0,final_path,0,0);
+	if (options.time_mods == 0)
+		dlist_ins_next(insert_to,insert_to->tail,dirname,perm,size,dir_location,0,final_path,main_location->atime,main_location->mtime);
+	else if (options.time_mods == 1) {
+		if (options.preserve_a_time == 1)
+			atime = main_location->atime;
+		if (options.preserve_m_time == 1)
+			mtime = main_location->mtime;
+		dlist_ins_next(insert_to,insert_to->tail,dirname,perm,size,dir_location,0,final_path,main_location->atime,main_location->mtime);
+	}
 
 	return final_path;
 }
