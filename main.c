@@ -90,7 +90,7 @@ int main(int argc, char *argv[])
 	int ind1 = 0;				// used for checking argv arguments
 	int ind2 = 0;				// used for checking argv arguments
 	int index;				// used for checking argv arguments
-	char *version = "1.0.4";		// cps version number
+	char *version = "1.0.5";		// cps version number
 
 	char *string1 = "Files copied:\n";
 	char *string2 = "Directories copied:\n";
@@ -101,31 +101,31 @@ int main(int argc, char *argv[])
 	char *string7 = "Surplus files deleted:\n";
 	char *string8 = "Surplus directories deleted:\n";
 
-	char *help_string1 = "--copy-surplus-back or -a";
+	char *help_string1 = "--copy-surplus-back or -b";
 	char *help_string2 = "Copy the surplus data from the secondary (directory 2) location into the main location (directory 1) while synchronizing the directories.";
-	char *help_string3 = "--delete-surplus or -b";
+	char *help_string3 = "--delete-surplus or -x";
 	char *help_string4 = "Delete the surplus data from the secondary (directory 2) location while synchronizing the directories.";
-	char *help_string5 = "--overwrite-with-smaller or -c";
+	char *help_string5 = "--overwrite-with-smaller or -s";
 	char *help_string6 = "If two files with the same name are found, overwrite the larger file in the secondary location with the smaller from the main location.";
-	char *help_string7 = "--overwrite-with-larger or -d";
+	char *help_string7 = "--overwrite-with-larger or -l";
 	char *help_string8 = "If two files with the same name are found, overwrite the smaller file in the secondary location with the larger file from the main location.";
-	char *help_string9 = "--overwrite-type or -e";
+	char *help_string9 = "--overwrite-type or -t";
 	char *help_string10 = "Overwrite the secondary location file type with the main location file type.";
 	char *help_string11 = "--list-surplus or -f";
 	char *help_string12 = "Just list surplus files and directories, but dont copy them.";
-	char *help_string13 = "--dont-list-data-to-copy or -g";
+	char *help_string13 = "--dont-list-data-to-copy or -d";
 	char *help_string14 = "Don't list the files and directories to copy after scaning.";
 	char *help_string15 = "--help or -h";
 	char *help_string16 = "Show help and options.";
-	char *help_string17 = "--content-file=[FILE] or -i";
+	char *help_string17 = "--content-file=[FILE] or -c";
 	char *help_string18 = "Write the content of both directories to a file before copying.";
-	char *help_string19 = "--just-content-file=[FILE] or -j";
+	char *help_string19 = "--just-content-file=[FILE] or -C";
 	char *help_string20 = "Just write the content of both directories to a file and exit the program.";
 	char *help_string21 = "--copy-content-file=[FILE] or -k";
 	char *help_string22 = "Write the files and directories to copy into a file.";
-	char *help_string23 = "--just-copy-content-file=[FILE] or -l";
+	char *help_string23 = "--just-copy-content-file=[FILE] or -K";
 	char *help_string24 = "Just write the files and directories to copy into a file and exit the program.";
-	char *help_string25 = "--dont-list-stats or -m";
+	char *help_string25 = "--dont-list-stats or -D";
 	char *help_string26 = "Don't list statistics about the file and directory size, number, etc.";
 	char *help_string27 = "--dont-quit-read-errors or -n";
 	char *help_string28 = "Don't quit on read errors. Useful for unexpected permissions on a file or directory.";
@@ -143,16 +143,16 @@ int main(int argc, char *argv[])
 	char *help_string40 = "Don't list files and directories currently reading.";
 	char *help_string41 = "--dont-show-write-process or -w";
 	char *help_string42 = "Don't list files and directories currently writing.";
-	char *help_string43 = "--just-copy-surplus-back or -t";
+	char *help_string43 = "--just-copy-surplus-back or -B";
 	char *help_string44 = "Just copy the surplus data from the secondary (directory 2) location into the main location (directory 1), but don't synchronize directories.";
-	char *help_string45 = "--follow-sym-links or -s";
+	char *help_string45 = "--follow-sym-links or -S";
 	char *help_string46 = "Follow symbolic links.";
 	char *help_string47 = "--no-access-time or -T";
-	char *help_string48 = "Do not update the file last access time when the file is read. (linux specific)";
+	char *help_string48 = "Do not update the last access time on files in the source directory during copying.";
 	char *help_string49 = "--preserve-atime or -A";
-	char *help_string50 = "Preserve access timestamps during data copying.";
+	char *help_string50 = "Preserve access time on the data to be copied.";
 	char *help_string51 = "--preserve-mtime or -M";
-	char *help_string52 = "Preserve modification time during data copying.";
+	char *help_string52 = "Preserve modification time on the data to be copied.";
 
 	// 0 option is inactive, 1 option is active
 	options.quit_read_errors = 1;		// on by default
@@ -235,20 +235,20 @@ int main(int argc, char *argv[])
 		int this_option_optind = optind ? optind : 1;
 		int option_index = 0;
 		static struct option long_options[] = {
-			{"copy-surplus-back", no_argument, 0, 'a' },
-			{"delete-surplus", no_argument, 0, 'b' },
-			{"just-copy-surplus-back", no_argument, 0, 't' },
-			{"overwrite-with-smaller", no_argument, 0, 'c' },
-			{"overwrite-with-larger", no_argument, 0, 'd' },
+			{"copy-surplus-back", no_argument, 0, 'b' },
+			{"delete-surplus", no_argument, 0, 'x' },
+			{"just-copy-surplus-back", no_argument, 0, 'B' },
+			{"overwrite-with-smaller", no_argument, 0, 's' },
+			{"overwrite-with-larger", no_argument, 0, 'l' },
 			{"overwrite-type", no_argument, 0, 'e' },
 			{"list-surplus", no_argument, 0, 'f' },
-			{"dont-list-data-to-copy", no_argument, 0, 'g' },
+			{"dont-list-data-to-copy", no_argument, 0, 'd' },
 			{"help", no_argument, 0, 'h' },
-			{"content-file", required_argument, 0, 'i' },
-			{"just-content-file", required_argument, 0, 'j' },
+			{"content-file", required_argument, 0, 'c' },
+			{"just-content-file", required_argument, 0, 'C' },
 			{"copy-content-file", required_argument, 0, 'k' },
-			{"just-copy-content-file", required_argument, 0, 'l' },
-			{"dont-list-stats", no_argument, 0, 'm' },
+			{"just-copy-content-file", required_argument, 0, 'K' },
+			{"dont-list-stats", no_argument, 0, 'D' },
 			{"dont-quit-read-errors", no_argument, 0, 'n' },
 			{"dont-quit-write-errors", no_argument, 0, 'o' },
 			{"dont-quit-delete-errors", no_argument, 0, 'p' },
@@ -257,14 +257,14 @@ int main(int argc, char *argv[])
 			{"si-units", no_argument, &options.si_units, 1 },
 			{"dont-show-read-process", no_argument, 0, 'r' },
 			{"dont-show-write-process", no_argument, 0, 'w' },
-			{"follow-sym-links", no_argument, 0, 's' },
+			{"follow-sym-links", no_argument, 0, 'S' },
 			{"no-access-time", no_argument, 0, 'T' },
 			{"preserve-atime", no_argument, 0, 'A' },
 			{"preserve-mtime", no_argument, 0, 'M' },
 			{0, 0, 0, 0}
 		};
 
-		c = getopt_long(argc, argv, "abcdefghi:j:k:l:mnopqrwtuvTAM", long_options, &option_index);
+		c = getopt_long(argc, argv, "abc:defhk:lnopqrstuvwxABC:DK:MST", long_options, &option_index);
 		if (c == -1)
 			break;
 		switch (c) {
@@ -286,35 +286,35 @@ int main(int argc, char *argv[])
 					}
 				}
 				break;
-			case 'a':
+			case 'b':
 				options.copy_surplus_back = 1;
 				break;
-			case 'b':
+			case 'x':
 				options.delete_surplus = 1;
 				break;
-			case 'c':
+			case 's':
 				options.ow_main_smaller = 1;
 				break;
-			case 'd':
+			case 'l':
 				options.ow_main_larger = 1;
 				break;
-			case 'e':
+			case 't':
 				options.ow_type_main = 1;
 				break;
 			case 'f':
 				options.list_surplus = 1;
 				break;
-			case 'g':
+			case 'd':
 				options.dont_list_data_to_copy = 1;
 				break;
 			case 'h':
 				options.help = 1;
 				break;
-			case 'i':
+			case 'c':
 				options.write_content_file = 1;
 				strcpy(file_loc1,optarg);
 				break;
-			case 'j':
+			case 'C':
 				options.just_write_content_file = 1;
 				strcpy(file_loc1,optarg);
 				break;
@@ -322,11 +322,11 @@ int main(int argc, char *argv[])
 				options.write_copy_content_file = 1;
 				strcpy(file_loc2,optarg);
 				break;
-			case 'l':
+			case 'K':
 				options.just_write_copy_content_file = 1;
 				strcpy(file_loc2,optarg);
 				break;
-			case 'm':
+			case 'D':
 				options.dont_list_stats = 1;
 				break;
 			case 'n':
@@ -347,10 +347,10 @@ int main(int argc, char *argv[])
 			case 'w':
 				options.show_write_proc = 0;
 				break;
-			case 't':
+			case 'B':
 				options.just_copy_surplus_back = 1;
 				break;
-			case 's':
+			case 'S':
 				options.follow_sym_links = 1;
 				break;
 			case 'T':
