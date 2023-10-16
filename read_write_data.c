@@ -136,9 +136,6 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 					exit(1);
 				}
 			}
-			// ak budes jos time opcija dodavao, treba prvi if if (time_mods == 1), ak da onda koji tip time manipulacija!
-			// vidi sutra with futimens, you need to open the file to change its time. the utimensat proveides a way to change a files times using the files name.
-			// pa vidi jel bi mogao odmah iza opena ubacit to ili sta? takodjer umjesto .tvsec da samo za times[x] = vrijeme.
 			if (options.time_mods == 1) {
 				if (options.preserve_a_time == 1) {
 					options.times[0].tv_sec = read_file_list->atime;
@@ -148,6 +145,9 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 						if (options.quit_write_errors == 1)
 							exit(1);
 					}
+					printf("atime = %s\n", ctime(&read_file_list->atime));
+					sleep(3);
+					printf("options.preserve_m_time = %d\n", options.preserve_m_time);
 				}
 				if (options.preserve_m_time == 1) {
 					options.times[1].tv_sec = read_file_list->mtime;
@@ -157,6 +157,9 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 						if (options.quit_write_errors == 1)
 							exit(1);
 					}
+					printf("PA JEL IDE TU JEBOTE????\n");
+					printf("mtime = %s\n", ctime(&read_file_list->mtime));
+					sleep(3);
 				}
 			}
 			if (options.show_write_proc != 0)
