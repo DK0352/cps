@@ -57,4 +57,5 @@ struct Data_Copy_Info {
 	unsigned long 	global_sym_links_num_b;		// number of symbolic links in the destination directory
 	unsigned long 	global_sym_links_size_a;	// size of symbolic links in the source directory
 	unsigned long 	global_sym_links_size_b;	// number of symbolic links in the destination directory
+	unsigned long	dlist_of_lists_num;		// benchmark
 };
