@@ -230,6 +230,7 @@ int main(int argc, char *argv[])
 	data_copy_info.global_sym_links_num_b = 0;
 	data_copy_info.global_sym_links_size_a = 0;
 	data_copy_info.global_sym_links_size_b = 0;
+	data_copy_info.dlist_of_lists_num = 0;
 
 	while (1) {
 		int this_option_optind = optind ? optind : 1;
@@ -765,6 +766,7 @@ int main(int argc, char *argv[])
 		}
 	}
 
+	printf("dlist_of_lists_num = %ld\n", data_copy_info.dlist_of_lists_num);
 	// prepare/list all the data to copy, overwrite or delete
 	file_list = data_copy_info.files_to_copy_list;
 	if (file_list != NULL) {
