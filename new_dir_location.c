@@ -64,14 +64,17 @@ char *new_dir_location(DList_of_lists *main_location, DList_of_lists *new_locati
 	strcat(final_path,"/");
 	strcat(final_path,dirname);
 
-	if (options.time_mods == 0)
+	if (options.time_mods == 0) {
 		dlist_ins_next(insert_to,insert_to->tail,dirname,perm,size,dir_location,0,final_path,main_location->atime,main_location->mtime);
+		insert_to->tail->tree_position = main_location;
+	}
 	else if (options.time_mods == 1) {
 		if (options.preserve_a_time == 1)
 			atime = main_location->atime;
 		if (options.preserve_m_time == 1)
 			mtime = main_location->mtime;
 		dlist_ins_next(insert_to,insert_to->tail,dirname,perm,size,dir_location,0,final_path,main_location->atime,main_location->mtime);
+		insert_to->tail->tree_position = main_location;
 	}
 
 	return final_path;
