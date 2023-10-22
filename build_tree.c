@@ -220,7 +220,7 @@ void build_rest_of_the_tree(struct thread_struct *thread_data, unsigned long *p_
 			file_tree_element->complete_file_num += files->num;
 			file_tree_element->files_size += files->files_size;
 			file_tree_element->complete_dir_size += files->files_size;
-			alloc = malloc(sizeof(DList_of_lists));
+			/*alloc = malloc(sizeof(DList_of_lists));
 			if (alloc == NULL) {
 				printf("build_rest_of_the_tree(): malloc() error 1.\n");
 				exit(1);
@@ -233,7 +233,7 @@ void build_rest_of_the_tree(struct thread_struct *thread_data, unsigned long *p_
 			file_tree_element->down = alloc;
 			file_tree_element = file_tree_element->down;
 			file_tree_element->up = save_up_position;
-			file_tree_element->one_of_the_top_dirs = save_up_position->one_of_the_top_dirs;  // upitno
+			file_tree_element->one_of_the_top_dirs = save_up_position->one_of_the_top_dirs;*/
 		}
 	}
 	/* directories only */
