@@ -52,6 +52,7 @@ void build_tree(struct thread_struct *thread_data)
 		printf("build_tree(): malloc() error 1.\n");
 		exit(1);
 	}
+	data_copy_info.dlist_of_lists_num++;
 	thread_data->file_tree_top_dir = file_tree_top_dir;
 	file_tree_element = file_tree_top_dir;	/* same element, but this top_dir stays to refer to the top of the tree, first directory from which everything starts */
 	init_to_zero(file_tree_element);
@@ -201,7 +202,8 @@ void build_rest_of_the_tree(struct thread_struct *thread_data, unsigned long *p_
 {
 	DList_of_lists 		*file_tree_top_dir, *file_tree_element, *alloc, *save_up_position;
 	DList			*files, *directories;
-
+	extern struct Data_Copy_Info data_copy_info; // benchmark
+						     //
 	files = thread_data->files;
 	directories = thread_data->directories;
 	file_tree_element = thread_data->file_tree;
@@ -223,6 +225,7 @@ void build_rest_of_the_tree(struct thread_struct *thread_data, unsigned long *p_
 				printf("build_the_rest_of_the_tree(): malloc() error 1.\n");
 				exit(1);
 			}
+			data_copy_info.dlist_of_lists_num++;
 			alloc->dirname = file_tree_element->dirname;
 			alloc->dir_location = file_tree_element->dir_location;
 			file_tree_element->down = alloc;
@@ -245,6 +248,7 @@ void build_rest_of_the_tree(struct thread_struct *thread_data, unsigned long *p_
 				printf("built_the_rest_of_the_tree(): malloc() error 2.\n");
 				exit(1);
 			}
+			data_copy_info.dlist_of_lists_num++;
 			init_to_zero(alloc);
 			alloc->dirname = file_tree_element->dirname;
 			alloc->dir_location = file_tree_element->dir_location;
@@ -284,6 +288,7 @@ void build_rest_of_the_tree(struct thread_struct *thread_data, unsigned long *p_
 				printf("built_the_rest_of_the_tree(): malloc() error 3.\n");
 				exit(1);
 			}
+			data_copy_info.dlist_of_lists_num++;
 			init_to_zero(alloc);
 			alloc->dirname = file_tree_element->dirname;
 			alloc->dir_location = file_tree_element->dir_location;
