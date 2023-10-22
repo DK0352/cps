@@ -90,12 +90,12 @@ int write_contents_to_file(DList_of_lists *directory, short opened, int f_descri
 		return 0;
 	} // if (opened == 0)
 	else if (opened == 1) {
-		if (directory == directory->this_directory) {
+		/*if (directory == directory->this_directory) {
 			if (directory->first_dir_in_chain != NULL)
 				directory = directory->first_dir_in_chain;
 			else
 				return 0;
-		}
+		}*/
 		while (directory->last_dir != 1) {
 			write(f_descriptor,directory->dir_location,strlen(directory->dir_location));
 			write(f_descriptor,"\n",1);
