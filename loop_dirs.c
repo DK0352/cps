@@ -37,24 +37,24 @@ int loop_dirs(DList_of_lists *file_tree_element_a, DList_of_lists *file_tree_ele
 
 	same_dir_num = 0;
 
+	printf("loop_dirs(): a:%s b:%s\n", file_tree_element_a->dirname, file_tree_element_b->dirname);
+	sleep(1);
 	start_a = file_tree_element_a;
-	if (file_tree_element_a != NULL) {
+	if (file_tree_element_a->down != NULL) {
+		file_tree_element_a = file_tree_element_a->down;
 		dirlist_size_a = file_tree_element_a->up->directories->num;
 	}
 	else {
 		dirlist_size_a = 0;
-		file_tree_element_a = file_tree_element_a->up;
-		start_a = file_tree_element_a;
 	}
 		
 	start_b = file_tree_element_b;
-	if (file_tree_element_a != NULL) {
+	if (file_tree_element_b->down != NULL) {
+		file_tree_element_b = file_tree_element_b->down;
 		dirlist_size_b = file_tree_element_b->up->directories->num;
 	}
 	else {
 		dirlist_size_b = 0;
-		file_tree_element_b = file_tree_element_b->up;
-		start_b = file_tree_element_b;
 	}
 
 	if (dirlist_size_a != 0 && dirlist_size_b != 0) {
@@ -71,9 +71,7 @@ int loop_dirs(DList_of_lists *file_tree_element_a, DList_of_lists *file_tree_ele
 						if (file_tree_element_a->subdirs_size != file_tree_element_b->subdirs_size || 
 							file_tree_element_a->subdir_num != file_tree_element_b->subdir_num ||
 							file_tree_element_a->subdir_file_num != file_tree_element_b->subdir_file_num) {
-							//location_a_down = file_tree_element_a->down;
-							//location_b_down = file_tree_element_b->down;
-							loop_dirs(file_tree_element_a->down,file_tree_element_b->down);
+							loop_dirs(file_tree_element_a,file_tree_element_b);
 						}
 					} // if (strcmp(file_tree_element_a->dirname,file_tree_element_b->dirname) == 0)
 				}
@@ -98,7 +96,7 @@ int loop_dirs(DList_of_lists *file_tree_element_a, DList_of_lists *file_tree_ele
 						}
 					}
 					if (file_tree_element_b->this_is_top_dir != 1)
-						new_dir_location(file_tree_element_a,file_tree_element_b->up,data_copy_info.dirs_to_copy_list);
+						new_dir_location(file_tree_element_a,file_tree_element_b,data_copy_info.dirs_to_copy_list);
 					else if (file_tree_element_b->this_is_top_dir == 1) {
 						file_tree_element_b = file_tree_element_b->file_tree_top_dir;
 						new_dir_location(file_tree_element_a,file_tree_element_b,data_copy_info.dirs_to_copy_list);
@@ -132,7 +130,7 @@ int loop_dirs(DList_of_lists *file_tree_element_a, DList_of_lists *file_tree_ele
 						}
 					}
 					if (file_tree_element_a->this_is_top_dir != 1)
-						new_dir_location(file_tree_element_b,file_tree_element_a->up,data_copy_info.dirs_surplus_list);
+						new_dir_location(file_tree_element_b,file_tree_element_a,data_copy_info.dirs_surplus_list);
 					else if (file_tree_element_a->this_is_top_dir == 1) {
 						file_tree_element_a = file_tree_element_a->file_tree_top_dir;
 						new_dir_location(file_tree_element_b,file_tree_element_a,data_copy_info.dirs_surplus_list);
@@ -166,7 +164,7 @@ int loop_dirs(DList_of_lists *file_tree_element_a, DList_of_lists *file_tree_ele
 						}
 					}
 					if (file_tree_element_b->this_is_top_dir != 1)
-						new_dir_location(file_tree_element_a,file_tree_element_b->up,data_copy_info.dirs_to_copy_list);
+						new_dir_location(file_tree_element_a,file_tree_element_b,data_copy_info.dirs_to_copy_list);
 					else if (file_tree_element_b->this_is_top_dir == 1) {
 						file_tree_element_b = file_tree_element_b->file_tree_top_dir;
 						new_dir_location(file_tree_element_a,file_tree_element_b,data_copy_info.dirs_to_copy_list);
@@ -196,7 +194,7 @@ int loop_dirs(DList_of_lists *file_tree_element_a, DList_of_lists *file_tree_ele
 						}
 					}
 					if (file_tree_element_a->this_is_top_dir != 1)
-						new_dir_location(file_tree_element_b,file_tree_element_a->up,data_copy_info.dirs_surplus_list);
+						new_dir_location(file_tree_element_b,file_tree_element_a,data_copy_info.dirs_surplus_list);
 					else if (file_tree_element_a->this_is_top_dir == 1) {
 						file_tree_element_a = file_tree_element_a->file_tree_top_dir;
 						new_dir_location(file_tree_element_b,file_tree_element_a,data_copy_info.dirs_surplus_list);
@@ -232,7 +230,7 @@ int loop_dirs(DList_of_lists *file_tree_element_a, DList_of_lists *file_tree_ele
 					}
 				}
 				if (file_tree_element_b->this_is_top_dir != 1)
-					new_dir_location(file_tree_element_a,file_tree_element_b->up,data_copy_info.dirs_to_copy_list);
+					new_dir_location(file_tree_element_a,file_tree_element_b,data_copy_info.dirs_to_copy_list);
 				else if (file_tree_element_b->this_is_top_dir == 1) {
 					file_tree_element_b = file_tree_element_b->file_tree_top_dir;
 					new_dir_location(file_tree_element_a,file_tree_element_b,data_copy_info.dirs_to_copy_list);
@@ -267,7 +265,7 @@ int loop_dirs(DList_of_lists *file_tree_element_a, DList_of_lists *file_tree_ele
 					}
 				}
 				if (file_tree_element_a->this_is_top_dir != 1)
-					new_dir_location(file_tree_element_b,file_tree_element_a->up,data_copy_info.dirs_surplus_list);
+					new_dir_location(file_tree_element_b,file_tree_element_a,data_copy_info.dirs_surplus_list);
 				else if (file_tree_element_a->this_is_top_dir == 1) {
 					file_tree_element_a = file_tree_element_a->file_tree_top_dir;
 					new_dir_location(file_tree_element_b,file_tree_element_a,data_copy_info.dirs_surplus_list);
