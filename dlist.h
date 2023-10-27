@@ -27,7 +27,7 @@ typedef struct DListElmt_ {
 	char				*new_location;	// new location for a file in case it needs to be copied to a new location
 	time_t				atime;		// access time
 	time_t				mtime;		// modification time
-	//DList_of_lists_			*tree_position;	// position in the file tree. (dlist of lists). used to refer back to it from the file or dir. lists to copy.
+	struct DList_of_lists_		*tree_position;	// position in the file tree. (dlist of lists). used to refer back to it from the file or dir. lists to copy.
 	struct DListElmt_		*prev;
 	struct DListElmt_		*next;
 } DListElmt;
@@ -73,10 +73,10 @@ typedef struct DList_of_lists_ {
 	DList				*diff_size;		// same name, different size
 	DList				*diff_size_ml;		// same name, different size, main larger
 	DList				*diff_size_ms;		// same name, different size, main smaller
+	struct DList_of_lists_		*file_tree_top_dir;	// top directory
 	struct DList_of_lists_		*one_of_the_top_dirs;	// points to the top subdirectory of the file tree
 	struct DList_of_lists_		*first_dir_in_chain;	// first directory in a list of directories in a file tree
 	struct DList_of_lists_		*last_dir_in_chain;	// last directory in a list of directories in a file tree
-	struct DList_of_lists_		*this_directory;	// first element in the list of directories in the current subdirectory.
 	struct DList_of_lists_		*up;			// to go up the directory hierarchy
 	struct DList_of_lists_		*down;			// to go down the directory hierarchy
 	struct DList_of_lists_		*next;			// next directory in a list
@@ -89,10 +89,6 @@ struct thread_struct {
 	DList			*files;		/* list of files */
 	DList			*directories;	/* list of directories */
 	DList			*sym_links;
-	DList			*sockets;
-	DList			*fifos;
-	DList			*ch_devs;
-	DList			*bl_devs;
 	int			(*file_function)(void *data1, void *data2); /* stat or lstat function depending on option*/
 	DList_of_lists		*file_tree, *file_tree_top_dir;	/* file tree elements used in build_tree() and compare_trees() functions */
 	struct thread_struct 	*other_thread_data;

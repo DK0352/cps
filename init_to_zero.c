@@ -54,7 +54,6 @@ void init_to_zero(DList_of_lists *file_tree_element)
 	file_tree_element->one_of_the_top_dirs = NULL;
 	file_tree_element->first_dir_in_chain = NULL;
 	file_tree_element->last_dir_in_chain = NULL;
-	file_tree_element->this_directory = NULL;
 	file_tree_element->up = NULL;
 	file_tree_element->down = NULL;
 	file_tree_element->next = NULL;

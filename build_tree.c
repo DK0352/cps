@@ -55,6 +55,7 @@ void build_tree(struct thread_struct *thread_data)
 	data_copy_info.dlist_of_lists_num++;
 	thread_data->file_tree_top_dir = file_tree_top_dir;
 	file_tree_element = file_tree_top_dir;	/* same element, but this top_dir stays to refer to the top of the tree, first directory from which everything starts */
+	file_tree_element->file_tree_top_dir = file_tree_top_dir;	/* same element, but this top_dir stays to refer to the top of the tree, first directory from which everything starts */
 	init_to_zero(file_tree_element);
 	file_tree_element->this_is_top_dir = 1;
 
@@ -207,6 +208,7 @@ void build_rest_of_the_tree(struct thread_struct *thread_data, unsigned long *p_
 	files = thread_data->files;
 	directories = thread_data->directories;
 	file_tree_element = thread_data->file_tree;
+	extern struct Data_Copy_Info data_copy_info; // benchmark
 
 	/* files only */
 	if (directories == NULL && files != NULL) {
@@ -219,20 +221,6 @@ void build_rest_of_the_tree(struct thread_struct *thread_data, unsigned long *p_
 			file_tree_element->complete_file_num += files->num;
 			file_tree_element->files_size += files->files_size;
 			file_tree_element->complete_dir_size += files->files_size;
-			/*alloc = malloc(sizeof(DList_of_lists));
-			init_to_zero(alloc);
-			if (alloc == NULL) {
-				printf("build_the_rest_of_the_tree(): malloc() error 1.\n");
-				exit(1);
-			}
-			data_copy_info.dlist_of_lists_num++;
-			alloc->dirname = file_tree_element->dirname;
-			alloc->dir_location = file_tree_element->dir_location;
-			file_tree_element->down = alloc;
-			file_tree_element = file_tree_element->down;
-			file_tree_element->up = save_up_position;
-			file_tree_element->one_of_the_top_dirs = save_up_position->one_of_the_top_dirs;  // upitno
-			file_tree_element->this_directory = file_tree_element;*/
 		}
 	}
 	/* directories only */
@@ -252,11 +240,11 @@ void build_rest_of_the_tree(struct thread_struct *thread_data, unsigned long *p_
 			init_to_zero(alloc);
 			alloc->dirname = file_tree_element->dirname;
 			alloc->dir_location = file_tree_element->dir_location;
+			alloc->file_tree_top_dir = file_tree_element->file_tree_top_dir;
 			file_tree_element->down = alloc;
 			file_tree_element = file_tree_element->down;
 			file_tree_element->up = save_up_position;
 			file_tree_element->one_of_the_top_dirs = save_up_position->one_of_the_top_dirs;
-			file_tree_element->this_directory = file_tree_element;
 			file_tree_element = create_dirs(directories,file_tree_element,file_tree_top_dir);
 			for ( ; file_tree_element != NULL; file_tree_element = file_tree_element->next) {
 				thread_data->directory = file_tree_element->dir_location;
@@ -294,10 +282,8 @@ void build_rest_of_the_tree(struct thread_struct *thread_data, unsigned long *p_
 			alloc->dir_location = file_tree_element->dir_location;
 			file_tree_element->down = alloc;
 			file_tree_element = file_tree_element->down;
-			// file_tree_element is now subdir/this directory
 			file_tree_element->up = save_up_position;
 			file_tree_element->one_of_the_top_dirs = save_up_position->one_of_the_top_dirs;
-			file_tree_element->this_directory = file_tree_element;
 			file_tree_element = create_dirs(directories,file_tree_element,file_tree_top_dir);
 			for ( ; file_tree_element != NULL; file_tree_element = file_tree_element->next) {
 				thread_data->directory = file_tree_element->dir_location;

@@ -30,7 +30,7 @@ int clean_tree(DList_of_lists *file_tree_element, short deeper)
 			file_tree_element = file_tree_element->last_dir_in_chain;
 		}
 		else {
-			if (file_tree_element == file_tree_element->this_directory) {
+			if (file_tree_element == file_tree_element->first_dir_in_chain) {
 				if (file_tree_element->files != NULL)
 					dlist_destroy(file_tree_element->files);
 				if (file_tree_element->directories != NULL)
@@ -41,7 +41,7 @@ int clean_tree(DList_of_lists *file_tree_element, short deeper)
 		}
 		if (file_tree_element->down != NULL)
 			clean_tree(file_tree_element->down,1);
-		while (file_tree_element != file_tree_element->this_directory) {
+		while (file_tree_element != file_tree_element->file_tree_top_dir) {
 			if (file_tree_element->files != NULL)
 				dlist_destroy(file_tree_element->files);
 			if (file_tree_element->directories != NULL)
@@ -55,7 +55,7 @@ int clean_tree(DList_of_lists *file_tree_element, short deeper)
 			}
 			file_tree_element = file_tree_element->prev;
 		}
-		if (file_tree_element == file_tree_element->this_directory) {
+		if (file_tree_element == file_tree_element->file_tree_top_dir) {
 			if (file_tree_element->files != NULL)
 				dlist_destroy(file_tree_element->files);
 			if (file_tree_element->directories != NULL)
@@ -82,7 +82,7 @@ int clean_tree(DList_of_lists *file_tree_element, short deeper)
 		if (file_tree_element->down != NULL) {
 			clean_tree(file_tree_element->down,1);
 		}
-		while (file_tree_element != file_tree_element->this_directory) {
+		while (file_tree_element != file_tree_element->first_dir_in_chain) {
 			if (file_tree_element->files != NULL)
 				dlist_destroy(file_tree_element->files);
 			if (file_tree_element->directories != NULL)
@@ -96,7 +96,7 @@ int clean_tree(DList_of_lists *file_tree_element, short deeper)
 			}
 			file_tree_element = file_tree_element->prev;
 		}
-		if (file_tree_element == file_tree_element->this_directory) {
+		if (file_tree_element == file_tree_element->first_dir_in_chain) {
 			if (file_tree_element->files != NULL)
 				dlist_destroy(file_tree_element->files);
 			if (file_tree_element->directories != NULL)

@@ -1,4 +1,11 @@
+<<<<<<< HEAD
 compare_trees_time.c
 cps
 cps-perf
 cps2-system-exp
+=======
+cps
+cps2-system-exp
+compare_trees_time.c
+cps-perf
+>>>>>>> performance

@@ -57,7 +57,7 @@ void extract_size(DList_of_lists *file_tree_element)
 	}
 	else if (file_tree_element->this_is_top_dir == 1) {
 
-		hold_pos = file_tree_element->this_directory;
+		hold_pos = file_tree_element->file_tree_top_dir;
 		file_tree_element = file_tree_element->first_dir_in_chain;
 
 		while (file_tree_element->last_dir != 1) {
