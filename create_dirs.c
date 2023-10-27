@@ -161,7 +161,6 @@ DList_of_lists *create_dirs(DList *list, DList_of_lists *file_tree_element, DLis
 	}
 	for (a = 1; a <= limit; a++, dirlist_pointer = dirlist_pointer->next) {
 		if (a == 1) {
-			data_copy_info.dlist_of_lists_num++;
 			file_tree_element->one_of_the_top_dirs = save_up_position->one_of_the_top_dirs;
 			file_tree_element->dirname = dirlist_pointer->name; 
 			file_tree_element->dir_location = dirlist_pointer->dir_location;
