@@ -582,19 +582,25 @@ int main(int argc, char *argv[])
 		thread_data_a->directory = pathname1;
 		thread_data_b->directory = pathname2;
 		th1_status = pthread_create(&th1,NULL,(void *)open_dirs,(void *)thread_data_a);
-		if (th1_status != 0)
+		if (th1_status != 0) {
+			fprintf(stderr, "pthread_create() thread1 (%d)%s\n", th1_status, strerror(th1_status));
 			exit(1);
+		}
 		th2_status = pthread_create(&th2,NULL,(void *)open_dirs,(void *)thread_data_b);
-		if (th2_status != 0)
+		if (th2_status != 0) {
+			fprintf(stderr, "pthread_create() thread2 (%d)%s\n", th1_status, strerror(th1_status));
 			exit(1);
-
+		}
 		th1_status = pthread_join(th1,(void *)&th1_retval);
 		if (th1_status != 0) {
+			fprintf(stderr, "pthread_join() thread1 (%d)%s\n", th1_status, strerror(th1_status));
 			exit(1);
 		}
 		th2_status = pthread_join(th2,(void *)&th2_retval);
-		if (th2_status != 0)
+		if (th2_status != 0) {
+			fprintf(stderr, "pthread_join() thread2 (%d)%s\n", th2_status, strerror(th2_status));
 			exit(1);
+		}
 	}
 
 	// build the source and destination file trees, linearly if they are on the same disk, use threads otherwise
@@ -618,17 +624,25 @@ int main(int argc, char *argv[])
 	}
 	else if (open_linearly == 0 && use_threads == 1) {
 		th3_status = pthread_create(&th3,NULL,(void *)build_tree,(void *)thread_data_a);
-		if (th3_status != 0)
+		if (th3_status != 0) {
+			fprintf(stderr, "pthread_create() thread3 (%d)%s\n", th3_status, strerror(th3_status));
 			exit(1);
+		}
 		th4_status = pthread_create(&th4,NULL,(void *)build_tree,(void *)thread_data_b);
-		if (th4_status != 0)
+		if (th4_status != 0) {
+			fprintf(stderr, "pthread_create() thread4 (%d)%s\n", th4_status, strerror(th4_status));
 			exit(1);
+		}
 		th3_status = pthread_join(th3,NULL);
-		if (th3_status != 0)
+		if (th3_status != 0) {
+			fprintf(stderr, "pthread_join() thread3 (%d)%s\n", th3_status, strerror(th3_status));
 			exit(1);
+		}
 		th4_status = pthread_join(th4,NULL);
-		if (th4_status != 0)
+		if (th4_status != 0) {
+			fprintf(stderr, "pthread_join() thread4 (%d)%s\n", th4_status, strerror(th4_status));
 			exit(1);
+		}
 		if (th3_status == 0 && th4_status == 0) {
 			if (compare_trees(thread_data_a,thread_data_b) == -1) {
 				printf("Empty directories. Exiting.\n");
