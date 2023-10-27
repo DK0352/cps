@@ -297,6 +297,7 @@ void build_rest_of_the_tree(struct thread_struct *thread_data, unsigned long *p_
 	}
 	/* empty directory */
 	else if (directories == NULL && files == NULL) {
+		file_tree_element->down = NULL;
 		/*save_up_position = file_tree_element;
 		alloc = malloc(sizeof(DList_of_lists));
 		if (alloc == NULL) {
