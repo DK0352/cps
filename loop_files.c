@@ -92,85 +92,168 @@ int loop_files(DList_of_lists *file_tree_element_a, DList_of_lists *file_tree_el
 					compare_l->match = 1;
 					compare_s->match = 1;
 					same_file_num++;
-					// Found the files with the same name; compare their size, type, and add them to appropriate list if there is some difference...
-					if (compare_l->size != compare_s->size) {
-						if (compare_l->size > compare_s->size) {
-							if (main_mark == COMPARE_L) {
-								if (data_copy_info.diff_size_ml_list == NULL) {
-									data_copy_info.diff_size_ml_list = malloc(sizeof(DList));
-									if (data_copy_info.diff_size_ml_list != NULL)
-										dlist_init(data_copy_info.diff_size_ml_list);
-									else {
-										printf("loop_files() malloc() error 1-2.\n");
-										exit(1);
+					// Found the files with the same name; compare their size, type, and add them to the appropriate list if there is some difference...
+					if (consider_time == 0) {
+						if (compare_l->size != compare_s->size) {
+							if (compare_l->size > compare_s->size) {
+								if (main_mark == COMPARE_L) {
+									if (data_copy_info.diff_size_ml_list == NULL) {
+										data_copy_info.diff_size_ml_list = malloc(sizeof(DList));
+										if (data_copy_info.diff_size_ml_list != NULL)
+											dlist_init(data_copy_info.diff_size_ml_list);
+										else {
+											printf("loop_files() malloc() error 1-2.\n");
+											exit(1);
+										}
 									}
+									new_file_location_diff(compare_l,compare_s,data_copy_info.diff_size_ml_list);
+	
+									data_copy_info.global_diff_size_ml_num++;
+									data_copy_info.global_diff_size_ml_size += compare_l->size;
+									data_copy_info.global_diff_size_ml_orig_size += compare_s->size;
+	
+									break;
 								}
-								new_file_location_diff(compare_l,compare_s,data_copy_info.diff_size_ml_list);
-
-								data_copy_info.global_diff_size_ml_num++;
-								data_copy_info.global_diff_size_ml_size += compare_l->size;
-								data_copy_info.global_diff_size_ml_orig_size += compare_s->size;
-
-								break;
-							}
-							else if (main_mark == COMPARE_S) {
-								if (data_copy_info.diff_size_ms_list == NULL) {
-									data_copy_info.diff_size_ms_list = malloc(sizeof(DList));
-									if (data_copy_info.diff_size_ms_list != NULL)
-										dlist_init(data_copy_info.diff_size_ms_list);
-									else {
-										printf("loop_files() malloc() error 3-2.\n");
-										exit(1);
+								else if (main_mark == COMPARE_S) {
+									if (data_copy_info.diff_size_ms_list == NULL) {
+										data_copy_info.diff_size_ms_list = malloc(sizeof(DList));
+										if (data_copy_info.diff_size_ms_list != NULL)
+											dlist_init(data_copy_info.diff_size_ms_list);
+										else {
+											printf("loop_files() malloc() error 3-2.\n");
+											exit(1);
+										}
 									}
+									new_file_location_diff(compare_s,compare_l,data_copy_info.diff_size_ms_list);
+	
+									data_copy_info.global_diff_size_ms_num++;
+									data_copy_info.global_diff_size_ms_size += compare_s->size;
+									data_copy_info.global_diff_size_ms_orig_size += compare_l->size;
+	
+									break;
 								}
-								new_file_location_diff(compare_s,compare_l,data_copy_info.diff_size_ms_list);
-
-								data_copy_info.global_diff_size_ms_num++;
-								data_copy_info.global_diff_size_ms_size += compare_s->size;
-								data_copy_info.global_diff_size_ms_orig_size += compare_l->size;
-
-								break;
-							}
-						} // if (compare_l->size > compare_s->size
-						else if (compare_l->size < compare_s->size) {
-							if (main_mark == COMPARE_L) {
-								if (data_copy_info.diff_size_ms_list == NULL) {
-									data_copy_info.diff_size_ms_list = malloc(sizeof(DList));
-									if (data_copy_info.diff_size_ms_list != NULL)
-										dlist_init(data_copy_info.diff_size_ms_list);
-									else {
-										printf("loop_files() malloc() error 5-2\n");
-										exit(1);
+							} // if (compare_l->size > compare_s->size
+							else if (compare_l->size < compare_s->size) {
+								if (main_mark == COMPARE_L) {
+									if (data_copy_info.diff_size_ms_list == NULL) {
+										data_copy_info.diff_size_ms_list = malloc(sizeof(DList));
+										if (data_copy_info.diff_size_ms_list != NULL)
+											dlist_init(data_copy_info.diff_size_ms_list);
+										else {
+											printf("loop_files() malloc() error 5-2\n");
+											exit(1);
+										}
 									}
+									new_file_location_diff(compare_l,compare_s,data_copy_info.diff_size_ms_list);
+	
+									data_copy_info.global_diff_size_ms_num++;
+									data_copy_info.global_diff_size_ms_size += compare_l->size;
+									data_copy_info.global_diff_size_ms_orig_size += compare_s->size;
+	
+									break;
 								}
-								new_file_location_diff(compare_l,compare_s,data_copy_info.diff_size_ms_list);
-
-								data_copy_info.global_diff_size_ms_num++;
-								data_copy_info.global_diff_size_ms_size += compare_l->size;
-								data_copy_info.global_diff_size_ms_orig_size += compare_s->size;
-
-								break;
-							}
-							else if (main_mark == COMPARE_S) {
-								if (data_copy_info.diff_size_ml_list == NULL) {
-									data_copy_info.diff_size_ml_list = malloc(sizeof(DList));
-									if (data_copy_info.diff_size_ml_list != NULL)
-										dlist_init(data_copy_info.diff_size_ml_list);
-									else {
-										printf("loop_files() malloc() error 7-2\n");
-										exit(1);
+								else if (main_mark == COMPARE_S) {
+									if (data_copy_info.diff_size_ml_list == NULL) {
+										data_copy_info.diff_size_ml_list = malloc(sizeof(DList));
+										if (data_copy_info.diff_size_ml_list != NULL)
+											dlist_init(data_copy_info.diff_size_ml_list);
+										else {
+											printf("loop_files() malloc() error 7-2\n");
+											exit(1);
+										}
 									}
+									new_file_location_diff(compare_s,compare_l,data_copy_info.diff_size_ml_list);
+	
+									data_copy_info.global_diff_size_ml_num++;
+									data_copy_info.global_diff_size_ml_size += compare_s->size;
+									data_copy_info.global_diff_size_ml_orig_size += compare_l->size;
+	
+									break;
 								}
-								new_file_location_diff(compare_s,compare_l,data_copy_info.diff_size_ml_list);
-
-								data_copy_info.global_diff_size_ml_num++;
-								data_copy_info.global_diff_size_ml_size += compare_s->size;
-								data_copy_info.global_diff_size_ml_orig_size += compare_l->size;
-
-								break;
-							}
-						} // if (compare_l->size < compare_s->size
-					} // else if (compare_l->size != compare_s->size) {
+							} // if (compare_l->size < compare_s->size
+						} // if (compare_l->size != compare_s->size) {
+					}	// if (consider_time == 0)
+					else if (consider_time == 1) {
+						if (compare_l->mtime != compare_s->mtime) {
+							if (compare_l->mtime > compare_s->mtime) {
+								if (main_mark == COMPARE_L) {
+									if (data_copy_info.diff_time_mn_list == NULL) {
+										data_copy_info.diff_time_mn_list = malloc(sizeof(DList));
+										if (data_copy_info.diff_time_mn_list != NULL)
+											dlist_init(data_copy_info.diff_time_mn_list);
+										else {
+											printf("loop_files() malloc() error 1-2.\n");
+											exit(1);
+										}
+									}
+									new_file_location_diff(compare_l,compare_s,data_copy_info.diff_time_mn_list);
+	
+									data_copy_info.global_diff_time_mn_num++;
+									data_copy_info.global_diff_time_mn_size += compare_l->size;
+									data_copy_info.global_diff_time_mn_orig_size += compare_s->size;
+	
+									break;
+								}
+								else if (main_mark == COMPARE_S) {
+									if (data_copy_info.diff_time_mo_list == NULL) {
+										data_copy_info.diff_time_mo_list = malloc(sizeof(DList));
+										if (data_copy_info.diff_time_mo_list != NULL)
+											dlist_init(data_copy_info.diff_time_mo_list);
+										else {
+											printf("loop_files() malloc() error 3-2.\n");
+											exit(1);
+										}
+									}
+									new_file_location_diff(compare_s,compare_l,data_copy_info.diff_time_mo_list);
+	
+									data_copy_info.global_diff_time_mo_num++;
+									data_copy_info.global_diff_time_mo_size += compare_s->size;
+									data_copy_info.global_diff_time_mo_orig_size += compare_l->size;
+	
+									break;
+								}
+							} // if (compare_l->size > compare_s->size
+							else if (compare_l->mtime < compare_s->mtime) {
+								if (main_mark == COMPARE_L) {
+									if (data_copy_info.diff_time_mo_list == NULL) {
+										data_copy_info.diff_time_mo_list = malloc(sizeof(DList));
+										if (data_copy_info.diff_time_mo_list != NULL)
+											dlist_init(data_copy_info.diff_time_mo_list);
+										else {
+											printf("loop_files() malloc() error 5-2\n");
+											exit(1);
+										}
+									}
+									new_file_location_diff(compare_l,compare_s,data_copy_info.diff_time_mo_list);
+	
+									data_copy_info.global_diff_time_mo_num++;
+									data_copy_info.global_diff_time_mo_size += compare_l->size;
+									data_copy_info.global_diff_time_mo_orig_size += compare_s->size;
+	
+									break;
+								}
+								else if (main_mark == COMPARE_S) {
+									if (data_copy_info.diff_time_mn_list == NULL) {
+										data_copy_info.diff_time_mn_list = malloc(sizeof(DList));
+										if (data_copy_info.diff_time_mn_list != NULL)
+											dlist_init(data_copy_info.diff_time_mn_list);
+										else {
+											printf("loop_files() malloc() error 7-2\n");
+											exit(1);
+										}
+									}
+									new_file_location_diff(compare_s,compare_l,data_copy_info.diff_time_mn_list);
+	
+									data_copy_info.global_diff_time_mn_num++;
+									data_copy_info.global_diff_time_mn_size += compare_s->size;
+									data_copy_info.global_diff_time_mn_orig_size += compare_l->size;
+	
+									break;
+								}
+							} // if (compare_l->size < compare_s->size
+						}
+					}
+						  // da type ide prije size??????????????????????????????????
 					file1_type = 0;
 					file2_type = 0;
 					file1_type |= compare_l->st_mode;
