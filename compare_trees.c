@@ -84,6 +84,7 @@ int compare_trees(struct thread_struct *thread_data_a, struct thread_struct *thr
 	in subdirectory size/number. it increments sam_dir_num variable for each directory with the same name, and if it matches the number of directories in each directory, the function
 	returns. If not, function does additional comparation and determines which directories are missing in the destination, or which directories are surplus. */
 
+	// i ovaj gornji if ces morat promijenit da je samo za naive mode
 	if (top_location_a->complete_dir_size != top_location_b->complete_dir_size || top_location_a->complete_dir_num != top_location_b->complete_dir_num) {
 		if (file_tree_element_a != NULL && file_tree_element_b != NULL && dirlist_size_a != 0 && dirlist_size_b != 0) {
 			for (file_tree_element_a = top_location_a->first_dir_in_chain; file_tree_element_a != NULL; file_tree_element_a = file_tree_element_a->next) {
@@ -92,14 +93,24 @@ int compare_trees(struct thread_struct *thread_data_a, struct thread_struct *thr
 						++same_dir_num;
 						file_tree_element_a->found_dir_match = 1;
 						file_tree_element_b->found_dir_match = 1;
-						if (file_tree_element_a->files_size != file_tree_element_b->files_size ||
-							file_tree_element_a->file_num != file_tree_element_b->file_num) {
-							loop_files(file_tree_element_a, file_tree_element_b);
+						if (options.naive_mode == 1) {
+							if (file_tree_element_a->files_size != file_tree_element_b->files_size ||
+								file_tree_element_a->file_num != file_tree_element_b->file_num) {
+								loop_files(file_tree_element_a, file_tree_element_b);
+							}
+							if (file_tree_element_a->subdirs_size != file_tree_element_b->subdirs_size ||
+								file_tree_element_a->complete_dir_num != file_tree_element_b->complete_dir_num ||
+								file_tree_element_a->subdir_file_num != file_tree_element_b->subdir_file_num) {
+								loop_dirs(file_tree_element_a, file_tree_element_b);
+							}
 						}
-						if (file_tree_element_a->subdirs_size != file_tree_element_b->subdirs_size ||
-							file_tree_element_a->complete_dir_num != file_tree_element_b->complete_dir_num ||
-							file_tree_element_a->subdir_file_num != file_tree_element_b->subdir_file_num) {
-							loop_dirs(file_tree_element_a, file_tree_element_b);
+						else if (options.naive_mode == 0) {
+								loop_files(file_tree_element_a, file_tree_element_b);
+							}
+							if (file_tree_element_a->subdirs_size != file_tree_element_b->subdirs_size ||
+								loop_dirs(file_tree_element_a, file_tree_element_b);
+							}
+							
 						}
 					} // if strcmp(dirname,dirname)
 				} // for loop b
@@ -112,6 +123,9 @@ int compare_trees(struct thread_struct *thread_data_a, struct thread_struct *thr
 
 	/* determine missing or surplus directories within the top directory */
 
+	printf("same_dir_num: %d\n", same_dir_num);
+	printf("a: %d b: %d\n", dirlist_size_a, dirlist_size_b);
+	sleep(3);
 	if (top_location_a->first_dir_in_chain != NULL)
 		file_tree_element_a = top_location_a->first_dir_in_chain;
 	else
