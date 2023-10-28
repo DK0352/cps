@@ -262,10 +262,14 @@ int main(int argc, char *argv[])
 			{"no-access-time", no_argument, 0, 'T' },
 			{"preserve-atime", no_argument, 0, 'A' },
 			{"preserve-mtime", no_argument, 0, 'M' },
+			// 28.10.2023
+			{"mtime-newer", no_argument, 0, 'N' },
+			{"mtime-older", no_argument, 0, 'O' },
+			// zamjeni gore n za nesto drugo, a naive ce biti n{"naive", no_argument, 0, 'n'},
 			{0, 0, 0, 0}
 		};
 
-		c = getopt_long(argc, argv, "abc:defhk:lnopqrstuvwxABC:DK:MST", long_options, &option_index);
+		c = getopt_long(argc, argv, "abc:defhk:lnopqrstuvwxABC:DK:MNOST", long_options, &option_index);
 		if (c == -1)
 			break;
 		switch (c) {
@@ -366,6 +370,9 @@ int main(int argc, char *argv[])
 				options.preserve_m_time = 1;
 				options.time_mods = 1;
 				break;
+			case 'N':
+				options.consider_time = 1;
+				options.m
 			case '?':
 				printf("%c Unknown option. Exiting.\n", optopt);
 				exit(1);
