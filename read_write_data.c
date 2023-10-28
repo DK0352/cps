@@ -157,9 +157,6 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 						if (options.quit_write_errors == 1)
 							exit(1);
 					}
-					printf("PA JEL IDE TU JEBOTE????\n");
-					printf("mtime = %s\n", ctime(&read_file_list->mtime));
-					sleep(3);
 				}
 			}
 			if (options.show_write_proc != 0)
