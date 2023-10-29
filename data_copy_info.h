@@ -27,8 +27,8 @@ struct Data_Copy_Info {
         DList		*dirs_surplus_list;	// linked list of surplus directories
         DList		*diff_size_ms_list;	// linked list of files with different size, one in the main (source directory) location smaller
         DList		*diff_size_ml_list;	// linked list of files with different size, ine in the main (source directory) location larger
-        DList		*diff_type_list_main;	// linked list of files with the same name, but different type, main (source directory) location
-        DList		*diff_type_list_secondary;	// linked list of files with the same name, but different type, secondary (destination directory) location
+	DList		*diff_time_mn_list;	// linked list of files with newer modification time from the main (source) directory
+	DList		*diff_time_mo_list;	// linked list of files with older modification time from the main (source) directory
         unsigned long   global_files_to_copy_num;       // number of files to copy
         unsigned long	global_files_to_copy_size;      // size of files to copy in bytes
         unsigned long	global_dirs_to_copy_num;        // number of directories to copy
@@ -37,16 +37,18 @@ struct Data_Copy_Info {
         unsigned long	global_files_surplus_size;      // size of surplus files in bytes
         unsigned long	global_dirs_surplus_num;        // number of surplus directories
         unsigned long	global_dirs_surplus_size;       // size of all surplus directories in bytes
-        unsigned long 	global_diff_type_num_main;              // number of files with the same name, but different type, source directory
-        unsigned long	global_diff_type_size_main;             // size of all files with the same name, but different type in bytes, source directory
-        unsigned long 	global_diff_type_num_secondary;         // number of files with the same name, but different type, destination directory
-        unsigned long	global_diff_type_size_secondary;        // size of files with the same name, but different type, destination directory
         unsigned long 	global_diff_size_ms_num;        // number of files with the same name, but different size, source location smaller
         unsigned long	global_diff_size_ms_size;       // size of files with the same name, but different size, source location smaller
 	unsigned long	global_diff_size_ms_orig_size;	// size of files with the same name, but different size, source location smaller, but this one is for the original file
         unsigned long 	global_diff_size_ml_num;        // number of files with the same name, but different size, source location larger
         unsigned long	global_diff_size_ml_size;       // number of files with the same name, but different size, source location larger
 	unsigned long	global_diff_size_ml_orig_size;	// size of files with the same name, but different size, source location larger, but this one is for the original file
+	unsigned long	global_diff_time_mn_num;
+	unsigned long	global_diff_time_mn_size;
+	unsigned long	global_diff_time_mn_orig_size;
+	unsigned long	global_diff_time_mo_num;
+	unsigned long	global_diff_time_mo_size;
+	unsigned long	global_diff_time_mo_orig_size;
         unsigned long 	global_dir_num_a;               // complete number of directories in the source directory
         unsigned long 	global_dir_num_b;               // complete number of directories in the destination directory
         unsigned long 	global_file_num_a;              // complete number of files in the source directory
