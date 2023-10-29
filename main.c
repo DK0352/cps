@@ -32,7 +32,6 @@ struct copied_or_not {
 	int deleted_surplus;		// if 1, subtract size in stats
 	int ow_smaller;
 	int ow_larger;
-	int ow_type_main;
 	int full_dir1_copied;		// if 1, add size in stats
 	int full_dir2_copied;		// if 1, add size in stats
 };
@@ -61,7 +60,6 @@ int main(int argc, char *argv[])
 	struct thread_struct *thread_data_a, *thread_data_b;		// main data structure for reading directories a (source) and b (destination). despite it's name, it is used even if threads are not used.
 	DList *file_list, *dir_list, *file_surp_list, *dir_surp_list;	// file and directory lists, file and directory surplus lists
 	DList *file_ms_list, *file_ml_list;				// file main smaller and main larger lists
-	DList *diff_type_main;						// same name, different type. overwrite with main.
 	DListElmt *file_list_element, *dir_list_element;		// used to loop through file and directory lists to display files and diretories to copy, etc...
 	struct copied_or_not copied;					// determine if user enterted yes to copy data
 	extern struct options_menu options;				// options for program
@@ -83,7 +81,6 @@ int main(int argc, char *argv[])
 	int dirs_surplus;			// there are surplus directories to copy or delete if 1
 	int ow_main_smaller;			// there are files with the same name, smaller in the main location to potentially overwrite
 	int ow_main_larger;			// there are files with the same name, larger in the main location to potentially overwrite
-	int ow_type_main;			// there are files with the name, but of different type. overwrite with the one in the main location 
 	struct stat buf1, buf2; 		// used to test source and destination arguments for program, whether arguments are directories and devices they are located on.
 	int copyfile;				// file descriptor for copy content file
 	int c;					// for getopt_long
@@ -109,8 +106,6 @@ int main(int argc, char *argv[])
 	char *help_string6 = "If two files with the same name are found, overwrite the larger file in the secondary location with the smaller from the main location.";
 	char *help_string7 = "--overwrite-with-larger or -l";
 	char *help_string8 = "If two files with the same name are found, overwrite the smaller file in the secondary location with the larger file from the main location.";
-	char *help_string9 = "--overwrite-type or -t";
-	char *help_string10 = "Overwrite the secondary location file type with the main location file type.";
 	char *help_string11 = "--list-surplus or -f";
 	char *help_string12 = "Just list surplus files and directories, but dont copy them.";
 	char *help_string13 = "--dont-list-data-to-copy or -d";
@@ -127,9 +122,9 @@ int main(int argc, char *argv[])
 	char *help_string24 = "Just write the files and directories to copy into a file and exit the program.";
 	char *help_string25 = "--dont-list-stats or -D";
 	char *help_string26 = "Don't list statistics about the file and directory size, number, etc.";
-	char *help_string27 = "--dont-quit-read-errors or -n";
+	char *help_string27 = "--dont-quit-read-errors or -y";
 	char *help_string28 = "Don't quit on read errors. Useful for unexpected permissions on a file or directory.";
-	char *help_string29 = "--dont-quit-write-errors or -o";
+	char *help_string29 = "--dont-quit-write-errors or -z";
 	char *help_string30 = "Don't quit on write errors. Useful for unexpected permissions on a file or directory.";
 	char *help_string31 = "--dont-quit-delete-errors or -p";
 	char *help_string32 = "Don't quit if deleting the file or directory fails. Useful for unexpected permissions on a file or directory.";
@@ -153,6 +148,10 @@ int main(int argc, char *argv[])
 	char *help_string50 = "Preserve access time on the data to be copied.";
 	char *help_string51 = "--preserve-mtime or -M";
 	char *help_string52 = "Preserve modification time on the data to be copied.";
+	char *help_string53 = "--overwrite-with-newer or -N";
+	char *help_string54 = "If two files with the same name are found, overwrite the older file in the secondary location with the newer from the main location.";
+	char *help_string55 = "--overwrite-with-older or -O";
+	char *help_string56 = "If two files with the same name are found, overwrite the newer file in the secondary location with the older file from the main location.";
 
 	// 0 option is inactive, 1 option is active
 	options.quit_read_errors = 1;		// on by default
@@ -163,7 +162,6 @@ int main(int argc, char *argv[])
 	options.delete_surplus = 0;
 	options.ow_main_smaller = 0;
 	options.ow_main_larger = 0;
-	options.ow_type_main = 0;
 	options.follow_sym_links = 0;
 	options.list_surplus = 0;
 	options.dont_list_data_to_copy = 0;
@@ -183,6 +181,11 @@ int main(int argc, char *argv[])
 	options.time_mods = 0;
 	options.preserve_a_time = 0;
 	options.preserve_m_time = 0;
+	options.time_based = 0;
+	options.size_based = 0;
+	options.m_newer = 0;
+	options.m_older = 0;
+	options.naive_mode = 0;
 
 	copied.copied_data = 0;		// if 1, add size in stats
 	copied.aborted_copying;		// if 1, user aborted copying missing files and dirs
@@ -190,7 +193,6 @@ int main(int argc, char *argv[])
 	copied.deleted_surplus = 0;	// if 1, subtract size in stats
 	copied.ow_smaller = 0;
 	copied.ow_larger = 0;
-	copied.ow_type_main = 0;
 	copied.full_dir1_copied = 0;	// if 1, add size in stats
 	copied.full_dir2_copied = 0;	// if 1, add size in stats
 
@@ -200,8 +202,6 @@ int main(int argc, char *argv[])
 	data_copy_info.dirs_surplus_list = NULL;
 	data_copy_info.diff_size_ms_list = NULL;
 	data_copy_info.diff_size_ml_list = NULL;
-	data_copy_info.diff_type_list_main = NULL;
-	data_copy_info.diff_type_list_secondary = NULL;
 	data_copy_info.global_files_to_copy_num = 0;
 	data_copy_info.global_files_to_copy_size = 0;
 	data_copy_info.global_dirs_to_copy_num = 0;
@@ -210,16 +210,18 @@ int main(int argc, char *argv[])
 	data_copy_info.global_files_surplus_size = 0;
 	data_copy_info.global_dirs_surplus_num = 0;
 	data_copy_info.global_dirs_surplus_size = 0;
-	data_copy_info.global_diff_type_num_main = 0;
-	data_copy_info.global_diff_type_num_secondary = 0;
-	data_copy_info.global_diff_type_size_main = 0;
-	data_copy_info.global_diff_type_size_secondary = 0;
 	data_copy_info.global_diff_size_ms_num = 0;
 	data_copy_info.global_diff_size_ms_size = 0;
 	data_copy_info.global_diff_size_ms_orig_size = 0;
 	data_copy_info.global_diff_size_ml_num = 0;
 	data_copy_info.global_diff_size_ml_size = 0;
 	data_copy_info.global_diff_size_ml_orig_size = 0;
+	data_copy_info.global_diff_time_mn_num = 0;
+	data_copy_info.global_diff_time_mn_size = 0;
+	data_copy_info.global_diff_time_mn_orig_size = 0;
+	data_copy_info.global_diff_time_mo_num = 0;
+	data_copy_info.global_diff_time_mo_size = 0;
+	data_copy_info.global_diff_time_mo_orig_size = 0;
 	data_copy_info.global_file_num_a = 0;
 	data_copy_info.global_file_num_b = 0;
 	data_copy_info.global_files_size_a = 0;
@@ -241,7 +243,6 @@ int main(int argc, char *argv[])
 			{"just-copy-surplus-back", no_argument, 0, 'B' },
 			{"overwrite-with-smaller", no_argument, 0, 's' },
 			{"overwrite-with-larger", no_argument, 0, 'l' },
-			{"overwrite-type", no_argument, 0, 'e' },
 			{"list-surplus", no_argument, 0, 'f' },
 			{"dont-list-data-to-copy", no_argument, 0, 'd' },
 			{"help", no_argument, 0, 'h' },
@@ -250,8 +251,8 @@ int main(int argc, char *argv[])
 			{"copy-content-file", required_argument, 0, 'k' },
 			{"just-copy-content-file", required_argument, 0, 'K' },
 			{"dont-list-stats", no_argument, 0, 'D' },
-			{"dont-quit-read-errors", no_argument, 0, 'n' },
-			{"dont-quit-write-errors", no_argument, 0, 'o' },
+			{"dont-quit-read-errors", no_argument, 0, 'y' },
+			{"dont-quit-write-errors", no_argument, 0, 'z' },
 			{"dont-quit-delete-errors", no_argument, 0, 'p' },
 			{"no-questions", no_argument, 0, 'q' },
 			{"unit", required_argument, 0, 0 },
@@ -262,14 +263,13 @@ int main(int argc, char *argv[])
 			{"no-access-time", no_argument, 0, 'T' },
 			{"preserve-atime", no_argument, 0, 'A' },
 			{"preserve-mtime", no_argument, 0, 'M' },
-			// 28.10.2023
-			{"mtime-newer", no_argument, 0, 'N' },
-			{"mtime-older", no_argument, 0, 'O' },
-			// zamjeni gore n za nesto drugo, a naive ce biti n{"naive", no_argument, 0, 'n'},
+			{"overwrite-with-newer", no_argument, 0, 'N' },
+			{"overwrite-with-older", no_argument, 0, 'O' },
+			{"naive-mode", no_argument, 0, 'n'},
 			{0, 0, 0, 0}
 		};
 
-		c = getopt_long(argc, argv, "abc:defhk:lnopqrstuvwxABC:DK:MNOST", long_options, &option_index);
+		c = getopt_long(argc, argv, "abc:dfhk:lnopqrstuvwxyzABC:DK:MNOST", long_options, &option_index);
 		if (c == -1)
 			break;
 		switch (c) {
@@ -299,12 +299,11 @@ int main(int argc, char *argv[])
 				break;
 			case 's':
 				options.ow_main_smaller = 1;
+				options.size_based = 1;
 				break;
 			case 'l':
 				options.ow_main_larger = 1;
-				break;
-			case 't':
-				options.ow_type_main = 1;
+				options.size_based = 1;
 				break;
 			case 'f':
 				options.list_surplus = 1;
@@ -334,10 +333,10 @@ int main(int argc, char *argv[])
 			case 'D':
 				options.dont_list_stats = 1;
 				break;
-			case 'n':
+			case 'y':
 				options.quit_read_errors = 0;	// on by default.
 				break;
-			case 'o':
+			case 'z':
 				options.quit_write_errors = 0;	// on by default.
 				break;
 			case 'p':
@@ -371,8 +370,16 @@ int main(int argc, char *argv[])
 				options.time_mods = 1;
 				break;
 			case 'N':
-				options.consider_time = 1;
-				options.m
+				options.time_based = 1;
+				options.m_newer = 1;
+				break;
+			case 'O':
+				options.time_based = 1;
+				options.m_older = 1;
+				break;
+			case 'n':
+				options.naive_mode = 1;
+				break;
 			case '?':
 				printf("%c Unknown option. Exiting.\n", optopt);
 				exit(1);
@@ -398,7 +405,8 @@ int main(int argc, char *argv[])
 		printf("%-37s  %s\n", help_string43, help_string44);
 		printf("%-37s  %s\n", help_string5, help_string6);
 		printf("%-37s  %s\n", help_string7, help_string8);
-		printf("%-37s  %s\n", help_string9, help_string10);
+		printf("%-37s  %s\n", help_string53, help_string54);
+		printf("%-37s  %s\n", help_string55, help_string56);
 		printf("%-37s  %s\n", help_string45, help_string46);
 		printf("%-37s  %s\n", help_string11, help_string12);
 		printf("%-37s  %s\n", help_string13, help_string14);
@@ -422,6 +430,15 @@ int main(int argc, char *argv[])
 		printf("\n");
 		printf("cps %s\n", version);
 		printf("\n");
+		exit(1);
+	}
+
+	if (options.time_based == 1 && options.size_based == 1) {
+		printf("Error: conflicting options. Search for different files based either on time (overwrite-with-older/newer) or size option (overwrite-with-smaller/larger).\n");
+		exit(1);
+	}
+	if (options.naive_mode == 1 && options.time_based == 1) {
+		printf("Error: naive mode cannot be used with time options. Exiting.\n");
 		exit(1);
 	}
 
@@ -457,7 +474,6 @@ int main(int argc, char *argv[])
 	dirs_surplus = 0;
 	ow_main_smaller = 0;
 	ow_main_larger = 0;
-	ow_type_main = 0;
 
 	// optind is the first non-option argument, so it should be a pathname for the first directory. 
 	// then increment it to point to a second directory if there are more arguments, or exit with an error if there aren't
@@ -878,23 +894,9 @@ int main(int argc, char *argv[])
 			}
 		}
 	}
-	diff_type_main = data_copy_info.diff_type_list_main;
-	if (diff_type_main != NULL) {
-		if (diff_type_main->num != 0) {
-			if (options.ow_type_main == 1)
-				ow_type_main = 1; // overwrite the location secondary file with the main location file
-			if (options.dont_list_data_to_copy != 1) {
-				printf("\nFiles to overwrite. (source location type will overwrite the destination file type)\n\n");
-				for (file_list_element = diff_type_main->head; file_list_element != NULL; file_list_element = file_list_element->next) {
-					printf("file: %s\n location %s\n new location: %s\n size: %ld\n\n\n", file_list_element->name, file_list_element->dir_location,
-					file_list_element->new_location, file_list_element->size);
-				}
-			}
-		}
-	}
 
 	// if there is some data, depending on options: copy, overwrite, delete...
-	if (copy_files == 1 || copy_dirs == 1 || files_surplus == 1 || dirs_surplus == 1 ||  ow_main_smaller == 1 || ow_main_larger == 1 || ow_type_main == 1) {
+	if (copy_files == 1 || copy_dirs == 1 || files_surplus == 1 || dirs_surplus == 1 ||  ow_main_smaller == 1 || ow_main_larger == 1) {
 		if (options.write_copy_content_file == 1 || options.just_write_copy_content_file == 1) {
 			errno = 0;
 			copyfile = open(file_loc2, O_CREAT | O_RDWR | O_APPEND, S_IRWXU);
@@ -1109,41 +1111,6 @@ int main(int argc, char *argv[])
 						printf("Unrecognized answer. Type yes or no.\n");
 			 	}
 			}
-			if (ow_type_main == 1 && options.just_copy_surplus_back != 1) {
-				printf("Scan found two files with the same name, but different type. Should the file in the main location overwrite "); 
-				printf("the file in the secondary location? Answer yes or no.\n");
-				while (fgets(line,BUF,stdin) != NULL) {
-					length = strlen(line);
-					line[length-1] = '\0';
-					if (strcmp(line,"yes") == 0) {
-						read_write_data(data_copy_info.diff_type_list_main,4,NULL,NULL);
-						copied.ow_type_main = 1;
-						printf("\n");
-						break;
-					}
-					else if (strcmp(line,"no") == 0) {
-						printf("\n");
-						break;
-					}
-					else
-						printf("Unrecognized answer. Type yes or no.\n");
-			 	}
-			}
-				/*printf("Scan found two files with the same name, but different type. Should the file in the secondary location overwrite 
-				the file in the main location? Answer yes or no.\n");
-				while (fgets(line,BUF,stdin) != NULL) {
-					length = strlen(line);
-					line[length-1] = '\0';
-					if (strcmp(line,"yes") == 0) {
-						read_write_data(data_copy_info->diff_type_list_secondary,4,NULL,NULL);
-						break;
-					}
-					else if (strcmp(line,"no") == 0) {
-						break;
-					}
-					else
-						printf("Unrecognized answer. Type yes or no.\n");
-			 	}*/
 			if (copied.copied_data == 1 || copied.copied_surplus == 1 || copied.deleted_surplus == 1 || copied.ow_smaller == 1 || copied.ow_larger == 1)
 				if (options.dont_list_stats != 1)
 					list_stats(1,copied);
@@ -1169,8 +1136,6 @@ int main(int argc, char *argv[])
 				read_write_data(data_copy_info.diff_size_ms_list,4,NULL,NULL);
 			if (options.ow_main_larger == 1 && options.just_copy_surplus_back != 1)
 				read_write_data(data_copy_info.diff_size_ml_list,4,NULL,NULL);
-			if (options.ow_type_main == 1 && options.just_copy_surplus_back != 1)
-				read_write_data(data_copy_info.diff_type_list_main,4,NULL,NULL);
 			if (options.dont_list_stats != 1)
 				list_stats(1,copied);
 		}
@@ -1198,10 +1163,6 @@ int main(int argc, char *argv[])
 		dlist_destroy(data_copy_info.diff_size_ms_list);
 	if (data_copy_info.diff_size_ml_list != NULL)
 		dlist_destroy(data_copy_info.diff_size_ml_list);
-	if (data_copy_info.diff_type_list_main != NULL)
-		dlist_destroy(data_copy_info.diff_type_list_main);
-	if (data_copy_info.diff_type_list_secondary != NULL)
-		dlist_destroy(data_copy_info.diff_type_list_secondary);
 
 	free(pathname1);
 	free(pathname2);
@@ -1265,8 +1226,8 @@ void list_stats(int after_c, struct copied_or_not copied)
 		calc_size(data_copy_info.global_dirs_surplus_size,options.other_unit);
 		printf("Same files with different size (main location smaller): %ld\n", data_copy_info.global_diff_size_ms_num);
 		printf("Same files with different size (main location larger): %ld\n", data_copy_info.global_diff_size_ml_num);
-		printf("Files with the same name, different type (main): %ld\n", data_copy_info.global_diff_type_num_main);
-		printf("Files with the same name, different type (secondary): %ld\n", data_copy_info.global_diff_type_num_secondary);
+		printf("Same files with different modification time (main location newer): %ld\n", data_copy_info.global_diff_size_ms_num);
+		printf("Same files with different modification time (main location older): %ld\n", data_copy_info.global_diff_size_ml_num);
 		printf("\n");
 		printf("\n");
 	}
