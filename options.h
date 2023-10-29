@@ -31,7 +31,6 @@ struct options_menu {
 	int	delete_surplus; 		// delete surplus files from main location after equating data with secondary location
 	int	ow_main_smaller;		// if two files with the same name are found, overwrite the larger file in the secondary location with the smaller from the main location
 	int	ow_main_larger;			// if two files with the same name are found, overwrite the smaller file in the secondary location with the larger file from the main location
-	int	ow_type_main;			// overwrite the secondary location file type with the main location file type.
 	int	list_surplus;			// just list surplus files/dirs, but dont copy them.
 	int	dont_list_data_to_copy;		// don't list files and directories to copy
 	int	no_questions;			// don't ask for confirmation whether to copy/write data
@@ -54,4 +53,9 @@ struct options_menu {
 	struct	timespec times[2];		// for use with utimensat()
 	int	preserve_a_time;		// preserve access times
 	int	preserve_m_time;		// preserve modification times
+	int	time_based;			// decide what to copy based on last modification time
+	int	size_based;			// decide what to copy based on size
+	int	m_newer;			// overwrite older files with newer
+	int	m_older;			// overwrite newer files with older
+	int	naive_mode;			// go deeper into file tree only if there is difference in size
 };
