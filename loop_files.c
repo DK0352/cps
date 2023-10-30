@@ -95,7 +95,7 @@ int loop_files(DList_of_lists *file_tree_element_a, DList_of_lists *file_tree_el
 					compare_s->match = 1;
 					same_file_num++;
 					// Found the files with the same name; compare their size, type, and add them to the appropriate list if there is some difference...
-					if (options.time_based == 0) {
+					if (options.time_based == 0 && options.size_based == 1) {
 						if (compare_l->size != compare_s->size) {
 							if (compare_l->size > compare_s->size) {
 								if (main_mark == COMPARE_L) {
@@ -175,7 +175,7 @@ int loop_files(DList_of_lists *file_tree_element_a, DList_of_lists *file_tree_el
 							} // if (compare_l->size < compare_s->size
 						} // if (compare_l->size != compare_s->size) {
 					}	// if (time_based == 0)
-					else if (options.time_based == 1) {
+					else if (options.time_based == 1 && options.size_based == 0) {
 						if (compare_l->mtime != compare_s->mtime) {
 							if (compare_l->mtime > compare_s->mtime) {
 								if (main_mark == COMPARE_L) {
