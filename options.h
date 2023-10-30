@@ -55,7 +55,8 @@ struct options_menu {
 	int	preserve_m_time;		// preserve modification times
 	int	time_based;			// decide what to copy based on last modification time
 	int	size_based;			// decide what to copy based on size
-	int	m_newer;			// overwrite older files with newer
-	int	m_older;			// overwrite newer files with older
+	int	ow_main_newer;			// overwrite older files with newer
+	int	ow_main_older;			// overwrite newer files with older
 	int	naive_mode;			// go deeper into file tree only if there is difference in size
+	int	list_conflicting;		// files with the same name, but different size or modification time
 };
