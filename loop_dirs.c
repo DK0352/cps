@@ -84,39 +84,40 @@ int loop_dirs(DList_of_lists *file_tree_element_a, DList_of_lists *file_tree_ele
 			list_s = file_tree_element_b;
 			main_mark = COMPARE_L;
 		}
-		for ( ; list_l != NULL; list_l = list_l->next) {
-			for (list_s = start_b; list_s != NULL; list_s = list_s->next) {
-				if (list_l->found_dir_match != 1 && list_s->found_dir_match != 1) {
-					if (strcmp(list_l->dirname,list_s->dirname) == 0) {
-						list_l->found_dir_match = 1;
-						list_s->found_dir_match = 1;
+		for ( compare_l = list_l; compare_l != NULL; compare_l = compare_l->next) {
+			for (compare_s = compare_s; compare_s != NULL; compare_s = compare_s->next) {
+				if (compare_l->found_dir_match != 1 && compare_s->found_dir_match != 1) {
+					if (strcmp(compare_l->dirname,compare_s->dirname) == 0) {
+						compare_l->found_dir_match = 1;
+						compare_s->found_dir_match = 1;
 						same_dir_num++;
+						printf("loop_dirs() l: %s s: %s\n", compare_l->dirname, compare_s->dirname);
 						if (options.naive_mode == 0) {
-							if (list_l->file_num != 0 || list_s->file_num != 0)
-								loop_files(list_l,list_s);
-							loop_dirs(list_l,list_s);
+							if (compare_l->file_num != 0 || compare_s->file_num != 0)
+								loop_files(compare_l,compare_s);
+							loop_dirs(compare_l,compare_s);
 						}
 						else if (options.naive_mode == 1) {
-							if (list_l->files_size != list_s->files_size || list_l->file_num != list_s->file_num) {
-								loop_files(list_l,list_s);
+							if (compare_l->files_size != compare_s->files_size || compare_l->file_num != compare_s->file_num) {
+								loop_files(compare_l,compare_s);
 							}
-							if (list_l->subdirs_size != list_s->subdirs_size || 
-								list_l->subdir_num != list_s->subdir_num ||
-								list_l->subdir_file_num != list_s->subdir_file_num) {
-								loop_dirs(list_l,list_s);
+							if (compare_l->subdirs_size != compare_s->subdirs_size || 
+								compare_l->subdir_num != compare_s->subdir_num ||
+								compare_l->subdir_file_num != compare_s->subdir_file_num) {
+								loop_dirs(compare_l,compare_s);
 							}
 						}	
-					} // if (strcmp(list_l->dirname,list_s->dirname) == 0)
+					} // if (strcmp(compare_l->dirname,compare_s->dirname) == 0)
 				}
 			} // for_loop 2
 		} // for_loop 1
 
-		file_tree_element_a = start_a;
-		file_tree_element_b = start_b;
+		file_tree_element_a = file_tree_element_a->down;
+		file_tree_element_b = file_tree_element_b->down;
 
 		// More directories in the source directory than just those equal with the destination directory. Add them to the copy list.
 		if (dirlist_size_a > same_dir_num && dirlist_size_b == same_dir_num) {
-			// this_directory: to get actual directory pathname of directory in case it is empty. equal result would be element_b->up, which may happen in the future.
+			printf("loop_dirs() dirlist1\n");
 			while (file_tree_element_a != NULL) {
 				if (file_tree_element_a->found_dir_match != 1) {
 					if (data_copy_info.dirs_to_copy_list == NULL) {
@@ -124,7 +125,7 @@ int loop_dirs(DList_of_lists *file_tree_element_a, DList_of_lists *file_tree_ele
 						if (data_copy_info.dirs_to_copy_list != NULL)
 							dlist_init(data_copy_info.dirs_to_copy_list);
 						else {
-							printf("loop_dirs(): malloc() error 2-1.\n");
+							printf("loop_dirs(): malloc() error 1-1.\n");
 							exit(1);
 						}
 					}
@@ -144,8 +145,7 @@ int loop_dirs(DList_of_lists *file_tree_element_a, DList_of_lists *file_tree_ele
 		} // if (dirlist_size_a > same_dir_num && dirlist_size_b == same_dir_num) {
 		// More directories in the destination directory than just those equal with the source directory. Add them to the surplus list.
 		else if (dirlist_size_a == same_dir_num && dirlist_size_b > same_dir_num) {
-			//file_tree_element_b = file_tree_element_b->first_dir_in_chain;
-			//file_tree_element_a = file_tree_element_a->this_directory;
+			printf("loop_dirs() dirlist2\n");
 			while (file_tree_element_b != NULL) {
 				if (file_tree_element_b->found_dir_match != 1) {
 					if (data_copy_info.dirs_surplus_list == NULL) {
@@ -153,7 +153,7 @@ int loop_dirs(DList_of_lists *file_tree_element_a, DList_of_lists *file_tree_ele
 						if (data_copy_info.dirs_surplus_list != NULL) 
 							dlist_init(data_copy_info.dirs_surplus_list);
 						else {
-							printf("loop_dirs() malloc() error 3-2.\n");
+							printf("loop_dirs() malloc() error 1-2.\n");
 							exit(1);
 						}
 					}
@@ -173,8 +173,7 @@ int loop_dirs(DList_of_lists *file_tree_element_a, DList_of_lists *file_tree_ele
 		} // else if (dirlist_size_a == same_dir_num && dirlist_size_b > same_dir_num)
 		// More directories in both the source and destination directory than just those equal. Add them to the appropriate lists.
 		else if (dirlist_size_a > same_dir_num && dirlist_size_b > same_dir_num) {
-			//file_tree_element_a = file_tree_element_a->first_dir_in_chain;
-			//file_tree_element_b = file_tree_element_b->this_directory;
+			printf("loop_dirs() dirlist3\n");
 			while (file_tree_element_a != NULL) {
 				if (file_tree_element_a->found_dir_match != 1) {
 					if (data_copy_info.dirs_to_copy_list == NULL) {
@@ -182,7 +181,7 @@ int loop_dirs(DList_of_lists *file_tree_element_a, DList_of_lists *file_tree_ele
 						if (data_copy_info.dirs_to_copy_list != NULL)
 							dlist_init(data_copy_info.dirs_to_copy_list);
 						else {
-							printf("loop_dirs() malloc() error 2-4.\n");
+							printf("loop_dirs() malloc() error 1-3.\n");
 							exit(1);
 						}
 					}
@@ -207,7 +206,7 @@ int loop_dirs(DList_of_lists *file_tree_element_a, DList_of_lists *file_tree_ele
 						if (data_copy_info.dirs_surplus_list != NULL)
 							dlist_init(data_copy_info.dirs_surplus_list);
 						else {
-							printf("loop_dirs() malloc() error 3-5.\n");
+							printf("loop_dirs() malloc() error 1-4.\n");
 							exit(1);
 						}
 					}
@@ -229,8 +228,7 @@ int loop_dirs(DList_of_lists *file_tree_element_a, DList_of_lists *file_tree_ele
 
 	// Source directory has some directories, destination is empty
 	else if (dirlist_size_a > 0 && dirlist_size_b == 0) {
-		//file_tree_element_a = file_tree_element_a->first_dir_in_chain;
-		//file_tree_element_b = file_tree_element_b->this_directory;
+		printf("loop_dirs() dirlist4\n");
 		while (file_tree_element_a != NULL) {
 			if (file_tree_element_a->found_dir_match != 1) {
 				if (data_copy_info.dirs_to_copy_list == NULL) {
@@ -238,7 +236,7 @@ int loop_dirs(DList_of_lists *file_tree_element_a, DList_of_lists *file_tree_ele
 					if (data_copy_info.dirs_to_copy_list != NULL)
 						dlist_init(data_copy_info.dirs_to_copy_list);
 					else {
-						printf("loop_dirs() malloc() error 2-6.\n");
+						printf("loop_dirs() malloc() error 2-1.\n");
 						exit(1);
 					}
 				}
@@ -259,8 +257,7 @@ int loop_dirs(DList_of_lists *file_tree_element_a, DList_of_lists *file_tree_ele
 
 	// Source directory is empty, destination has some directories
 	else if (dirlist_size_a == 0 && dirlist_size_b > 0) {
-		//file_tree_element_b = file_tree_element_b->first_dir_in_chain;
-		//file_tree_element_a = file_tree_element_a->this_directory;
+		printf("loop_dirs() dirlist5\n");
 		while (file_tree_element_b != NULL) {
 			if (file_tree_element_b->found_dir_match != 1) {
 				if (data_copy_info.dirs_surplus_list == NULL) {
@@ -268,7 +265,7 @@ int loop_dirs(DList_of_lists *file_tree_element_a, DList_of_lists *file_tree_ele
 					if (data_copy_info.dirs_surplus_list != NULL)
 						dlist_init(data_copy_info.dirs_surplus_list);
 					else {
-						printf("loop_dirs() malloc() error 2-7.\n");
+						printf("loop_dirs() malloc() error 2-2.\n");
 						exit(1);
 					}
 				}
