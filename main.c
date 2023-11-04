@@ -464,7 +464,7 @@ int main(int argc, char *argv[])
 		exit(1);
 	}
 	if (options.time_based == 1) {
-		//options.size_based = 0;
+		options.size_based = 0;
 		if (options.ow_main_newer == 1 && options.ow_main_older == 1) {
 			printf("Error: Conflicting options. Both overwrite newer and overwrite older files options enabled. Exiting.\n");
 			exit(1);
@@ -493,8 +493,6 @@ int main(int argc, char *argv[])
 			else if (options.ow_main_smaller == 0 && options.ow_main_larger == 0)
 				options.size_based = 0;
 		}
-		else if (options.ow_main_smaller == 0 && options.ow_main_larger == 0)
-			options.size_based = 0;
 	}
 
 	if (options.follow_sym_links == 0) {
@@ -925,7 +923,7 @@ int main(int argc, char *argv[])
 		if (file_ms_list->num != 0) {
 			if (options.ow_main_smaller == 1)
 				ow_main_smaller = 1; // overwrite main smaller
-			if (options.dont_list_data_to_copy != 1 && options.list_conflicting) {
+			if (options.dont_list_data_to_copy != 1 && options.list_conflicting == 1) {
 				printf("\nFiles to overwrite. (source location files smaller than destination)\n\n");
 				for (file_list_element = file_ms_list->head; file_list_element != NULL; file_list_element = file_list_element->next) {
 					printf("file: %s\n location: %s\n new location: %s\n size: %ld\n\n\n", file_list_element->name, file_list_element->dir_location, 
@@ -953,7 +951,7 @@ int main(int argc, char *argv[])
 		if (file_mn_list->num != 0) {
 			if (options.ow_main_newer == 1)
 				ow_main_newer = 1; // overwrite main smaller
-			if (options.dont_list_data_to_copy != 1 && options.list_conflicting) {
+			if (options.dont_list_data_to_copy != 1 && options.list_conflicting == 1) {
 				printf("\nFiles to overwrite. (source location files newer than destination)\n\n");
 				for (file_list_element = file_mn_list->head; file_list_element != NULL; file_list_element = file_list_element->next) {
 					printf("file: %s\n location: %s\n new location: %s\n size: %ld\n\n\n", file_list_element->name, file_list_element->dir_location, 
@@ -978,7 +976,7 @@ int main(int argc, char *argv[])
 	}
 
 	// if there is some data, depending on options: copy, overwrite, delete...
-	if (copy_files == 1 || copy_dirs == 1 || files_surplus == 1 || dirs_surplus == 1 ||  ow_main_smaller == 1 || ow_main_larger == 1 || ow_main_newer == 1 || ow_main_older) {
+	if (copy_files == 1 || copy_dirs == 1 || files_surplus == 1 || dirs_surplus == 1 ||  ow_main_smaller == 1 || ow_main_larger == 1 || ow_main_newer == 1 || ow_main_older == 1) {
 		if (options.write_copy_content_file == 1 || options.just_write_copy_content_file == 1) {
 			errno = 0;
 			copyfile = open(file_loc2, O_CREAT | O_RDWR | O_APPEND, S_IRWXU);
@@ -1308,8 +1306,8 @@ void list_stats(int after_c, struct copied_or_not copied)
 		calc_size(data_copy_info.global_dirs_surplus_size,options.other_unit);
 		printf("Same files with different size (main location smaller): %ld\n", data_copy_info.global_diff_size_ms_num);
 		printf("Same files with different size (main location larger): %ld\n", data_copy_info.global_diff_size_ml_num);
-		printf("Same files with different modification time (main location newer): %ld\n", data_copy_info.global_diff_size_ms_num);
-		printf("Same files with different modification time (main location older): %ld\n", data_copy_info.global_diff_size_ml_num);
+		printf("Same files with different modification time (main location newer): %ld\n", data_copy_info.global_diff_time_mn_num);
+		printf("Same files with different modification time (main location older): %ld\n", data_copy_info.global_diff_time_mo_num);
 		printf("\n");
 		printf("\n");
 	}
