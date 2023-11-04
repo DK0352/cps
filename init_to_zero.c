@@ -43,6 +43,7 @@ void init_to_zero(DList_of_lists *file_tree_element)
 	file_tree_element->dir_location = NULL;
 	file_tree_element->files = NULL;
 	file_tree_element->directories = NULL;
+	/*
 	file_tree_element->files_to_copy = NULL;
 	file_tree_element->dirs_to_copy = NULL;
 	file_tree_element->files_surplus = NULL;
@@ -51,6 +52,7 @@ void init_to_zero(DList_of_lists *file_tree_element)
 	file_tree_element->diff_size = NULL;
 	file_tree_element->diff_size_ml = NULL;
 	file_tree_element->diff_size_ms = NULL;
+	*/
 	file_tree_element->one_of_the_top_dirs = NULL;
 	file_tree_element->first_dir_in_chain = NULL;
 	file_tree_element->last_dir_in_chain = NULL;
