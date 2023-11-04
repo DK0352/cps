@@ -32,6 +32,8 @@ void init_to_zero(DList_of_lists *file_tree_element);
 
 int no_files_and_dirs_a = 0; // external variable that signals that the source directory is empty
 int no_files_and_dirs_b = 0; // external variable that signals that the destination directory is empty
+int no_dirs_a = 0;	// don't start the loop to create/compare directories if there aren't any
+int no_dirs_b = 0;	// don't start the loop to create/compare directories if there aren't any
 
 /* builds file trees for the source and destination directory. */
 void build_tree(struct thread_struct *thread_data)
@@ -45,7 +47,6 @@ void build_tree(struct thread_struct *thread_data)
 	int				len;
 	unsigned long			*p_global_file_num, *p_global_dir_num;
 	unsigned long			*p_global_files_size;
-	int				no_dirs;	// don't start the loop to create directories if there aren't any
 
 	file_tree_top_dir = malloc(sizeof(DList_of_lists));
 	if (file_tree_top_dir == NULL) {
@@ -128,7 +129,8 @@ void build_tree(struct thread_struct *thread_data)
 		p_global_files_size = &data_copy_info.global_files_size_b;
 	}
 
-	no_dirs = 0;
+	no_dirs_a = 0;
+	no_dirs_b = 0;
 	files = thread_data->files;
 	directories = thread_data->directories;
 
@@ -144,7 +146,10 @@ void build_tree(struct thread_struct *thread_data)
 			*p_global_file_num += files->num;
 			thread_data->file_tree = file_tree_element;
 			thread_data->file_tree_top_dir = file_tree_element;
-			no_dirs = 1;
+			if (strcmp(thread_data->id,"source") == 0)
+				no_dirs_a = 1;
+			else if (strcmp(thread_data->id,"destination") == 0)
+				no_dirs_b = 1;
 		}
 	}
 	/* directories only, top dir */
@@ -178,7 +183,6 @@ void build_tree(struct thread_struct *thread_data)
 	}
 	/* empty directory, top dir */
 	else if (directories == NULL && files == NULL) {
-		no_dirs = 1;
 		if (strcmp(thread_data->id,"source") == 0)
 			no_files_and_dirs_a = 1;
 		else if (strcmp(thread_data->id,"destination") == 0)
@@ -186,17 +190,31 @@ void build_tree(struct thread_struct *thread_data)
 	}
 
 	/* loop that builds the file tree, calling the build_rest_of_the_tree function recursively */
-	if (no_dirs == 0) {
-		for (one_of_the_top_dirs = file_tree_element; one_of_the_top_dirs != NULL; one_of_the_top_dirs = one_of_the_top_dirs->next) {
-			thread_data->directory = one_of_the_top_dirs->dir_location;
-			thread_data->file_tree = one_of_the_top_dirs;
-			open_dirs(thread_data);
-			build_rest_of_the_tree(thread_data,p_global_file_num,p_global_dir_num,p_global_files_size);
-			if (one_of_the_top_dirs->last_dir == 1)
-				extract_size(one_of_the_top_dirs);
+	if (strcmp(thread_data->id,"source") == 0) {
+		if (no_dirs_a != 1) {
+			for (one_of_the_top_dirs = file_tree_element; one_of_the_top_dirs != NULL; one_of_the_top_dirs = one_of_the_top_dirs->next) {
+				thread_data->directory = one_of_the_top_dirs->dir_location;
+				thread_data->file_tree = one_of_the_top_dirs;
+				open_dirs(thread_data);
+				build_rest_of_the_tree(thread_data,p_global_file_num,p_global_dir_num,p_global_files_size);
+				if (one_of_the_top_dirs->last_dir == 1)
+					extract_size(one_of_the_top_dirs);
+			}
 		}
 	}
-}
+	else if (strcmp(thread_data->id,"destination") == 0) {
+		if (no_dirs_b != 1) {
+			for (one_of_the_top_dirs = file_tree_element; one_of_the_top_dirs != NULL; one_of_the_top_dirs = one_of_the_top_dirs->next) {
+				thread_data->directory = one_of_the_top_dirs->dir_location;
+				thread_data->file_tree = one_of_the_top_dirs;
+				open_dirs(thread_data);
+				build_rest_of_the_tree(thread_data,p_global_file_num,p_global_dir_num,p_global_files_size);
+				if (one_of_the_top_dirs->last_dir == 1)
+					extract_size(one_of_the_top_dirs);
+			}
+		}
+	}
+} // build_tree()
 
 /* called from the each top directory to build the file tree underneath */
 void build_rest_of_the_tree(struct thread_struct *thread_data, unsigned long *p_global_file_num, unsigned long *p_global_dir_num, unsigned long *p_global_files_size)
