@@ -104,7 +104,7 @@ int loop_files(DList_of_lists *file_tree_element_a, DList_of_lists *file_tree_el
 										if (data_copy_info.diff_size_ml_list != NULL)
 											dlist_init(data_copy_info.diff_size_ml_list);
 										else {
-											printf("loop_files() malloc() error 1-2.\n");
+											printf("loop_files() malloc() error 1-1.\n");
 											exit(1);
 										}
 									}
@@ -122,7 +122,7 @@ int loop_files(DList_of_lists *file_tree_element_a, DList_of_lists *file_tree_el
 										if (data_copy_info.diff_size_ms_list != NULL)
 											dlist_init(data_copy_info.diff_size_ms_list);
 										else {
-											printf("loop_files() malloc() error 3-2.\n");
+											printf("loop_files() malloc() error 1-2.\n");
 											exit(1);
 										}
 									}
@@ -142,7 +142,7 @@ int loop_files(DList_of_lists *file_tree_element_a, DList_of_lists *file_tree_el
 										if (data_copy_info.diff_size_ms_list != NULL)
 											dlist_init(data_copy_info.diff_size_ms_list);
 										else {
-											printf("loop_files() malloc() error 5-2\n");
+											printf("loop_files() malloc() error 1-3\n");
 											exit(1);
 										}
 									}
@@ -160,7 +160,7 @@ int loop_files(DList_of_lists *file_tree_element_a, DList_of_lists *file_tree_el
 										if (data_copy_info.diff_size_ml_list != NULL)
 											dlist_init(data_copy_info.diff_size_ml_list);
 										else {
-											printf("loop_files() malloc() error 7-2\n");
+											printf("loop_files() malloc() error 1-4\n");
 											exit(1);
 										}
 									}
@@ -184,7 +184,7 @@ int loop_files(DList_of_lists *file_tree_element_a, DList_of_lists *file_tree_el
 										if (data_copy_info.diff_time_mn_list != NULL)
 											dlist_init(data_copy_info.diff_time_mn_list);
 										else {
-											printf("loop_files() malloc() error 1-2.\n");
+											printf("loop_files() malloc() error 1-5.\n");
 											exit(1);
 										}
 									}
@@ -202,7 +202,7 @@ int loop_files(DList_of_lists *file_tree_element_a, DList_of_lists *file_tree_el
 										if (data_copy_info.diff_time_mo_list != NULL)
 											dlist_init(data_copy_info.diff_time_mo_list);
 										else {
-											printf("loop_files() malloc() error 3-2.\n");
+											printf("loop_files() malloc() error 1-6.\n");
 											exit(1);
 										}
 									}
@@ -216,13 +216,14 @@ int loop_files(DList_of_lists *file_tree_element_a, DList_of_lists *file_tree_el
 								}
 							} // if (compare_l->mtime > compare_s->mtime
 							else if (compare_l->mtime < compare_s->mtime) {
+								printf("compare_l->mtime = %ld < compare_s->mtime = %ld\n", compare_l->mtime, compare_s->mtime);
 								if (main_mark == COMPARE_L) {
 									if (data_copy_info.diff_time_mo_list == NULL) {
 										data_copy_info.diff_time_mo_list = malloc(sizeof(DList));
 										if (data_copy_info.diff_time_mo_list != NULL)
 											dlist_init(data_copy_info.diff_time_mo_list);
 										else {
-											printf("loop_files() malloc() error 5-2\n");
+											printf("loop_files() malloc() error 1-7\n");
 											exit(1);
 										}
 									}
@@ -240,7 +241,7 @@ int loop_files(DList_of_lists *file_tree_element_a, DList_of_lists *file_tree_el
 										if (data_copy_info.diff_time_mn_list != NULL)
 											dlist_init(data_copy_info.diff_time_mn_list);
 										else {
-											printf("loop_files() malloc() error 7-2\n");
+											printf("loop_files() malloc() error 1-8\n");
 											exit(1);
 										}
 									}
@@ -269,7 +270,7 @@ int loop_files(DList_of_lists *file_tree_element_a, DList_of_lists *file_tree_el
 				if (data_copy_info.files_to_copy_list != NULL)
 					dlist_init(data_copy_info.files_to_copy_list);
 				else {
-					printf("compare_trees() malloc() error 2-3.\n");
+					printf("compare_trees() malloc() error 2-1.\n");
 					exit(1);
 				}
 			}
@@ -290,7 +291,7 @@ int loop_files(DList_of_lists *file_tree_element_a, DList_of_lists *file_tree_el
 				if (data_copy_info.files_surplus_list != NULL)
 					dlist_init(data_copy_info.files_surplus_list);
 				else {
-					printf("loop_files() malloc() error 2-4.\n");
+					printf("loop_files() malloc() error 2-2.\n");
 					exit(1);
 				}
 			}
@@ -319,7 +320,7 @@ int loop_files(DList_of_lists *file_tree_element_a, DList_of_lists *file_tree_el
 						if (data_copy_info.files_to_copy_list != NULL)
 							dlist_init(data_copy_info.files_to_copy_list);
 						else {
-							printf("loop_files() malloc() error 2-5.\n");
+							printf("loop_files() malloc() error 3-1.\n");
 							exit(1);
 						}
 					}
@@ -343,7 +344,7 @@ int loop_files(DList_of_lists *file_tree_element_a, DList_of_lists *file_tree_el
 						if (data_copy_info.files_surplus_list != NULL)
 							dlist_init(data_copy_info.files_surplus_list);
 						else {
-							printf("loop_files() malloc() error 2-6.\n");
+							printf("loop_files() malloc() error 3-2.\n");
 							exit(1);
 						}
 					}
@@ -371,7 +372,7 @@ int loop_files(DList_of_lists *file_tree_element_a, DList_of_lists *file_tree_el
 						if (data_copy_info.files_to_copy_list != NULL)
 							dlist_init(data_copy_info.files_to_copy_list);
 						else {
-							printf("loop_files() malloc() error 2-7.\n");
+							printf("loop_files() malloc() error 3-3.\n");
 							exit(1);
 						}
 					}
@@ -394,7 +395,7 @@ int loop_files(DList_of_lists *file_tree_element_a, DList_of_lists *file_tree_el
 						if (data_copy_info.files_surplus_list != NULL)
 							dlist_init(data_copy_info.files_surplus_list);
 						else {
-							printf("loop_files() malloc() error 2-8.\n");
+							printf("loop_files() malloc() error 3-4.\n");
 							exit(1);
 						}
 					}
