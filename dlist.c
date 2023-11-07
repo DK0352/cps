@@ -52,8 +52,42 @@ void dlist_destroy(DList *list) {
 	return;
 }
 
+/* dlist_destroy_2 : free() only some elements of the list, and not the others as they are only pointers that will be freed elsewhere. mainly for new_file_location_miss */
+void dlist_destroy_2(DList *list) {
+	char 		*dirname, *dir_location, *new_location;
+
+	while (list->num > 0) {
+		if (dlist_remove(list, list->tail, &dirname, &dir_location, &new_location) == 0) {
+			if (new_location != NULL)
+				free(new_location);
+		}
+	}
+
+	/* no operations are allowed now, but clear the structure as a precaution */
+	memset(list, 0, sizeof(DList));
+
+	return;
+}
+
+/* dlist_destroy_2 : don't free() anything, just destroy linked list element. mainly for new_file_location_diff() */
+void dlist_destroy_3(DList *list) {
+	char 		*dirname, *dir_location, *new_location;
+
+	while (list->num > 0) {
+		if (dlist_remove(list, list->tail, &dirname, &dir_location, &new_location) == 0) {
+			;
+		}
+	}
+
+	/* no operations are allowed now, but clear the structure as a precaution */
+	memset(list, 0, sizeof(DList));
+
+	return;
+}
+
+
 /* dlist_ins_next */
-int dlist_ins_next(DList *list, DListElmt *element, char *name, mode_t perm, long size, char *dir_location, int match, char *new_location, time_t atime, time_t mtime) {
+int dlist_ins_next(DList *list, DListElmt *element, char *name, mode_t perm, long size, char *dir_location, int match, char *new_location, time_t atime, time_t mtime, DList_of_lists *tree_position) {
 
 	DListElmt	*new_element;
 
@@ -74,6 +108,7 @@ int dlist_ins_next(DList *list, DListElmt *element, char *name, mode_t perm, lon
 	new_element->new_location = new_location;
 	new_element->atime = atime;
 	new_element->mtime = mtime;
+	new_element->tree_position = tree_position;
 
 	if (list->num == 0) {
 		/* handle insertation when the list is empty */
