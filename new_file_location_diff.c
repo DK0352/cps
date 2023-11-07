@@ -22,7 +22,7 @@
 #include "options.h"
 extern struct options_menu options;
 
-// This function is used when two files with the same name are found, but different size or type. It just adds a file to a list to copy. It can be used to invert location in case of adding the file
+// This function is used when two files with the same name are found, but different size. It just adds a file to a list to copy. It can be used to invert location in case of adding the file
 // to a surplus list, so the file is read from the destionation directory and written to the source directory
 char *new_file_location_diff(DListElmt *main_location, DListElmt *new_location, DList *insert_to)
 {
@@ -37,32 +37,21 @@ char *new_file_location_diff(DListElmt *main_location, DListElmt *new_location, 
 
 	size1 = size2 = size3 = 0;
 
-	name = strdup(main_location->name);
-	if (name == NULL) {
-		printf("new_file_location(): strdup() error 1. exiting.\n");
-		exit(1);
-	}
+	name = main_location->name;
 	st_mode = main_location->st_mode;
 	size = main_location->size;
 
-	dir_location_1 = strdup(main_location->dir_location);
-	if (dir_location_1 == NULL) {
-		printf("new_file_location(): strdup error 2. exiting.\n");
-		exit(1);
-	}
-	dir_location_2 = strdup(new_location->dir_location);
-	if (dir_location_2 == NULL) {
-		printf("new_file_location(): strdup error 2. exiting.\n");
-		exit(1);
-	}
+	dir_location_1 = main_location->dir_location;
+	dir_location_2 = new_location->dir_location;
+
 	if (options.time_mods == 0)
-		dlist_ins_next(insert_to,insert_to->tail,name,st_mode,size,dir_location_1,0,dir_location_2,main_location->atime,main_location->mtime);
+		dlist_ins_next(insert_to,insert_to->tail,name,st_mode,size,dir_location_1,0,dir_location_2,main_location->atime,main_location->mtime,main_location->tree_position);
 	else if (options.time_mods == 1) {
 		if (options.preserve_a_time == 1)
 			atime = main_location->atime;
 		if (options.preserve_m_time == 1)
 			mtime = main_location->mtime;
-		dlist_ins_next(insert_to,insert_to->tail,name,st_mode,size,dir_location_1,0,dir_location_2,main_location->atime,main_location->mtime);
+		dlist_ins_next(insert_to,insert_to->tail,name,st_mode,size,dir_location_1,0,dir_location_2,main_location->atime,main_location->mtime,main_location->tree_position);
 	}
 	
 	return dir_location_2;
