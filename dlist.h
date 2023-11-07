@@ -17,28 +17,8 @@
     51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-/* doubly-linked list elements */
-typedef struct DListElmt_ {
-	char 				*name;		// name of a file or directory
-	mode_t				st_mode;	// type and permissions
-	unsigned long 			size;		// size of a file
-	char				*dir_location;	// location of a file
-	int				match;		// used in loop_files and loop_dirs function to signal that files has been compared
-	char				*new_location;	// new location for a file in case it needs to be copied to a new location
-	time_t				atime;		// access time
-	time_t				mtime;		// modification time
-	struct DList_of_lists_		*tree_position;	// position in the file tree. (dlist of lists). used to refer back to it from the file or dir. lists to copy.
-	struct DListElmt_		*prev;
-	struct DListElmt_		*next;
-} DListElmt;
-
-/* doubly-linked lists */
-typedef struct DList_ {
-	int		num;				// number of files in a directory
-	long		files_size;			// size of all files in a directory
-	DListElmt	*head;
-	DListElmt	*tail;
-} DList;
+typedef struct DListElmt_ DListElmt;
+typedef struct DList_ DList;
 
 /* linked list of linked lists */
 typedef struct DList_of_lists_ {
@@ -86,6 +66,29 @@ typedef struct DList_of_lists_ {
 	struct DList_of_lists_		*prev;			// previous directory in a list
 } DList_of_lists;
 
+/* doubly-linked list elements */
+typedef struct DListElmt_ {
+	char 				*name;		// name of a file or directory
+	mode_t				st_mode;	// type and permissions
+	unsigned long 			size;		// size of a file
+	char				*dir_location;	// location of a file
+	int				match;		// used in loop_files and loop_dirs function to signal that files has been compared
+	char				*new_location;	// new location for a file in case it needs to be copied to a new location
+	time_t				atime;		// access time
+	time_t				mtime;		// modification time
+	struct DList_of_lists_		*tree_position;	// position in the file tree. (dlist of lists). used to refer back to it from the file or dir. lists to copy.
+	struct DListElmt_		*prev;
+	struct DListElmt_		*next;
+} DListElmt;
+
+/* doubly-linked lists */
+typedef struct DList_ {
+	int		num;				// number of files in a directory
+	long		files_size;			// size of all files in a directory
+	DListElmt	*head;
+	DListElmt	*tail;
+} DList;
+
 struct thread_struct {
 	char			*id;		/* source or destination pathname */
 	char			*directory;	/* location */
@@ -99,5 +102,7 @@ struct thread_struct {
 
 void dlist_init(DList *list);
 void dlist_destroy(DList *list);
-int dlist_ins_next(DList *list, DListElmt *element, char *name, mode_t perm, long size, char *dir_location, int match, char *new_location, time_t atime, time_t ctime);
+void dlist_destroy_2(DList *list);
+void dlist_destroy_3(DList *list);
+int dlist_ins_next(DList *list, DListElmt *element, char *name, mode_t perm, long size, char *dir_location, int match, char *new_location, time_t atime, time_t ctime, DList_of_lists *tree_position);
 int dlist_remove(DList *list, DListElmt *element, char **name, char **dir_location, char **new_location);
