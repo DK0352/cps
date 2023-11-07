@@ -94,7 +94,7 @@ int compare_trees(struct thread_struct *thread_data_a, struct thread_struct *thr
 					++same_dir_num;
 					file_tree_element_a->found_dir_match = 1;
 					file_tree_element_b->found_dir_match = 1;
-					printf("compare_trees() a: %s b: %s\n", file_tree_element_a->dirname, file_tree_element_b->dirname);
+					printf("compare_trees() %s \t %s\n", file_tree_element_a->dirname, file_tree_element_b->dirname);
 					if (options.naive_mode == 0) {
 						if (file_tree_element_a->file_num != 0 || file_tree_element_b->file_num != 0)
 							loop_files(file_tree_element_a, file_tree_element_b);
@@ -209,10 +209,7 @@ int compare_trees(struct thread_struct *thread_data_a, struct thread_struct *thr
 				else
 					file_tree_element_a = file_tree_element_a->next;
 			}
-			if (top_location_a->first_dir_in_chain != NULL)
-				file_tree_element_a = top_location_a->first_dir_in_chain;
-			else
-				file_tree_element_a = top_location_a;
+			file_tree_element_a = top_location_a;
 			while (file_tree_element_b != NULL) {
 				if (file_tree_element_b->found_dir_match != 1) {
 					if (data_copy_info.dirs_surplus_list == NULL) {
