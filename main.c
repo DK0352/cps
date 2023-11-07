@@ -1232,17 +1232,21 @@ int main(int argc, char *argv[])
 
 	// free the data structures used to hold file lists to copy, delete, overwrite...
 	if (data_copy_info.files_to_copy_list != NULL)
-		dlist_destroy(data_copy_info.files_to_copy_list);
+		dlist_destroy_2(data_copy_info.files_to_copy_list);
 	if (data_copy_info.dirs_to_copy_list != NULL)
-		dlist_destroy(data_copy_info.dirs_to_copy_list);
+		dlist_destroy_2(data_copy_info.dirs_to_copy_list);
 	if (data_copy_info.files_surplus_list != NULL)
-		dlist_destroy(data_copy_info.files_surplus_list);
+		dlist_destroy_2(data_copy_info.files_surplus_list);
 	if (data_copy_info.dirs_surplus_list != NULL)
-		dlist_destroy(data_copy_info.dirs_surplus_list);
+		dlist_destroy_2(data_copy_info.dirs_surplus_list);
 	if (data_copy_info.diff_size_ms_list != NULL)
-		dlist_destroy(data_copy_info.diff_size_ms_list);
+		dlist_destroy_3(data_copy_info.diff_size_ms_list);
 	if (data_copy_info.diff_size_ml_list != NULL)
-		dlist_destroy(data_copy_info.diff_size_ml_list);
+		dlist_destroy_3(data_copy_info.diff_size_ml_list);
+	if (data_copy_info.diff_time_mn_list != NULL)
+		dlist_destroy_3(data_copy_info.diff_time_mn_list);
+	if (data_copy_info.diff_time_mo_list != NULL)
+		dlist_destroy_3(data_copy_info.diff_time_mo_list);
 
 	free(pathname1);
 	free(pathname2);
