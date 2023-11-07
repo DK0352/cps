@@ -34,24 +34,12 @@ char *new_dir_location(DList_of_lists *main_location, DList_of_lists *new_locati
 	atime = 0;
 	mtime = 0;
 
-	dirname = strdup(main_location->dirname);
-	if (dirname == NULL) {
-		printf("new_dir_location(): strdup() error 1. exiting.\n");
-		exit(1);
-	}
+	dirname = main_location->dirname;
 	perm = main_location->st_mode;
 	size = main_location->complete_dir_size;
 	// location of a B directory to which an A directory from a main location will be copied
-	dir_location = strdup(main_location->dir_location);
-	if (dir_location == NULL) {
-		printf("new_dir_location(): strdup error 2. exiting.\n");
-		exit(1);
-	}
-	new_dir_location = strdup(new_location->dir_location);
-	if (new_dir_location == NULL) {
-		printf("new_dir_location(): strdup error 3. exiting.\n");
-		exit(1);
-	}
+	dir_location = main_location->dir_location;
+	new_dir_location = new_location->dir_location;
 	size1 = strlen(new_dir_location);
 	size2 = strlen(dirname);
 	size3 = size1 + size2 + 2;
@@ -65,7 +53,7 @@ char *new_dir_location(DList_of_lists *main_location, DList_of_lists *new_locati
 	strcat(final_path,dirname);
 
 	if (options.time_mods == 0) {
-		dlist_ins_next(insert_to,insert_to->tail,dirname,perm,size,dir_location,0,final_path,main_location->atime,main_location->mtime);
+		dlist_ins_next(insert_to,insert_to->tail,dirname,perm,size,dir_location,0,final_path,main_location->atime,main_location->mtime,main_location);
 		insert_to->tail->tree_position = main_location;
 	}
 	else if (options.time_mods == 1) {
@@ -73,7 +61,7 @@ char *new_dir_location(DList_of_lists *main_location, DList_of_lists *new_locati
 			atime = main_location->atime;
 		if (options.preserve_m_time == 1)
 			mtime = main_location->mtime;
-		dlist_ins_next(insert_to,insert_to->tail,dirname,perm,size,dir_location,0,final_path,main_location->atime,main_location->mtime);
+		dlist_ins_next(insert_to,insert_to->tail,dirname,perm,size,dir_location,0,final_path,main_location->atime,main_location->mtime,main_location);
 		insert_to->tail->tree_position = main_location;
 	}
 
