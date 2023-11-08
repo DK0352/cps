@@ -162,7 +162,7 @@ int main(int argc, char *argv[])
 	char *help_string57 = "--naive-mode or -n";
 	char *help_string58 = "Scan only directories with difference in size. This won't detect the case where some files/dirs have swapped places in the file tree and the size has remained the same.";
 	char *help_string59 = "--time-mode or -T";
-	char *help_string60 = "Scan based on modification time insted of size.";
+	char *help_string60 = "Scan based on modification time instead of size.";
 
 	// 0 option is inactive, 1 option is active
 	options.quit_read_errors = 1;		// on by default
