@@ -305,7 +305,12 @@ int loop_files(DList_of_lists *file_tree_element_a, DList_of_lists *file_tree_el
 	} // else if (filelist_num_a == 0 && filelist_num_b > 0)
 	else if (filelist_num_a == 0 && filelist_num_b == 0)
 		return 0;
+
+	// don't go further if filelist_num a and b are same
+	if (filelist_num_a == same_file_num && filelist_num_b == same_file_num)
+		return 0;
 	/*************************************** all files in the directory compared, but same_file_num is not matched, so find the missing/surplus files ************************************************/
+
 	compare_l = list_l;
 	compare_s = list_s;
 	// source directory is compare_l
