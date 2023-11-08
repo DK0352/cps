@@ -216,7 +216,6 @@ int loop_files(DList_of_lists *file_tree_element_a, DList_of_lists *file_tree_el
 								}
 							} // if (compare_l->mtime > compare_s->mtime
 							else if (compare_l->mtime < compare_s->mtime) {
-								printf("compare_l->mtime = %ld < compare_s->mtime = %ld\n", compare_l->mtime, compare_s->mtime);
 								if (main_mark == COMPARE_L) {
 									if (data_copy_info.diff_time_mo_list == NULL) {
 										data_copy_info.diff_time_mo_list = malloc(sizeof(DList));
