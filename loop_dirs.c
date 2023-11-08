@@ -41,7 +41,6 @@ int loop_dirs(DList_of_lists *file_tree_element_a, DList_of_lists *file_tree_ele
 	int dirlist_size_b;
 
 	same_dir_num = 0;
-	printf("loop_dirs() called. same_dir_num = %d\n", same_dir_num);
 
 	upper_a = file_tree_element_a;
 	if (file_tree_element_a->down != NULL) {
@@ -94,8 +93,6 @@ int loop_dirs(DList_of_lists *file_tree_element_a, DList_of_lists *file_tree_ele
 						compare_l->found_dir_match = 1;
 						compare_s->found_dir_match = 1;
 						same_dir_num++;
-						printf("loop_dirs()  %s \t %s\n", compare_l->dirname, compare_s->dirname);
-						printf("same_dir_num = %d\n", same_dir_num);
 						if (options.naive_mode == 0) {
 							if (compare_l->file_num != 0 || compare_s->file_num != 0) {
 								if (main_mark == COMPARE_L)
@@ -131,11 +128,9 @@ int loop_dirs(DList_of_lists *file_tree_element_a, DList_of_lists *file_tree_ele
 
 		file_tree_element_a = start_a;
 		file_tree_element_b = start_b;
-		printf("dirlist_size_a: %d  same_dir_num: %d  dirlist_size_b: %d\n", dirlist_size_a, same_dir_num, dirlist_size_b);
 
 		// More directories in the source directory than just those equal with the destination directory. Add them to the copy list.
 		if (dirlist_size_a > same_dir_num && dirlist_size_b == same_dir_num) {
-			printf("loop_dirs() dirlist1\n");
 			while (file_tree_element_a != NULL) {
 				if (file_tree_element_a->found_dir_match != 1) {
 					if (data_copy_info.dirs_to_copy_list == NULL) {
@@ -163,7 +158,6 @@ int loop_dirs(DList_of_lists *file_tree_element_a, DList_of_lists *file_tree_ele
 		} // if (dirlist_size_a > same_dir_num && dirlist_size_b == same_dir_num) {
 		// More directories in the destination directory than just those equal with the source directory. Add them to the surplus list.
 		else if (dirlist_size_a == same_dir_num && dirlist_size_b > same_dir_num) {
-			printf("loop_dirs() dirlist2\n");
 			while (file_tree_element_b != NULL) {
 				if (file_tree_element_b->found_dir_match != 1) {
 					if (data_copy_info.dirs_surplus_list == NULL) {
@@ -191,7 +185,6 @@ int loop_dirs(DList_of_lists *file_tree_element_a, DList_of_lists *file_tree_ele
 		} // else if (dirlist_size_a == same_dir_num && dirlist_size_b > same_dir_num)
 		// More directories in both the source and destination directory than just those equal. Add them to the appropriate lists.
 		else if (dirlist_size_a > same_dir_num && dirlist_size_b > same_dir_num) {
-			printf("loop_dirs() dirlist3\n");
 			while (file_tree_element_a != NULL) {
 				if (file_tree_element_a->found_dir_match != 1) {
 					if (data_copy_info.dirs_to_copy_list == NULL) {
@@ -246,7 +239,6 @@ int loop_dirs(DList_of_lists *file_tree_element_a, DList_of_lists *file_tree_ele
 
 	// Source directory has some directories, destination is empty
 	else if (dirlist_size_a > 0 && dirlist_size_b == 0) {
-		printf("loop_dirs() dirlist4\n");
 		while (file_tree_element_a != NULL) {
 			if (file_tree_element_a->found_dir_match != 1) {
 				if (data_copy_info.dirs_to_copy_list == NULL) {
@@ -275,7 +267,6 @@ int loop_dirs(DList_of_lists *file_tree_element_a, DList_of_lists *file_tree_ele
 
 	// Source directory is empty, destination has some directories
 	else if (dirlist_size_a == 0 && dirlist_size_b > 0) {
-		printf("loop_dirs() dirlist5\n");
 		while (file_tree_element_b != NULL) {
 			if (file_tree_element_b->found_dir_match != 1) {
 				if (data_copy_info.dirs_surplus_list == NULL) {
