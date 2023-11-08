@@ -41,6 +41,7 @@ int loop_dirs(DList_of_lists *file_tree_element_a, DList_of_lists *file_tree_ele
 	int dirlist_size_b;
 
 	same_dir_num = 0;
+	printf("loop_dirs() called. same_dir_num = %d\n", same_dir_num);
 
 	upper_a = file_tree_element_a;
 	if (file_tree_element_a->down != NULL) {
@@ -87,28 +88,42 @@ int loop_dirs(DList_of_lists *file_tree_element_a, DList_of_lists *file_tree_ele
 			main_mark = COMPARE_L;
 		}
 		for ( compare_l = list_l; compare_l != NULL; compare_l = compare_l->next) {
-			for (compare_s = compare_s; compare_s != NULL; compare_s = compare_s->next) {
+			for (compare_s = list_s; compare_s != NULL; compare_s = compare_s->next) {
 				if (compare_l->found_dir_match != 1 && compare_s->found_dir_match != 1) {
 					if (strcmp(compare_l->dirname,compare_s->dirname) == 0) {
 						compare_l->found_dir_match = 1;
 						compare_s->found_dir_match = 1;
 						same_dir_num++;
 						printf("loop_dirs()  %s \t %s\n", compare_l->dirname, compare_s->dirname);
+						printf("same_dir_num = %d\n", same_dir_num);
 						if (options.naive_mode == 0) {
-							if (compare_l->file_num != 0 || compare_s->file_num != 0)
-								loop_files(compare_l,compare_s);
-							loop_dirs(compare_l,compare_s);
+							if (compare_l->file_num != 0 || compare_s->file_num != 0) {
+								if (main_mark == COMPARE_L)
+									loop_files(compare_l,compare_s);
+								else if (main_mark == COMPARE_S)
+									loop_files(compare_s,compare_l);
+							}
+							if (main_mark == COMPARE_L)
+								loop_dirs(compare_l,compare_s);
+							else if (main_mark == COMPARE_S)
+								loop_dirs(compare_s,compare_l);
 						}
 						else if (options.naive_mode == 1) {
 							if (compare_l->files_size != compare_s->files_size || compare_l->file_num != compare_s->file_num) {
-								loop_files(compare_l,compare_s);
+								if (main_mark == COMPARE_L)
+									loop_files(compare_l,compare_s);
+								else if (main_mark == COMPARE_S)
+									loop_files(compare_s,compare_l);
 							}
 							if (compare_l->subdirs_size != compare_s->subdirs_size || 
 								compare_l->subdir_num != compare_s->subdir_num ||
 								compare_l->subdir_file_num != compare_s->subdir_file_num) {
-								loop_dirs(compare_l,compare_s);
+								if (main_mark == COMPARE_L)
+									loop_files(compare_l,compare_s);
+								else if (main_mark == COMPARE_S)
+									loop_files(compare_s,compare_l);
 							}
-						}	
+						}
 					} // if (strcmp(compare_l->dirname,compare_s->dirname) == 0)
 				}
 			} // for_loop 2
@@ -116,6 +131,7 @@ int loop_dirs(DList_of_lists *file_tree_element_a, DList_of_lists *file_tree_ele
 
 		file_tree_element_a = start_a;
 		file_tree_element_b = start_b;
+		printf("dirlist_size_a: %d  same_dir_num: %d  dirlist_size_b: %d\n", dirlist_size_a, same_dir_num, dirlist_size_b);
 
 		// More directories in the source directory than just those equal with the destination directory. Add them to the copy list.
 		if (dirlist_size_a > same_dir_num && dirlist_size_b == same_dir_num) {
