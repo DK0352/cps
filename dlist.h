@@ -39,23 +39,12 @@ typedef struct DList_of_lists_ {
 	mode_t				st_mode;		// type/permission
 	time_t				atime;			// acccess time
 	time_t				mtime;			// modification time
-	char				*source_pathname;	// source directory - is this needed?
-	char				*destination_pathname;	// destination directory - is this needed?
+	char				*source_pathname;	// source directory
+	char				*destination_pathname;	// destination directory
 	char				*dirname;		// name of directory
 	char				*dir_location;		// directory location
 	DList				*files;			// linked list of files
 	DList				*directories;		// linked list of directories
-	// hej, pa ovo je sad u data_copy_info??? obrisat? ili nešt korisno izvuć iz toga?
-	/*DList				*files_to_copy;		// files to copy
-	DList				*dirs_to_copy;		// directories to copy
-	DList				*files_surplus;		// file surplus
-	DList				*dirs_surplus;		// directories surplus
-	DList				*diff_type;		// same name, different type
-	DList				*diff_size;		// same name, different size
-	DList				*diff_size_ml;		// same name, different size, main larger
-	DList				*diff_size_ms;		// same name, different size, main smaller
-	// odavde
-	// */
 	struct DList_of_lists_		*file_tree_top_dir;	// top directory
 	struct DList_of_lists_		*one_of_the_top_dirs;	// points to the top subdirectory of the file tree
 	struct DList_of_lists_		*first_dir_in_chain;	// first directory in a list of directories in a file tree
