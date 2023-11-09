@@ -32,6 +32,8 @@ struct copied_or_not {
 	int deleted_surplus;		// if 1, subtract size in stats
 	int ow_smaller;
 	int ow_larger;
+	int ow_newer;
+	int ow_older;
 	int full_dir1_copied;		// if 1, add size in stats
 	int full_dir2_copied;		// if 1, add size in stats
 };
@@ -43,6 +45,7 @@ int read_write_data(DList *, int choose, char *source, char *destination);				//
 int clean_tree(DList_of_lists *, short);								// free the dynamically allocated file tree
 int write_contents_to_file(DList_of_lists *directory, short opened, int f_descriptor);			// write the file trees to a file
 void list_stats(int after_c, struct copied_or_not copied);
+void destroy_data_structs(void);
 
 int full_dir_write = 0;		// if set to 1, copy the complete source directory, if set to 2, copy the complete destination directory
 char file_loc1[PATH_MAX];	// file tree content file location
@@ -163,6 +166,8 @@ int main(int argc, char *argv[])
 	char *help_string58 = "Scan only directories with difference in size. This won't detect the case where some files/dirs have swapped places in the file tree and the size has remained the same.";
 	char *help_string59 = "--time-mode or -T";
 	char *help_string60 = "Scan based on modification time instead of size.";
+	//char *help_string61 = "--detailed or -D";
+	//char *help_string62 = "Show detailed information about each file (size, owner, permissions, last modification time) for files to copy/overwrite and content file.";
 
 	// 0 option is inactive, 1 option is active
 	options.quit_read_errors = 1;		// on by default
@@ -198,6 +203,7 @@ int main(int argc, char *argv[])
 	options.ow_main_older = 0;
 	options.naive_mode = 0;
 	options.list_conflicting = 0;
+	//options.detailed = 0;
 
 	copied.copied_data = 0;		// if 1, add size in stats
 	copied.aborted_copying;		// if 1, user aborted copying missing files and dirs
@@ -257,12 +263,13 @@ int main(int argc, char *argv[])
 			{"overwrite-with-larger", no_argument, 0, 'l' },
 			{"list-surplus", no_argument, 0, 'f' },
 			{"dont-list-data-to-copy", no_argument, 0, 'd' },
+			//{"detailed", no_argument, 0, 'D' }, add it in getopt string
 			{"help", no_argument, 0, 'h' },
 			{"content-file", required_argument, 0, 'c' },
 			{"just-content-file", required_argument, 0, 'C' },
 			{"copy-content-file", required_argument, 0, 'k' },
 			{"just-copy-content-file", required_argument, 0, 'K' },
-			{"dont-list-stats", no_argument, 0, 'D' },
+			{"dont-list-stats", no_argument, 0, 'X' },
 			{"dont-quit-read-errors", no_argument, 0, 'y' },
 			{"dont-quit-write-errors", no_argument, 0, 'z' },
 			{"dont-quit-delete-errors", no_argument, 0, 'p' },
@@ -278,17 +285,12 @@ int main(int argc, char *argv[])
 			{"overwrite-with-newer", no_argument, 0, 'N' },
 			{"overwrite-with-older", no_argument, 0, 'O' },
 			{"naive-mode", no_argument, 0, 'n'},
-			{"time-mode", no_argument, 0, 'T'}, // time mode during scan instead of size
-			{"list-conflicting", no_argument, 0, 'L'}, // same name, diff size, mod date
-								   // ove dolje ispod opcije. mozda tako da se izbjegne greska s -Ns -Nl -Os -Ol opcijama? razmotri.
-			//{"size-time1", no_argument, 0, '1'}, // newer/bigger
-			//{"size-time2", no_argument, 0, '1'}, // newer/smaller
-			//{"size-time3", no_argument, 0, '1'}, // older/bigger
-			//{"size-time4", no_argument, 0, '1'}, // older/smaller. ukomponirat to nekako sa s i l opcijama da ne mora 4 nove?
+			{"time-mode", no_argument, 0, 'T'}, 
+			{"list-conflicting", no_argument, 0, 'L'},
 			{0, 0, 0, 0}
 		};
 
-		c = getopt_long(argc, argv, "abc:dfhk:lnopqrstuvwxyzABC:DK:LMNOST", long_options, &option_index);
+		c = getopt_long(argc, argv, "abc:dfhk:lnopqrstuvwxyzABC:K:LMNOSTX", long_options, &option_index);
 		if (c == -1)
 			break;
 		switch (c) {
@@ -347,7 +349,7 @@ int main(int argc, char *argv[])
 				options.just_write_copy_content_file = 1;
 				strcpy(file_loc2,optarg);
 				break;
-			case 'D':
+			case 'X':
 				options.dont_list_stats = 1;
 				break;
 			case 'y':
@@ -402,6 +404,9 @@ int main(int argc, char *argv[])
 				break;
 			case 'L':
 				options.list_conflicting = 1;
+				break;
+			case 'D':
+				options.detailed = 1;
 				break;
 			case '?':
 				printf("%c Unknown option. Exiting.\n", optopt);
@@ -463,35 +468,21 @@ int main(int argc, char *argv[])
 		printf("Error: naive mode cannot be used with time options. Exiting.\n");
 		exit(1);
 	}
+
+	if (options.ow_main_smaller == 1 && options.ow_main_larger == 1) {
+		printf("Error: two contradicting options: --overwrite-with-smaller and --overwrite-with-larger. Specify either one or the other.\n");
+		exit(1);
+	}
+
 	if (options.time_based == 1) {
 		options.size_based = 0;
 		if (options.ow_main_newer == 1 && options.ow_main_older == 1) {
 			printf("Error: Conflicting options. Both overwrite newer and overwrite older files options enabled. Exiting.\n");
 			exit(1);
 		}
-		if (options.ow_main_smaller == 1 && options.ow_main_larger == 1) {
-			printf("Error: two contradicting options: --overwrite-with-smaller and --overwrite-with-larger. Specify either one or the other.\n");
+		if (options.ow_main_smaller == 1 || options.ow_main_larger == 1) {
+			printf("Error: Conflicting options: --overwrite-with-smaller and --overwrite-with-larger cannot be used with time based options.\n");
 			exit(1);
-		}
-		if (options.ow_main_newer == 1 && options.ow_main_older == 0) {
-			if (options.ow_main_smaller == 0 && options.ow_main_larger == 1) {
-				;
-			}
-			if (options.ow_main_smaller == 1 && options.ow_main_larger == 0) {
-				;
-			}
-			else if (options.ow_main_smaller == 0 && options.ow_main_larger == 0)
-				options.size_based = 0;
-		}
-		else if (options.ow_main_newer == 0 && options.ow_main_older == 1) {
-			if (options.ow_main_smaller == 0 && options.ow_main_larger == 1) {
-				;
-			}
-			if (options.ow_main_smaller == 1 && options.ow_main_larger == 0) {
-				;
-			}
-			else if (options.ow_main_smaller == 0 && options.ow_main_larger == 0)
-				options.size_based = 0;
 		}
 	}
 
@@ -499,6 +490,7 @@ int main(int argc, char *argv[])
 		options.open_flags |= O_NOFOLLOW;
 		options.stat_f = lstat;
 	}
+
 	else if (options.follow_sym_links == 1)
 		options.stat_f = stat;
 
@@ -560,9 +552,6 @@ int main(int argc, char *argv[])
 		exit(1);
 	}
 
-	/*if (options.create_dest_dir == 1) {
-		if (access(pathname) == OK)
-			create(name);*/
 	errno = 0;
 	pathname1 = realpath(argv[ind1],NULL);
 	if (pathname1 == NULL) {
@@ -755,6 +744,8 @@ int main(int argc, char *argv[])
 			free(thread_data_b->id);
 		free(thread_data_a);
 		free(thread_data_b);
+		destroy_data_structs();
+
 		return 0;
 	}
 	// copy entire source directory to the destination because it's empty
@@ -780,6 +771,8 @@ int main(int argc, char *argv[])
 						free(thread_data_b->id);
 					free(thread_data_a);
 					free(thread_data_b);
+					destroy_data_structs();
+
 					return 0;
 				}
 				else if (strcmp(line,"no") == 0)
@@ -803,6 +796,8 @@ int main(int argc, char *argv[])
 				free(thread_data_b->id);
 			free(thread_data_a);
 			free(thread_data_b);
+			destroy_data_structs();
+
 			return 0;
 		}
 	}
@@ -829,6 +824,8 @@ int main(int argc, char *argv[])
 						free(thread_data_b->id);
 					free(thread_data_a);
 					free(thread_data_b);
+					destroy_data_structs();
+
 					return 0;
 				}
 				else if (strcmp(line,"no") == 0)
@@ -852,6 +849,8 @@ int main(int argc, char *argv[])
 				free(thread_data_b->id);
 			free(thread_data_a);
 			free(thread_data_b);
+			destroy_data_structs();
+
 			return 0;
 		}
 	}
@@ -1018,6 +1017,24 @@ int main(int argc, char *argv[])
 						}
 					}
 				}
+				if (options.ow_main_newer == 1 && options.just_copy_surplus_back != 1) {
+					if (ow_main_newer == 1) {
+						write(copyfile, string3, strlen(string3));
+						for (file_list_element = file_mn_list->head; file_list_element != NULL; file_list_element = file_list_element->next) {
+							write(copyfile, file_list_element->dir_location, strlen(file_list_element->dir_location));
+							write(copyfile, "\n", 1);
+						}
+					}
+				}
+				else if (options.ow_main_older == 1 && options.just_copy_surplus_back != 1) {
+					if (ow_main_older == 1) {
+						write(copyfile, string4, strlen(string4));
+						for (file_list_element = file_mo_list->head; file_list_element != NULL; file_list_element = file_list_element->next) {
+							write(copyfile, file_list_element->dir_location, strlen(file_list_element->dir_location));
+							write(copyfile, "\n", 1);
+						}
+					}
+				}
 				if (options.copy_surplus_back == 1 || options.just_copy_surplus_back == 1) {
 					if (files_surplus == 1) {
 						write(copyfile, string5, strlen(string5));
@@ -1065,6 +1082,8 @@ int main(int argc, char *argv[])
 					free(thread_data_b->id);
 				free(thread_data_a);
 				free(thread_data_b);
+				destroy_data_structs();
+
 				return 0;
 			}
 		} // if (options.write_copy_content_file == 1 ...
@@ -1191,6 +1210,46 @@ int main(int argc, char *argv[])
 						printf("Unrecognized answer. Type yes or no.\n");
 			 	}
 			}
+			if (ow_main_newer == 1 && options.just_copy_surplus_back != 1) {
+				printf("Scan found two files with the same name, one in the main location being newer than the file in the secondary location. "); 
+				printf("Should the secondary file be overwritten? Answer yes or no.\n");
+				while (fgets(line,BUF,stdin) != NULL) {
+					length = strlen(line);
+					line[length-1] = '\0';
+					if (strcmp(line,"yes") == 0) {
+						read_write_data(data_copy_info.diff_time_mn_list,4,NULL,NULL);
+						copied.ow_newer = 1;
+						printf("\n");
+						break;
+					}
+					else if (strcmp(line,"no") == 0) {
+						printf("\n");
+						break;
+					}
+					else
+						printf("Unrecognized answer. Type yes or no.\n");
+	 			}
+			}
+			if (ow_main_older == 1 && options.just_copy_surplus_back != 1) {
+				printf("Scan found two files with the same name, one in the main location being older than the file in the secondary location. ");
+				printf("Should the secondary file be overwritten? Answer yes or no.\n");
+				while (fgets(line,BUF,stdin) != NULL) {
+					length = strlen(line);
+					line[length-1] = '\0';
+					if (strcmp(line,"yes") == 0) {
+						read_write_data(data_copy_info.diff_time_mo_list,4,NULL,NULL);
+						copied.ow_older = 1;
+						printf("\n");
+						break;
+					}
+					else if (strcmp(line,"no") == 0) {
+						printf("\n");
+						break;
+					}
+					else
+						printf("Unrecognized answer. Type yes or no.\n");
+			 	}
+			}
 			if (copied.copied_data == 1 || copied.copied_surplus == 1 || copied.deleted_surplus == 1 || copied.ow_smaller == 1 || copied.ow_larger == 1)
 				if (options.dont_list_stats != 1)
 					list_stats(1,copied);
@@ -1216,6 +1275,10 @@ int main(int argc, char *argv[])
 				read_write_data(data_copy_info.diff_size_ms_list,4,NULL,NULL);
 			if (options.ow_main_larger == 1 && options.just_copy_surplus_back != 1)
 				read_write_data(data_copy_info.diff_size_ml_list,4,NULL,NULL);
+			if (options.ow_main_newer == 1 && options.just_copy_surplus_back != 1)
+				read_write_data(data_copy_info.diff_time_mn_list,4,NULL,NULL);
+			if (options.ow_main_older == 1 && options.just_copy_surplus_back != 1)
+				read_write_data(data_copy_info.diff_time_mo_list,4,NULL,NULL);
 			if (options.dont_list_stats != 1)
 				list_stats(1,copied);
 		}
@@ -1230,24 +1293,6 @@ int main(int argc, char *argv[])
 	clean_tree(thread_data_a->file_tree_top_dir,0);
 	clean_tree(thread_data_b->file_tree_top_dir,0);
 
-	// free the data structures used to hold file lists to copy, delete, overwrite...
-	if (data_copy_info.files_to_copy_list != NULL)
-		dlist_destroy_2(data_copy_info.files_to_copy_list);
-	if (data_copy_info.dirs_to_copy_list != NULL)
-		dlist_destroy_2(data_copy_info.dirs_to_copy_list);
-	if (data_copy_info.files_surplus_list != NULL)
-		dlist_destroy_2(data_copy_info.files_surplus_list);
-	if (data_copy_info.dirs_surplus_list != NULL)
-		dlist_destroy_2(data_copy_info.dirs_surplus_list);
-	if (data_copy_info.diff_size_ms_list != NULL)
-		dlist_destroy_3(data_copy_info.diff_size_ms_list);
-	if (data_copy_info.diff_size_ml_list != NULL)
-		dlist_destroy_3(data_copy_info.diff_size_ml_list);
-	if (data_copy_info.diff_time_mn_list != NULL)
-		dlist_destroy_3(data_copy_info.diff_time_mn_list);
-	if (data_copy_info.diff_time_mo_list != NULL)
-		dlist_destroy_3(data_copy_info.diff_time_mo_list);
-
 	free(pathname1);
 	free(pathname2);
 	if (thread_data_a->id != NULL)
@@ -1256,6 +1301,7 @@ int main(int argc, char *argv[])
 		free(thread_data_b->id);
 	free(thread_data_a);
 	free(thread_data_b);
+	destroy_data_structs();
 
 	exit(0);
 }
@@ -1750,4 +1796,24 @@ void calc_size(unsigned long data_size, int other_unit)
 			}
 		}
 	}
+}
+
+// free the data structures used to hold file lists to copy, delete, overwrite...
+void destroy_data_structs(void) {
+	if (data_copy_info.files_to_copy_list != NULL)
+		dlist_destroy_2(data_copy_info.files_to_copy_list);
+	if (data_copy_info.dirs_to_copy_list != NULL)
+		dlist_destroy_2(data_copy_info.dirs_to_copy_list);
+	if (data_copy_info.files_surplus_list != NULL)
+		dlist_destroy_2(data_copy_info.files_surplus_list);
+	if (data_copy_info.dirs_surplus_list != NULL)
+		dlist_destroy_2(data_copy_info.dirs_surplus_list);
+	if (data_copy_info.diff_size_ms_list != NULL)
+		dlist_destroy_3(data_copy_info.diff_size_ms_list);
+	if (data_copy_info.diff_size_ml_list != NULL)
+		dlist_destroy_3(data_copy_info.diff_size_ml_list);
+	if (data_copy_info.diff_time_mn_list != NULL)
+		dlist_destroy_3(data_copy_info.diff_time_mn_list);
+	if (data_copy_info.diff_time_mo_list != NULL)
+		dlist_destroy_3(data_copy_info.diff_time_mo_list);
 }
