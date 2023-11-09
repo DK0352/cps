@@ -316,19 +316,5 @@ void build_rest_of_the_tree(struct thread_struct *thread_data, unsigned long *p_
 	/* empty directory */
 	else if (directories == NULL && files == NULL) {
 		file_tree_element->down = NULL;
-		/*save_up_position = file_tree_element;
-		alloc = malloc(sizeof(DList_of_lists));
-		if (alloc == NULL) {
-			printf("built_the_rest_of_the_tree(): malloc() error 4.\n");
-			exit(1);
-		}
-		init_to_zero(alloc);
-		alloc->dirname = file_tree_element->dirname;
-		alloc->dir_location = file_tree_element->dir_location;
-		file_tree_element->down = alloc;
-		file_tree_element = file_tree_element->down;
-		file_tree_element->up = save_up_position;
-		file_tree_element->one_of_the_top_dirs = save_up_position->one_of_the_top_dirs;
-		file_tree_element->this_directory = file_tree_element;*/
 	}
 } /* build_the_rest_of_the_tree */
