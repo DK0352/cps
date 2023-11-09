@@ -94,7 +94,6 @@ int compare_trees(struct thread_struct *thread_data_a, struct thread_struct *thr
 					++same_dir_num;
 					file_tree_element_a->found_dir_match = 1;
 					file_tree_element_b->found_dir_match = 1;
-					printf("compare_trees() %s \t %s\n", file_tree_element_a->dirname, file_tree_element_b->dirname);
 					if (options.naive_mode == 0) {
 						if (file_tree_element_a->file_num != 0 || file_tree_element_b->file_num != 0)
 							loop_files(file_tree_element_a, file_tree_element_b);
@@ -128,7 +127,6 @@ int compare_trees(struct thread_struct *thread_data_a, struct thread_struct *thr
 			file_tree_element_b = top_location_b;
 	
 		if (dirlist_size_a > same_dir_num && dirlist_size_b == same_dir_num) {
-			printf("dirlist1\n");
 			while (file_tree_element_a != NULL) {
 				if (file_tree_element_a->found_dir_match != 1) {
 					if (data_copy_info.dirs_to_copy_list == NULL) {
@@ -156,7 +154,6 @@ int compare_trees(struct thread_struct *thread_data_a, struct thread_struct *thr
 			return 0;
 		}
 		else if (dirlist_size_a == same_dir_num && dirlist_size_b > same_dir_num) {
-			printf("dirlist2\n");
 			while (file_tree_element_b != NULL) {
 				if (file_tree_element_b->found_dir_match != 1) {
 					if (data_copy_info.dirs_surplus_list == NULL) {
@@ -184,7 +181,6 @@ int compare_trees(struct thread_struct *thread_data_a, struct thread_struct *thr
 			return 0;
 		}
 		else if (dirlist_size_a > same_dir_num && dirlist_size_b > same_dir_num) {
-			printf("dirlist3\n");
 			while (file_tree_element_a != NULL) {
 				if (file_tree_element_a->found_dir_match != 1) {
 					if (data_copy_info.dirs_to_copy_list == NULL) {
@@ -240,7 +236,6 @@ int compare_trees(struct thread_struct *thread_data_a, struct thread_struct *thr
 			return 0;
 	} // if (thread_data_a->no_dirs_a != 1 && thread_data_b->no_dirs_b != 1)
 	else if (no_dirs_a == 0 && no_dirs_b == 1) {
-		printf("compare_trees() new part 1\n");
 		while (file_tree_element_a != NULL) {
 			if (data_copy_info.dirs_to_copy_list == NULL) {
 				data_copy_info.dirs_to_copy_list = malloc(sizeof(DList));
@@ -263,7 +258,6 @@ int compare_trees(struct thread_struct *thread_data_a, struct thread_struct *thr
 		return 0;
 	}
 	else if (no_dirs_a == 1 && no_dirs_b == 0) {
-		printf("compare_trees() new part 2\n");
 		while (file_tree_element_b != NULL) {
 			if (data_copy_info.dirs_surplus_list == NULL) {
 				data_copy_info.dirs_surplus_list = malloc(sizeof(DList));
