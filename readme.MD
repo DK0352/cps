@@ -1,8 +1,9 @@
-cps compares and syncronizes two directories by copying only the missing files and directories, but it will notify you in the statistical info about the surplus files and directories
-(those that exist in the directory2 (destination), but not in the directory1 (source), files with the same name but different size, and with the proper options, these files and directories can be copied, overwritten or deleted as well.
+cps compares and syncronizes two directories by copying only the missing files and directories, but it will notify you in the statistical output about the surplus files and directories (those that exist in the directory2/destination, 
+but not in the directory1/source, and about files with the same name but different size or modification time, and with the proper options, those files and directories can be copied, overwritten or deleted as well. 
+By default, the program compares files based on their size, but you can suppy the option to compare them based on their modification time.
 
-Before any writing operation begins, cps lists all the files and directories that are about to be copied, and asks you for the confirmation. It also allows you to create the text file with all the files and 
-directories that are about to be copied without actually copying anything, as well as creating a text file with the complete file and directory content of both directory1 and directory2. You can also copy
+Before any writing operation begins, cps lists all the files and directories that are about to be copied, and asks you for the confirmation. It also allows you to create a text file with all the files and 
+directories that are about to be copied without actually copying anything, as well as creating a text file with the complete file and directory content of both directories. You can also copy
 surplus files and directories without synchronizing the source and destination.
 
 For help, run the program without any arguments or --help, -h.
@@ -16,19 +17,24 @@ sudo make install
 
 Some examples of use:
 
-1. To copy missing files and directories from (directory1) or /home/user/Documents/photos/2023 to (directory2) or /mnt/backup/photos/2023. The program doesn't differentiate whether pathname ends with / or not.
+1. To copy missing files and directories from directory1 (or source) to directory2 (or destination), you don't have to supply any options. For example:
 
 ```
 cps /home/user/Documents/photos/2023 /mnt/backup/photos/2023
 ```
-When you are asked if you want to copy missing files and directories, answer yes to begin copying operation or no if you want to quit.
+When you are asked if you want to copy missing files and directories, answer yes to begin copying operation or no if you want to quit. Use the -q options if you don't want to be asked for confirmation. The program doesn't differentiate
+whether the pathnames ends with a '/' or not. Whether you type /mnt/backup/photos/2023 or /mnt/backup/photos/2023/ it is the same.
 
 2. To copy missing files and directories from source (directory1) to destination (directory2) and to also copy missing files and directories from destination (directory2) to source (directory1)
 ```
 cps --copy-surplus-back /home/user/Documents/dir1 /home/user/Documents/dir2
 ```
+or
+```
+cps -b /home/user/Documents/dir1 /home/user/Documents/dir2
+```
 When you are asked if you want to copy missing files and directories, answer yes to begin copying operation or no if you want to quit. Then you will be asked: Do you want to write the surplus data from the destination directory back to the source? 
-Again, type yes or no. 
+Again, type yes or no if you changed your mind. Typing 'no' to a second question won't abort the result of the previous question/operation. 
 
 Surplus files and directories are identified in the statistical output of the program even during default operation of the program, for example:
 ```
@@ -40,41 +46,86 @@ Size of surplus directories in bytes: 0
 ```
 This way you know that directory2 (or destination) contains surplus data, and you can ignore it, copy it back to a main directory or delete it.
 
-If you want list out such files without neccesarily copying them use --list-surplus option.
+If you want list out such files without neccesarily copying them use --list-surplus or -f option.
 
-3. To copy missing files and directories from /home/user/Documents/dir1  to /home/user/Documents/dir2 and to delete files and directories from /home/user/Documents/dir2 that don't exist in /home/user/Documents/dir1
+3. To copy missing files and directories from /home/user/Documents/dir1 (source) to /home/user/Documents/dir2 (destination) and to delete files and directories from /home/user/Documents/dir2 (destination) that don't exist in 
+/home/user/Documents/dir1 (source):
 ```
 cps --delete-surplus /home/user/Documents/dir1 /home/user/Documents/dir2
 ```
+or
+```
+cps -x /home/user/Documents/dir1 /home/user/Documents/dir2
+```
 When you are asked if you want to copy missing files and directories, answer yes or no if you don't want to. Then you will be asked: Do you want to delete the surplus data from the destionation directory back to the source? 
-Answer yes, or no if you don't want to.
+Answer yes, or no if you don't want to. Typing 'no' to a second question won't abort the result of the previous question/operation. 
 
-4. If you want to add new data from a directory2 (destination) to a directory1 (source) without copying (syncing) data to a directory2 from a directory1, specify --just-copy-surplus-back. 
+4. If you want to add new data from a directory2 (destination) to a directory1 (source) without copying (syncing) data to a directory2 from a directory1, specify --just-copy-surplus-back or -B. 
 ```
 cps --just-copy-surplus-back /home/user/Documents/dir1 /home/user/Documents/dir2
 ```
-You can also take longer route:
+or
 ```
-cps --copy-surplus-back /home/user/Documents/dir1 /home/user/Documents/dir2
+cps -B /home/user/Documents/dir1 /home/user/Documents/dir2
 ```
-When you are asked if you want to copy missing files and directories, answer no. Then, when you are asked: Do you want to write the surplus data from the destionation directory back to the source? Answer yes. This is useful if you
-change your mind, and decide not to fully syncronize directories.
 
-5. cps copies only the missing files and directories from directory1 to a directory2 and ignores the files with the same name, but different size. If you want to overwrite such files, you must specify whether you want to overwrite the smaller 
-files from the directory2 (destination) with the larger files from directory1 (source). 
+5. cps copies only the missing files and directories from directory1 to a directory2 and ignores the files with the same name, but different size or different modification time (in case you use -T or --time-mode option). 
+To list out any such files and directories, use:
+```
+cps --list-conflicting /home/user/Documents/dir1 /home/user/Documents/dir2
+```
+or
+```
+cps -L /home/user/Documents/dir1 /home/user/Documents/dir2
+```
+
+If you want to overwrite such files, you must specify whether you want to overwrite the smaller files from the directory2 (destination) with the larger files from directory1 (source):
 ```
 cps --overwrite-with-larger /home/user/Documents/dir1 /home/user/Documents/dir2
+```
+using short option:
+```
+cps -l /home/user/Documents/dir1 /home/user/Documents/dir2
 ```
 or if you want to overwrite the larger files from the directory2 (destination) with the smaller files from the directory1 (source):
 ```
 cps --overwrite-with-smaller /home/user/Documents/dir1 /home/user/Documents/dir2
 ```
-Such files and directories are identified in the statistical output of the program even during default operation of the program, for example:
+using short option:
+```
+cps -s /home/user/Documents/dir1 /home/user/Documents/dir2
+```
+Such files are identified in the statistical output of the program even during the default (without any options) operation of the program:
 ```
 Same files with different size (main location smaller): 6
 Same files with different size (main location larger): 7
+Same files with different modification time (main location newer): 0
+Same files with different modification time (main location older): 0
 ```
-6. If you don't want to be asked whether or not you want to copy data, you can specify --no-questions or -q option. cps then proceeds with copying immediately after scaning the directories.
+In case you want to scan based on files last modification time, you must use --time-mode or -T option:
+```
+cps -T /home/user/Documents/dir1 /home/user/Documents/dir2
+
+Such files are identified in the statistical output of the program with the -T or --time-mode option supplied:
+
+```
+Same files with different size (main location smaller): 0
+Same files with different size (main location larger): 0
+Same files with different modification time (main location newer): 22
+Same files with different modification time (main location older): 1599
+```
+
+To overwrite the older modification time files in the secondary/destination location with the newer files from the main/source location, use --overwrite-with-newer or -N option:
+```
+cps -N /home/user/Documents/dir1 /home/user/Documents/dir2
+```
+
+To overwrite the older modification time files in the secondary/destination location with the newer files from the main/source location, use --overwrite-with-older or -O option:
+```
+cps -O /home/user/Documents/dir1 /home/user/Documents/dir2
+```
+
+6. If you don't want to be asked whether or not you want to copy/overwrite/delete data, you can specify --no-questions or -q option. cps then proceeds with the desired operations immediately after scaning the directories.
 ```
 cps -q /home/user/Documents/dir1 /home/user/Documents/dir2
 ```
