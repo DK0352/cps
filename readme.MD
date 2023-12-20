@@ -13,7 +13,9 @@ sudo make install
 
 Some examples of use:
 
+```
 cps OPTIONS directory1 directory2
+```
 
 1. To copy missing files and directories from **directory1** (the main directory or source) to **directory2** (the secondary directory or destination), you don't have to supply any options. For example:
 
