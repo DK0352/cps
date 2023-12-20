@@ -25,7 +25,7 @@ whether the pathnames end with a '/' or not. Whether you type /mnt/backup/photos
 ```
 cps --copy-surplus-back /home/user/Documents/dir1 /home/user/Documents/dir2
 ```
-or
+or using the short option:
 ```
 cps -b /home/user/Documents/dir1 /home/user/Documents/dir2
 ```
@@ -44,8 +44,8 @@ This way you know that directory2 (or destination) contains surplus data, and yo
 
 If you want list out such files without neccesarily copying them use --list-surplus or -f option.
 
-3. To copy missing files and directories from /home/user/Documents/dir1 (source) to /home/user/Documents/dir2 (destination) and to delete files and directories from /home/user/Documents/dir2 (destination) that don't exist in 
-/home/user/Documents/dir1 (source):
+3. To copy missing files and directories from **/home/user/Documents/dir1** (source) to **/home/user/Documents/dir2** (destination) and to delete files and directories from **/home/user/Documents/dir2** (destination) that don't exist in 
+**/home/user/Documents/dir1** (source):
 ```
 cps --delete-surplus /home/user/Documents/dir1 /home/user/Documents/dir2
 ```
