@@ -103,8 +103,10 @@ Same files with different modification time (main location newer): 0
 Same files with different modification time (main location older): 0
 ```
 In case you want to scan based on files last modification time, you must use --time-mode or -T option:
+
 ```
 cps -T /home/user/Documents/dir1 /home/user/Documents/dir2
+```
 
 Such files are identified in the statistical output of the program with the -T or --time-mode option supplied:
 
