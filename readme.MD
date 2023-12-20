@@ -18,8 +18,8 @@ Some examples of use:
 ```
 cps /home/user/Documents/photos/2023 /mnt/backup/photos/2023
 ```
-When you are asked if you want to copy missing files and directories, answer yes to begin copying operation or no if you want to quit. Use the -q options if you don't want to be asked for confirmation. The program doesn't differentiate
-whether the pathnames ends with a '/' or not. Whether you type /mnt/backup/photos/2023 or /mnt/backup/photos/2023/ it is the same.
+When you are asked if you want to copy missing files and directories, answer yes to begin copying operation or no if you want to quit. Use the -q option if you don't want to be asked for the confirmation. The program doesn't differentiate
+whether the pathnames end with a '/' or not. Whether you type /mnt/backup/photos/2023 or /mnt/backup/photos/2023/ - it is the same.
 
 2. To copy missing files and directories from source (directory1) to destination (directory2) and to also copy missing files and directories from destination (directory2) to source (directory1)
 ```
