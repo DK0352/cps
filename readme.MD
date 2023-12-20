@@ -198,7 +198,7 @@ cps --naive-mode /home/user/Documents/dir1 /home/user/Documents/dir2
 cps -S /home/user/Documents/dir1 /home/user/Documents/dir2
 ```
 
-General view of the program after directory scan:
+General view of the program after a directory scan:
 
 ```
 SOURCE DIRECTORY
