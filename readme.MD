@@ -13,15 +13,15 @@ sudo make install
 
 Some examples of use:
 
-1. To copy missing files and directories from directory1 (or source) to directory2 (or destination), you don't have to supply any options. For example:
+1. To copy missing files and directories from **directory1** (the main directory or source) to **directory2** (the secondary directory or destination), you don't have to supply any options. For example:
 
 ```
 cps /home/user/Documents/photos/2023 /mnt/backup/photos/2023
 ```
 When you are asked if you want to copy missing files and directories, answer yes to begin copying operation or no if you want to quit. Use the -q option if you don't want to be asked for the confirmation. The program doesn't differentiate
-whether the pathnames end with a '/' or not. Whether you type /mnt/backup/photos/2023 or /mnt/backup/photos/2023/ - it is the same.
+whether the pathnames end with a '/' or not. Whether you type **/mnt/backup/photos/2023** or **/mnt/backup/photos/2023/** - it is the same.
 
-2. To copy missing files and directories from source (directory1) to destination (directory2) and to also copy missing files and directories from destination (directory2) to source (directory1)
+2. To copy missing files and directories from **directory1** (the main directory or source) to **directory2** (the secondary directory or destination) and to also copy missing files and directories from **directory2** to **directory1**
 ```
 cps --copy-surplus-back /home/user/Documents/dir1 /home/user/Documents/dir2
 ```
@@ -40,16 +40,16 @@ Size in megabytes: 598.06 MB
 Number of surplus directories: 0
 Size of surplus directories in bytes: 0
 ```
-This way you know that directory2 (or destination) contains surplus data, and you can ignore it, copy it back to a main directory or delete it.
+This way you know that the **secondary directory or destination** contains surplus data, and you can ignore it, copy it back to a **main directory** or delete it.
 
 If you want list out such files without neccesarily copying them use --list-surplus or -f option.
 
-3. To copy missing files and directories from **/home/user/Documents/dir1** (source) to **/home/user/Documents/dir2** (destination) and to delete files and directories from **/home/user/Documents/dir2** (destination) that don't exist in 
-**/home/user/Documents/dir1** (source):
+3. To copy missing files and directories from **/home/user/Documents/dir1** to **/home/user/Documents/dir2** and to delete files and directories from **/home/user/Documents/dir2** that don't exist in 
+**/home/user/Documents/dir1**:
 ```
 cps --delete-surplus /home/user/Documents/dir1 /home/user/Documents/dir2
 ```
-or
+or using the short option:
 ```
 cps -x /home/user/Documents/dir1 /home/user/Documents/dir2
 ```
@@ -60,7 +60,7 @@ Answer yes, or no if you don't want to. Typing 'no' to a second question won't a
 ```
 cps --just-copy-surplus-back /home/user/Documents/dir1 /home/user/Documents/dir2
 ```
-or
+or using the short option:
 ```
 cps -B /home/user/Documents/dir1 /home/user/Documents/dir2
 ```
@@ -70,7 +70,7 @@ To list out any such files and directories, use:
 ```
 cps --list-conflicting /home/user/Documents/dir1 /home/user/Documents/dir2
 ```
-or
+or using the short option:
 ```
 cps -L /home/user/Documents/dir1 /home/user/Documents/dir2
 ```
@@ -79,7 +79,7 @@ If you want to overwrite such files, you must specify whether you want to overwr
 ```
 cps --overwrite-with-larger /home/user/Documents/dir1 /home/user/Documents/dir2
 ```
-using short option:
+using the short option:
 ```
 cps -l /home/user/Documents/dir1 /home/user/Documents/dir2
 ```
@@ -87,7 +87,7 @@ or if you want to overwrite the larger files from the directory2 (destination) w
 ```
 cps --overwrite-with-smaller /home/user/Documents/dir1 /home/user/Documents/dir2
 ```
-using short option:
+using the short option:
 ```
 cps -s /home/user/Documents/dir1 /home/user/Documents/dir2
 ```
@@ -141,8 +141,7 @@ cps -a /home/user/Documents/dir1 /home/user/Documents/dir2
 ```
 cps -q /home/user/Documents/dir1 /home/user/Documents/dir2
 ```
-8. If you are not entirely sure what needs or what will be copied, you can just print out the list of files that will be copied, without actually coping anything. It is also useful in case there are many files and directories listed out
-and screen scrolls too fast. Specify the full pathname for the location of the copy-content file + name of the file.
+8. If you are not entirely sure what needs or what will be copied, you can just print out the list of files that will be copied, without actually coping anything. It is also useful in case there are many files and directories listed out and screen scrolls too fast. Specify the full pathname for the location of the copy-content file + name of the file.
 
 option --just-copy-content-file=/path/to/file. /path/to/file is a desired pathname of your choice, or using short option -K
 ```
