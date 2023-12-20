@@ -1,10 +1,6 @@
-cps compares and syncronizes two directories by copying only the missing files and directories, but it will notify you in the statistical output about the surplus files and directories (those that exist in the directory2/destination, 
-but not in the directory1/source, and about files with the same name but different size or modification time, and with the proper options, those files and directories can be copied, overwritten or deleted as well. 
-By default, the program compares files based on their size, but you can suppy the option to compare them based on their modification time.
+cps compares and syncronizes two directories by copying only the missing files and directories, but also enables you to overwrite files of different size or different last modification time, as well as to copy or delete any surplus data. It has extremely useful statistical output which tells you the exact size of data to be copied before actually commencing the copying operation, as well as number and size of files and directories, surplus files, etc. Before any writing operation begins, cps lists all the files and directories that are about to be copied, and asks you for the confirmation. It also allows you to create a text file with all the files and directories that are about to be copied without actually copying anything, as well as creating a text file with the complete file and directory content of both directories. You can also copy or delete surplus files and directories without synchronizing the source and destination. 
 
-Before any writing operation begins, cps lists all the files and directories that are about to be copied, and asks you for the confirmation. It also allows you to create a text file with all the files and 
-directories that are about to be copied without actually copying anything, as well as creating a text file with the complete file and directory content of both directories. You can also copy
-surplus files and directories without synchronizing the source and destination.
+By default, the program compares files based on their size, but you can suppy the option to compare them based on their last modification time. 
 
 For help, run the program without any arguments or --help, -h.
 
@@ -126,23 +122,45 @@ To overwrite the older modification time files in the secondary/destination loca
 ```
 cps -O /home/user/Documents/dir1 /home/user/Documents/dir2
 ```
+6. Time options:
 
-6. If you don't want to be asked whether or not you want to copy/overwrite/delete data, you can specify --no-questions or -q option. cps then proceeds with the desired operations immediately after scaning the directories.
+To preserve the last access time on the data to be copied use --preserve-atime or -A
+```
+cps -A /home/user/Documents/dir1 /home/user/Documents/dir2
+```
+To preserve the last modification time on the data to be copied use --preserve-mtime or -M
+```
+cps -M /home/user/Documents/dir1 /home/user/Documents/dir2
+```
+To not update the last access time on files during reading operation use --no-access-time or -a
+```
+cps -a /home/user/Documents/dir1 /home/user/Documents/dir2
+```
+
+7. If you don't want to be asked whether or not you want to copy/overwrite/delete data, you can specify --no-questions or -q option. cps then proceeds with the desired operations immediately after scaning the directories.
 ```
 cps -q /home/user/Documents/dir1 /home/user/Documents/dir2
 ```
-7. If you are not entirely sure what needs or what will be copied, you can just print out the list of files that will be copied, without actually coping anything. It is also useful in case there are many files and directories listed out
+8. If you are not entirely sure what needs or what will be copied, you can just print out the list of files that will be copied, without actually coping anything. It is also useful in case there are many files and directories listed out
 and screen scrolls too fast. Specify the full pathname for the location of the copy-content file + name of the file.
 
-option --just-copy-content-file=/path/to/file. /path/to/file is a desired pathname of your choice.
+option --just-copy-content-file=/path/to/file. /path/to/file is a desired pathname of your choice, or using short option -K
 ```
-cps --just-copy-content-file=/home/user/Documents/copy_content /home/user/Documents/dir1 /home/user/Documents/dir2
+cps --just-copy-content-file=/home/user/Documents/copy_list /home/user/Documents/dir1 /home/user/Documents/dir2
+```
+or using short option:
+```
+cps -K /home/user/Documents/copy_list /home/user/Documents/dir1 /home/user/Documents/dir2
 ```
 You can also copy data and create file with the content of all directories copied. In that case use:
 ```
 cps --copy-content-file=/home/user/copy_content /home/user/Documents/dir1 /home/user/Documents/dir2
 ```
-8. You can list complete content of files and directories from both directory1 (source) and directory2 (destination) without copying anything. use option --just-conent-file=/path/to/file where /path/to/file is a desired pathname of your choice.
+or using short option:
+```
+cps -k /home/user/Documents/copy_list /home/user/Documents/dir1 /home/user/Documents/dir2
+```
+9. You can list complete content of files and directories from both directory1 (source) and directory2 (destination) without copying anything. use option --just-content-file=/path/to/file where /path/to/file is a desired pathname of your choice.
 ```
 cps --just-content-file=/home/user/dir_content /home/user/Documents/dir1 /home/user/Documents/dir2
 ```
@@ -150,20 +168,35 @@ You can also copy/syncronize the data and create a file with a complete director
 ```
 cps --content-file=/home/user/dir_content /home/user/Documents/dir1 /home/user/Documents/dir2
 ```
-9. By default, the program outputs all files and directories to copy along with their current pathname, new pathname and size in bytes. If you don't want any of that, use:
+10. By default, the program outputs all files and directories to copy along with their current pathname, new pathname and size in bytes. If you don't want any of that, use --dont-list-data-to-copy or -d:
 ```
-cps --dont-list-data-to-copy /home/user/Documents/dir1 /home/user/Documents/dir2
+cps -d /home/user/Documents/dir1 /home/user/Documents/dir2
 ```
-10. By default, if program encounters a file or directory for which it doesn't have read or write permissions, it will quit. To skip over such files for read and write errors, using short options, use:
+11. By default, if program encounters a file or directory for which it doesn't have read or write permissions, it will quit. To skip over such files for read and write errors using short options, use:
 ```
-cps -no /home/user/Documents/dir1 /home/user/Documents/dir2
+cps -yz /home/user/Documents/dir1 /home/user/Documents/dir2
 ```
-11. By default, program outputs sizes in bytes and another appropriate unit determined by the program. If you want to choose different second unit, use --unit option. For example, to output the size in megabytes:
+ 
+12. By default, program outputs sizes in bytes and another appropriate unit determined by the program. If you want to choose different second unit, use --unit option. For example, to output the size in megabytes:
 ```
 cps --unit=MB /home/user/Documents/dir1 /home/user/Documents/dir2
 ```
+13. By default, the program compares files based on their size. To compare then based on last modification time, use --time-mode or -T:
 
+```
+cps -T /home/user/Documents/dir1 /home/user/Documents/dir2
+```
 
+14. To avoid scanning complete file tree, you can use the naive mode in which the program won't scan directories with the same size. Problem with this approach is if for example two directories have swapped their places somwhere under top directories,
+the program won't detect that change. If you are certain that directory structure has remained same, you can probably save some time using the --naive-mode or -n:
+
+```
+cps --naive-mode /home/user/Documents/dir1 /home/user/Documents/dir2
+```
+15. To follow symbolic links and to copy the actual data these symbolic links point to, use --follow-sym-links or -S:
+```
+cps -S /home/user/Documents/dir1 /home/user/Documents/dir2
+```
 
 General view of the program after directory scan:
 
@@ -197,8 +230,8 @@ Number of surplus directories: 0
 Size of surplus directories in bytes: 0
 Same files with different size (main location smaller): 0
 Same files with different size (main location larger): 0
-Files with the same name, different type (main): 0
-Files with the same name, different type (secondary): 0
+Same files with different modification time (main location newer): 0
+Same files with different modification time (main location older): 0
 
 Do you want to write the missing files and directories? Type yes or no ...
 ```
