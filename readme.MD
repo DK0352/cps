@@ -26,7 +26,7 @@ When you are asked if you want to copy missing files and directories, answer yes
 
 The program doesn't differentiate whether the pathnames end with a '/' or not. Whether you type **/mnt/backup/photos/2023** or **/mnt/backup/photos/2023/** - it is the same.
 
-2. To copy missing files and directories from **directory1** (the main directory or source) to **directory2** (the secondary directory or destination) and to also copy missing files and directories from **directory2** to **directory1**
+2. To copy missing files and directories from **directory1** (the main directory or source) to **directory2** (the secondary directory or destination) and to also copy surplus files and directories from **directory2** to **directory1**
 ```
 cps --copy-surplus-back /home/user/Documents/dir1 /home/user/Documents/dir2
 ```
@@ -96,7 +96,7 @@ using the short option:
 ```
 cps -s /home/user/Documents/dir1 /home/user/Documents/dir2
 ```
-Such files are identified in the statistical output of the program even during the default (without any options) operation of the program:
+Such files are identified in the statistical output of the program even during the default (without any additional options) operation of the program:
 ```
 Same files with different size (main location smaller): 6
 Same files with different size (main location larger): 7
@@ -146,13 +146,13 @@ cps -a /home/user/Documents/dir1 /home/user/Documents/dir2
 ```
 cps -q /home/user/Documents/dir1 /home/user/Documents/dir2
 ```
-8. If you are not entirely sure what needs or what will be copied, you can just print out the list of files that will be copied, without actually coping anything. It is also useful in case there are many files and directories listed out and screen scrolls too fast. Specify the full pathname for the location of the copy-content file + name of the file.
+8. If you want to know what will be copied, including the size of the data, you can just print out the list of files that will be copied without actually coping anything. It is also useful in case there are many files and directories listed out and screen scrolls too fast. Specify the full pathname for the location of the copy-content file and name of the file.
 
 option --just-copy-content-file=/path/to/file. /path/to/file is a desired pathname of your choice, or using short option -K
 ```
 cps --just-copy-content-file=/home/user/Documents/copy_list /home/user/Documents/dir1 /home/user/Documents/dir2
 ```
-or using short option:
+or using the short option:
 ```
 cps -K /home/user/Documents/copy_list /home/user/Documents/dir1 /home/user/Documents/dir2
 ```
@@ -164,13 +164,22 @@ or using short option:
 ```
 cps -k /home/user/Documents/copy_list /home/user/Documents/dir1 /home/user/Documents/dir2
 ```
-9. You can list complete content of files and directories from both directory1 (source) and directory2 (destination) without copying anything. use option --just-content-file=/path/to/file where /path/to/file is a desired pathname of your choice.
+9. You can list complete content of files and directories from both **directory1 (source)** and **directory2 (destination)** without copying anything. use option --just-content-file=/path/to/file where /path/to/file is a desired pathname 
+of your choice and name of the file.
 ```
 cps --just-content-file=/home/user/dir_content /home/user/Documents/dir1 /home/user/Documents/dir2
 ```
-You can also copy/syncronize the data and create a file with a complete directory content of both source and destination directories.
+or using the short option:
+```
+cps -C /home/user/Documents/copy_list /home/user/Documents/dir1 /home/user/Documents/dir2
+```
+You can also copy/syncronize the data and create a file with a complete directory content of both source and destination directories using --content-file or -c option:
 ```
 cps --content-file=/home/user/dir_content /home/user/Documents/dir1 /home/user/Documents/dir2
+```
+or using the short option:
+```
+cps -c /home/user/Documents/copy_list /home/user/Documents/dir1 /home/user/Documents/dir2
 ```
 10. By default, the program outputs all files and directories to copy along with their current pathname, new pathname and size in bytes. If you don't want any of that, use --dont-list-data-to-copy or -d:
 ```
