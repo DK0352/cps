@@ -137,7 +137,7 @@ To preserve the last modification time on the data to be copied use --preserve-m
 ```
 cps -M /home/user/Documents/dir1 /home/user/Documents/dir2
 ```
-To avoid updateing the last access time on files during reading operation use --no-access-time or -a
+To avoid updating the last access time on files during reading operation use --no-access-time or -a
 ```
 cps -a /home/user/Documents/dir1 /home/user/Documents/dir2
 ```
