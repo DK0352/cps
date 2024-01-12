@@ -28,7 +28,8 @@ struct options_menu {
 	int	ignore_write_errors;		// ignore write errors. files or dirs that failed to be written will be added to list.
 	int	copy_surplus_back;		// copy surplus data from secondary location into main along with syncing directories
 	int	just_copy_surplus_back;		// copy surplus data from secondary location into main, without syncing directories
-	int	delete_surplus; 		// delete surplus files from main location after equating data with secondary location
+	int	delete_surplus; 		// delete surplus files and dirs from the destination directory
+	int	just_delete_surplus;		// just delete surplus files and dirs from the destination directory and quit
 	int	ow_main_smaller;		// if two files with the same name are found, overwrite the larger file in the secondary location with the smaller from the main location
 	int	ow_main_larger;			// if two files with the same name are found, overwrite the smaller file in the secondary location with the larger file from the main location
 	int	list_surplus;			// just list surplus files/dirs, but dont copy them.
