@@ -319,6 +319,9 @@ int main(int argc, char *argv[])
 			case 'b':
 				options.copy_surplus_back = 1;
 				break;
+			case 'B':
+				options.just_copy_surplus_back = 1;
+				break;
 			case 'x':
 				options.delete_surplus = 1;
 				break;
@@ -377,9 +380,6 @@ int main(int argc, char *argv[])
 			case 'w':
 				options.show_write_proc = 0;
 				break;
-			case 'B':
-				options.just_copy_surplus_back = 1;
-				break;
 			case 'S':
 				options.follow_sym_links = 1;
 				break;
@@ -430,8 +430,8 @@ int main(int argc, char *argv[])
 		printf("\n");
 		printf("Usage: cps OPTIONS directory1 directory2\n");
 		printf("\n");
-		printf("       directory1 (the main directory)\n");
-		printf("       directory2 (the secondary directory that you wish to syncronize with the main directory).\n");
+		printf("       directory1 (the main directory or source)\n");
+		printf("       directory2 (the secondary directory that you wish to syncronize with the main directory or destination).\n");
 		printf("\n");
 		printf("OPTIONS: (long option) or (short option) \n");
 		printf("\n");
@@ -502,7 +502,7 @@ int main(int argc, char *argv[])
 	else if (options.follow_sym_links == 1)
 		options.stat_f = stat;
 
-	if (options.copy_surplus_back == 1 || options.just_copy_surplus_back == 1 && options.delete_surplus == 1 || options.just_delete_surplus == 1) {
+	if ((options.copy_surplus_back == 1 || options.just_copy_surplus_back == 1) && (options.delete_surplus == 1 || options.just_delete_surplus == 1)) {
 		printf("Error: Conflicting options. You are attempting to delete the surplus data and to copy it back to the main directory.\n");
 		exit(1);
 	}
@@ -511,11 +511,6 @@ int main(int argc, char *argv[])
 		options.list_surplus = 1;
 	if (options.delete_surplus == 1 || options.just_delete_surplus == 1)
 		options.list_surplus = 1;
-
-	if (options.copy_surplus_back == 1 && options.delete_surplus == 1 || options.just_copy_surplus_back == 1 && options.delete_surplus == 1) {
-		printf("Error: Conflicting options: --copy-surplus-back and --delete-surplus. Specify either the one or the other.\n");
-		exit(1);
-	}
 
 	if (options.ow_main_smaller == 1 && options.ow_main_larger == 1) {
 		printf("Error: Conflicting options: --overwrite-with-smaller and --overwrite-with-larger. Specify either one or the other.\n");
@@ -1275,18 +1270,32 @@ int main(int argc, char *argv[])
 				read_write_data(data_copy_info.files_to_copy_list,1,NULL,NULL);
 				copied.copied_data = 1;
 			}
-			if (copy_dirs == 1 && options.just_copy_surplus_back != 1) {
+			if (copy_dirs == 1 && options.just_copy_surplus_back != 1 && options.just_delete_surplus != 1) {
 				read_write_data(data_copy_info.dirs_to_copy_list,2,NULL,NULL);
 				copied.copied_data = 1;
 			}
-			if (options.copy_surplus_back == 1 || options.just_copy_surplus_back == 1) {
+			if (options.copy_surplus_back == 1) {
 				if (files_surplus == 1)
 					read_write_data(data_copy_info.files_surplus_list,1,NULL,NULL);
 				if (dirs_surplus == 1)
 					read_write_data(data_copy_info.dirs_surplus_list,2,NULL,NULL);
 				copied.copied_surplus = 1;
 			}
-			else if (options.delete_surplus == 1 || options.just_delete_surplus == 1) {
+			else if (options.delete_surplus == 1) {
+				if (files_surplus == 1)
+					read_write_data(data_copy_info.files_surplus_list,5,NULL,NULL);
+				if (dirs_surplus == 1)
+					read_write_data(data_copy_info.dirs_surplus_list,6,NULL,NULL);
+				copied.deleted_surplus = 1;
+			}
+			if (options.just_copy_surplus_back == 1) {
+				if (files_surplus == 1)
+					read_write_data(data_copy_info.files_surplus_list,1,NULL,NULL);
+				if (dirs_surplus == 1)
+					read_write_data(data_copy_info.dirs_surplus_list,2,NULL,NULL);
+				copied.copied_surplus = 1;
+			}
+			else if (options.just_delete_surplus == 1) {
 				if (files_surplus == 1)
 					read_write_data(data_copy_info.files_surplus_list,5,NULL,NULL);
 				if (dirs_surplus == 1)
@@ -1539,35 +1548,11 @@ void list_stats(int after_c, struct copied_or_not copied)
 				printf("\n");
 			}
 		}
-		else if (copied.aborted_copying == 1) {
-			printf("Aborted copying the missing files and directories (from the source to the destination): ");
+		else if (copied.copied_data == 0 && options.just_delete_surplus != 1) {
+			if (copied.aborted_copying == 1)
+				printf("Aborted copying the missing files and directories (from the source to the destination): ");
 			after_copying_file_num = data_copy_info.global_file_num_b;
-			if (options.delete_surplus == 1) {
-				if (copied.deleted_surplus == 1) {
-					after_copying_file_num -= data_copy_info.global_files_surplus_num;
-					printf("Number of files: %ld\n", after_copying_file_num);
-				}
-				else if (copied.deleted_surplus == 0) {
-					printf("Aborted deleting surplus data.\n");
-					printf("Number of files: %ld\n", data_copy_info.global_file_num_b);
-				}
-			}
-			else 
-				printf("Number of files: %ld\n", data_copy_info.global_file_num_b);
-			if (options.delete_surplus == 1) {
-				after_copying_dir_num = data_copy_info.global_dir_num_b;
-				if (copied.deleted_surplus == 1) {
-					after_copying_dir_num -= data_copy_info.global_dirs_surplus_num;
-					printf("Number of directories (excluding the top directory): %ld\n", after_copying_dir_num);
-				}
-				else if (copied.deleted_surplus == 0) {
-					printf("Aborted deleting surplus data.\n");
-					printf("Number of directories (excluding the top directory): %ld\n", data_copy_info.global_dir_num_b);
-				}
-			}
-			else {
-				printf("Number of directories (excluding the top directory): %ld\n", data_copy_info.global_dir_num_b);
-			}
+			after_copying_dir_num = data_copy_info.global_dir_num_b;
 			after_copying_size = data_copy_info.global_files_size_b;
 			if (options.ow_main_larger == 1) {
 				if (copied.ow_larger == 1) {
@@ -1587,79 +1572,30 @@ void list_stats(int after_c, struct copied_or_not copied)
 					printf("Aborted overwriting same files with different sizes.\n");
 				}
 			}
-			if (options.delete_surplus == 1) {
-				if (copied.deleted_surplus == 1) {
-					after_copying_size -= data_copy_info.global_files_surplus_size;
-					after_copying_size -= data_copy_info.global_dirs_surplus_size;
-					printf("Size of directory in bytes after copying: %ld\n", after_copying_size);
-					calc_size(after_copying_size,options.other_unit);
-					printf("\n");
-					printf("\n");
+			if (options.ow_main_newer == 1) {
+				if (copied.ow_newer == 1) {
+					after_copying_size -= data_copy_info.global_diff_time_mn_orig_size;
+					after_copying_size += data_copy_info.global_diff_time_mn_size;
 				}
-				else if (copied.deleted_surplus == 0) {
-					printf("Aborted deleting surplus data.\n");
-					printf("Size of directory in bytes: %ld\n", data_copy_info.global_files_size_b);
-					calc_size(after_copying_size,options.other_unit);
-					printf("\n");
-					printf("\n");
+				else if (copied.ow_newer == 0) {
+					printf("Aborted overwriting the same files with different modification time.\n");
 				}
 			}
-			else {
-				printf("Size of directory in bytes: %ld\n", data_copy_info.global_files_size_b);
-				calc_size(after_copying_size,options.other_unit);
-				printf("\n");
-				printf("\n");
+			else if (options.ow_main_older == 1) {
+				if (copied.ow_older == 1) {
+					after_copying_size -= data_copy_info.global_diff_time_mo_orig_size;
+					after_copying_size += data_copy_info.global_diff_time_mo_size;
+				}
+				else if (copied.ow_older == 0) {
+					printf("Aborted overwriting the same files with different modification time.\n");
+				}
 			}
-		}
-		else if (options.delete_surplus == 1 || options.ow_main_smaller == 1 || options.ow_main_larger == 1) {
 			if (options.delete_surplus == 1) {
-				after_copying_file_num = data_copy_info.global_file_num_b;
 				if (copied.deleted_surplus == 1) {
 					after_copying_file_num -= data_copy_info.global_files_surplus_num;
 					printf("Number of files: %ld\n", after_copying_file_num);
-				}
-				else if (copied.deleted_surplus == 0) {
-					printf("Aborted deleting surplus data.\n");
-					printf("Number of files: %ld\n", data_copy_info.global_file_num_b);
-				}
-			}
-			else
-				printf("Number of files: %ld\n", data_copy_info.global_file_num_b);
-			if (options.delete_surplus == 1) {
-				after_copying_dir_num = data_copy_info.global_dir_num_b;
-				if (copied.deleted_surplus == 1) {
 					after_copying_dir_num -= data_copy_info.global_dirs_surplus_num;
 					printf("Number of directories (excluding the top directory): %ld\n", after_copying_dir_num);
-				}
-				else if (copied.deleted_surplus == 0) {
-					printf("Aborted deleting surplus data.\n");
-					printf("Number of directories (excluding the top directory): %ld\n", data_copy_info.global_dir_num_b);
-				}
-			}
-			else {
-				printf("Number of directories (excluding the top directory): %ld\n", data_copy_info.global_dir_num_b);
-			}
-			after_copying_size = data_copy_info.global_files_size_b;
-			if (options.ow_main_larger == 1) {
-				if (copied.ow_larger == 1) {
-					after_copying_size -= data_copy_info.global_diff_size_ml_orig_size;
-					after_copying_size += data_copy_info.global_diff_size_ml_size;
-				}
-				else if (copied.ow_larger == 0) {
-					printf("Aborted overwriting same files with different sizes.\n");
-				}
-			}
-			else if (options.ow_main_smaller == 1) {
-				if (copied.ow_smaller == 1) {
-					after_copying_size -= data_copy_info.global_diff_size_ms_orig_size;
-					after_copying_size += data_copy_info.global_diff_size_ms_size;
-				}
-				else if (copied.ow_smaller == 0) {
-					printf("Aborted overwriting same files with different sizes.\n");
-				}
-			}
-			if (options.delete_surplus == 1) {
-				if (copied.deleted_surplus == 1) {
 					after_copying_size -= data_copy_info.global_files_surplus_size;
 					after_copying_size -= data_copy_info.global_dirs_surplus_size;
 					printf("Size of directory in bytes after copying: %ld\n", after_copying_size);
@@ -1669,26 +1605,58 @@ void list_stats(int after_c, struct copied_or_not copied)
 				}
 				else if (copied.deleted_surplus == 0) {
 					printf("Aborted deleting surplus data.\n");
-					printf("Size of directory in bytes: %ld\n", data_copy_info.global_files_size_b);
+					printf("Number of files: %ld\n", after_copying_file_num);
+					printf("Number of directories (excluding the top directory): %ld\n", after_copying_dir_num);
+					printf("Size of directory in bytes after copying: %ld\n", after_copying_size);
 					calc_size(after_copying_size,options.other_unit);
 					printf("\n");
 					printf("\n");
 				}
 			}
 			else {
-				printf("Size of directory in bytes: %ld\n", after_copying_size);
+				printf("Number of files: %ld\n", after_copying_file_num);
+				printf("Number of directories (excluding the top directory): %ld\n", after_copying_dir_num);
+				printf("Size of directory in bytes after copying: %ld\n", after_copying_size);
 				calc_size(after_copying_size,options.other_unit);
 				printf("\n");
 				printf("\n");
 			}
 		}
-		else {
-			printf("Number of files: %ld\n", data_copy_info.global_file_num_b);
-			printf("Number of directories (excluding the top directory): %ld\n", data_copy_info.global_dir_num_b);
-			printf("Size of directory in bytes: %ld\n", data_copy_info.global_files_size_b);
-			calc_size(data_copy_info.global_files_size_b,options.other_unit);
-			printf("\n");
-			printf("\n");
+		else if (copied.copied_data == 0 && options.just_delete_surplus == 1) {
+			after_copying_file_num = data_copy_info.global_file_num_b;
+			after_copying_dir_num = data_copy_info.global_dir_num_b;
+			after_copying_size = data_copy_info.global_files_size_b;
+			if (options.just_delete_surplus == 1) {
+				if (copied.deleted_surplus == 1) {
+					after_copying_file_num -= data_copy_info.global_files_surplus_num;
+					printf("Number of files: %ld\n", after_copying_file_num);
+					after_copying_dir_num -= data_copy_info.global_dirs_surplus_num;
+					printf("Number of directories (excluding the top directory): %ld\n", after_copying_dir_num);
+					after_copying_size -= data_copy_info.global_files_surplus_size;
+					after_copying_size -= data_copy_info.global_dirs_surplus_size;
+					printf("Size of directory in bytes after copying: %ld\n", after_copying_size);
+					calc_size(after_copying_size,options.other_unit);
+					printf("\n");
+					printf("\n");
+				}
+				else if (copied.deleted_surplus == 0) {
+					printf("Aborted deleting surplus data.\n");
+					printf("Number of files: %ld\n", after_copying_file_num);
+					printf("Number of directories (excluding the top directory): %ld\n", after_copying_dir_num);
+					printf("Size of directory in bytes after copying: %ld\n", after_copying_size);
+					calc_size(after_copying_size,options.other_unit);
+					printf("\n");
+					printf("\n");
+				}
+			}
+			else {
+				printf("Number of files: %ld\n", after_copying_file_num);
+				printf("Number of directories (excluding the top directory): %ld\n", after_copying_dir_num);
+				printf("Size of directory in bytes after copying: %ld\n", after_copying_size);
+				calc_size(after_copying_size,options.other_unit);
+				printf("\n");
+				printf("\n");
+			}
 		}
 	}
 	// full directory copying
