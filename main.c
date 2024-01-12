@@ -118,7 +118,7 @@ int main(int argc, char *argv[])
 	char *help_string10 = "List files with the same name, but different size or modification time.";
 	char *help_string11 = "--list-surplus or -f";
 	char *help_string12 = "Just list surplus files and directories, but dont copy them.";
-	char *help_string13 = "--dont-list-data-to-copy or -d";
+	char *help_string13 = "--dont-list-data-to-copy or -g";
 	char *help_string14 = "Don't list the files and directories to copy after scaning.";
 	char *help_string15 = "--help or -h";
 	char *help_string16 = "Show help and options.";
@@ -130,7 +130,7 @@ int main(int argc, char *argv[])
 	char *help_string22 = "Write the files and directories to copy into a file.";
 	char *help_string23 = "--just-copy-content-file=[FILE] or -K";
 	char *help_string24 = "Just write the files and directories to copy into a file and exit the program.";
-	char *help_string25 = "--dont-list-stats or -D";
+	char *help_string25 = "--dont-list-stats or -G";
 	char *help_string26 = "Don't list statistics about the file and directory size, number, etc.";
 	char *help_string27 = "--dont-quit-read-errors or -y";
 	char *help_string28 = "Don't quit on read errors. Useful for unexpected permissions on a file or directory.";
@@ -163,11 +163,13 @@ int main(int argc, char *argv[])
 	char *help_string55 = "--overwrite-with-older or -O";
 	char *help_string56 = "If two files with the same name are found, overwrite the newer file in the secondary location with the older file from the main location.";
 	char *help_string57 = "--naive-mode or -n";
-	char *help_string58 = "Scan only directories with difference in size. This won't detect the case where some files/dirs have swapped places in the file tree and the size has remained the same.";
+	char *help_string58 = "Scan only based on top directories size. This won't detect the case where some files/dirs have swapped places in the file tree but the size has remained the same.";
 	char *help_string59 = "--time-mode or -T";
 	char *help_string60 = "Scan based on modification time instead of size.";
+	char *help_string61 = "--just-delete-surplus or -g";
+	char *help_string62 = "Just delete the surplus data from the secondary (directory 2) location.";
 	//char *help_string61 = "--detailed or -D";
-	//char *help_string62 = "Show detailed information about each file (size, owner, permissions, last modification time) for files to copy/overwrite and content file.";
+	//char *help_string62 = "Show detailed information about each file (size, owner, permissions, last modification time) for copy/content file.";
 
 	// 0 option is inactive, 1 option is active
 	options.quit_read_errors = 1;		// on by default
@@ -176,6 +178,7 @@ int main(int argc, char *argv[])
 	options.copy_surplus_back = 0;
 	options.just_copy_surplus_back = 0;
 	options.delete_surplus = 0;
+	options.just_delete_surplus = 0;
 	options.ow_main_smaller = 0;
 	options.ow_main_larger = 0;
 	options.follow_sym_links = 0;
@@ -259,17 +262,18 @@ int main(int argc, char *argv[])
 			{"copy-surplus-back", no_argument, 0, 'b' },
 			{"delete-surplus", no_argument, 0, 'x' },
 			{"just-copy-surplus-back", no_argument, 0, 'B' },
+			{"just-delete-surplus", no_argument, 0, 'X' },
 			{"overwrite-with-smaller", no_argument, 0, 's' },
 			{"overwrite-with-larger", no_argument, 0, 'l' },
 			{"list-surplus", no_argument, 0, 'f' },
-			{"dont-list-data-to-copy", no_argument, 0, 'd' },
+			{"dont-list-data-to-copy", no_argument, 0, 'g' },
 			//{"detailed", no_argument, 0, 'D' }, add it in getopt string
 			{"help", no_argument, 0, 'h' },
 			{"content-file", required_argument, 0, 'c' },
 			{"just-content-file", required_argument, 0, 'C' },
 			{"copy-content-file", required_argument, 0, 'k' },
 			{"just-copy-content-file", required_argument, 0, 'K' },
-			{"dont-list-stats", no_argument, 0, 'X' },
+			{"dont-list-stats", no_argument, 0, 'G' },
 			{"dont-quit-read-errors", no_argument, 0, 'y' },
 			{"dont-quit-write-errors", no_argument, 0, 'z' },
 			{"dont-quit-delete-errors", no_argument, 0, 'p' },
@@ -290,7 +294,7 @@ int main(int argc, char *argv[])
 			{0, 0, 0, 0}
 		};
 
-		c = getopt_long(argc, argv, "abc:dfhk:lnopqrstuvwxyzABC:K:LMNOSTX", long_options, &option_index);
+		c = getopt_long(argc, argv, "abc:dfgGhk:lnopqrstuvwxyzABC:K:LMNOSTX", long_options, &option_index);
 		if (c == -1)
 			break;
 		switch (c) {
@@ -318,6 +322,9 @@ int main(int argc, char *argv[])
 			case 'x':
 				options.delete_surplus = 1;
 				break;
+			case 'X':
+				options.just_delete_surplus = 1;
+				break;
 			case 's':
 				options.ow_main_smaller = 1;
 				break;
@@ -327,7 +334,7 @@ int main(int argc, char *argv[])
 			case 'f':
 				options.list_surplus = 1;
 				break;
-			case 'd':
+			case 'g':
 				options.dont_list_data_to_copy = 1;
 				break;
 			case 'h':
@@ -349,7 +356,7 @@ int main(int argc, char *argv[])
 				options.just_write_copy_content_file = 1;
 				strcpy(file_loc2,optarg);
 				break;
-			case 'X':
+			case 'G':
 				options.dont_list_stats = 1;
 				break;
 			case 'y':
@@ -431,6 +438,7 @@ int main(int argc, char *argv[])
 		printf("%-37s  %s\n", help_string1, help_string2);
 		printf("%-37s  %s\n", help_string3, help_string4);
 		printf("%-37s  %s\n", help_string43, help_string44);
+		printf("%-37s  %s\n", help_string61, help_string62);
 		printf("%-37s  %s\n", help_string5, help_string6);
 		printf("%-37s  %s\n", help_string7, help_string8);
 		printf("%-37s  %s\n", help_string9, help_string10);
@@ -494,22 +502,27 @@ int main(int argc, char *argv[])
 	else if (options.follow_sym_links == 1)
 		options.stat_f = stat;
 
-	if (options.copy_surplus_back == 1 && options.delete_surplus == 0)
+	if (options.copy_surplus_back == 1 || options.just_copy_surplus_back == 1 && options.delete_surplus == 1 || options.just_delete_surplus == 1) {
+		printf("Error: Conflicting options. You are attempting to delete the surplus data and to copy it back to the main directory.\n");
+		exit(1);
+	}
+
+	if (options.copy_surplus_back == 1 || options.just_copy_surplus_back == 1)
 		options.list_surplus = 1;
-	if (options.copy_surplus_back == 0 && options.delete_surplus == 1)
-		options.delete_surplus = 1;
-	// or maybe allow this, one after the other?
+	if (options.delete_surplus == 1 || options.just_delete_surplus == 1)
+		options.list_surplus = 1;
+
 	if (options.copy_surplus_back == 1 && options.delete_surplus == 1 || options.just_copy_surplus_back == 1 && options.delete_surplus == 1) {
-		printf("Error: two contradicting options: --copy-surplus-back and --delete-surplus. Specify either the one or the other.\n");
+		printf("Error: Conflicting options: --copy-surplus-back and --delete-surplus. Specify either the one or the other.\n");
 		exit(1);
 	}
 
 	if (options.ow_main_smaller == 1 && options.ow_main_larger == 1) {
-		printf("Error: two contradicting options: --overwrite-with-smaller and --overwrite-with-larger. Specify either one or the other.\n");
+		printf("Error: Conflicting options: --overwrite-with-smaller and --overwrite-with-larger. Specify either one or the other.\n");
 		exit(1);
 	}
 	if (options.write_content_file == 1 && options.just_write_content_file == 1) {
-		printf("Error: two contradicting options: --write-content-file and --just-write-content-file. Specify either one or the other.\n");
+		printf("Error: Conflicting options: --write-content-file and --just-write-content-file. Specify either one or the other.\n");
 		exit(1);
 	}
 
@@ -854,127 +867,129 @@ int main(int argc, char *argv[])
 			return 0;
 		}
 	}
-	// prepare/list all the data to copy, overwrite or delete
-	file_list = data_copy_info.files_to_copy_list;
-	if (file_list != NULL) {
-		if (file_list->num != 0) {
-			copy_files = 1;
-			if (options.dont_list_data_to_copy != 1) {
-				printf("\nFiles to copy:\n\n");
-				for (file_list_element = file_list->head; file_list_element != NULL; file_list_element = file_list_element->next)
-					printf("file: %s\n location: %s\n new location: %s\n  size: %ld\n\n\n", file_list_element->name, file_list_element->dir_location,
-					file_list_element->new_location, file_list_element->size);
-			}
-		}
-	}
-	dir_list = data_copy_info.dirs_to_copy_list;
-	if (dir_list != NULL) {
-		if (dir_list->num != 0) {
-			copy_dirs = 1;
-			if (options.dont_list_data_to_copy != 1) {
-				printf("\nDirectories to copy:\n\n");
-				for (dir_list_element = dir_list->head; dir_list_element != NULL; dir_list_element = dir_list_element->next)
-					printf("directory: %s\n location: %s\n new location: %s\n size: %ld\n\n\n", dir_list_element->name, dir_list_element->dir_location, 
-					dir_list_element->new_location, dir_list_element->size);
-			}
-		}
-	}
-	file_surp_list = data_copy_info.files_surplus_list;
-	if (file_surp_list != NULL) {
-		if (file_surp_list->num != 0) {
-			files_surplus = 1;
-			if (options.list_surplus == 1) {
-				printf("\nSurplus files:\n\n");
-				if (options.delete_surplus != 1) {
-					for (file_list_element = file_surp_list->head; file_list_element != NULL; file_list_element = file_list_element->next)
-						printf("file: %s\n location: %s\n new location: %s\n size: %ld\n\n\n", file_list_element->name, file_list_element->dir_location, 
+	// list all the data to copy, overwrite or delete, unless the option is disabled
+	if (options.dont_list_stats != 1) {
+		file_list = data_copy_info.files_to_copy_list;
+		if (file_list != NULL) {
+			if (file_list->num != 0) {
+				copy_files = 1;
+				if (options.dont_list_data_to_copy != 1) {
+					printf("\nFiles to copy:\n\n");
+					for (file_list_element = file_list->head; file_list_element != NULL; file_list_element = file_list_element->next)
+						printf("file: %s\n location: %s\n new location: %s\n  size: %ld\n\n\n", file_list_element->name, file_list_element->dir_location,
 						file_list_element->new_location, file_list_element->size);
 				}
-				else if (options.delete_surplus == 1) {
-					for (file_list_element = file_surp_list->head; file_list_element != NULL; file_list_element = file_list_element->next)
-						printf("file: %s\n location: %s\n size: %ld\n\n\n", file_list_element->name, file_list_element->dir_location, 
-						file_list_element->size);
-				}
 			}
 		}
-	}
-	dir_surp_list = data_copy_info.dirs_surplus_list;
-	if (dir_surp_list != NULL) {
-		if (dir_surp_list->num != 0) {
-			dirs_surplus = 1;
-			if (options.list_surplus == 1) {
-				printf("\nSurplus directories\n\n");
-				if (options.delete_surplus != 1) {
-					for (dir_list_element = dir_surp_list->head; dir_list_element != NULL; dir_list_element = dir_list_element->next)
+		dir_list = data_copy_info.dirs_to_copy_list;
+		if (dir_list != NULL) {
+			if (dir_list->num != 0) {
+				copy_dirs = 1;
+				if (options.dont_list_data_to_copy != 1) {
+					printf("\nDirectories to copy:\n\n");
+					for (dir_list_element = dir_list->head; dir_list_element != NULL; dir_list_element = dir_list_element->next)
 						printf("directory: %s\n location: %s\n new location: %s\n size: %ld\n\n\n", dir_list_element->name, dir_list_element->dir_location, 
 						dir_list_element->new_location, dir_list_element->size);
 				}
-				else if (options.delete_surplus == 1) {
-					for (dir_list_element = dir_surp_list->head; dir_list_element != NULL; dir_list_element = dir_list_element->next)
-						printf("directory: %s\n location: %s\n size: %ld\n\n\n", dir_list_element->name, dir_list_element->dir_location, 
-						dir_list_element->size);
+			}
+		}
+		file_surp_list = data_copy_info.files_surplus_list;
+		if (file_surp_list != NULL) {
+			if (file_surp_list->num != 0) {
+				files_surplus = 1;
+				if (options.list_surplus == 1) {
+					printf("\nSurplus files:\n\n");
+					if (options.delete_surplus != 1) {
+						for (file_list_element = file_surp_list->head; file_list_element != NULL; file_list_element = file_list_element->next)
+							printf("file: %s\n location: %s\n new location: %s\n size: %ld\n\n\n", file_list_element->name, file_list_element->dir_location, 
+							file_list_element->new_location, file_list_element->size);
+					}
+					else if (options.delete_surplus == 1) {
+						for (file_list_element = file_surp_list->head; file_list_element != NULL; file_list_element = file_list_element->next)
+							printf("file: %s\n location: %s\n size: %ld\n\n\n", file_list_element->name, file_list_element->dir_location, 
+							file_list_element->size);
+					}
 				}
 			}
 		}
-	}
-	file_ms_list = data_copy_info.diff_size_ms_list;
-	if (file_ms_list != NULL) {
-		if (file_ms_list->num != 0) {
-			if (options.ow_main_smaller == 1)
-				ow_main_smaller = 1; // overwrite main smaller
-			if (options.dont_list_data_to_copy != 1 && options.list_conflicting == 1) {
-				printf("\nFiles to overwrite. (source location files smaller than destination)\n\n");
-				for (file_list_element = file_ms_list->head; file_list_element != NULL; file_list_element = file_list_element->next) {
-					printf("file: %s\n location: %s\n new location: %s\n size: %ld\n\n\n", file_list_element->name, file_list_element->dir_location, 
-					file_list_element->new_location, file_list_element->size);
+		dir_surp_list = data_copy_info.dirs_surplus_list;
+		if (dir_surp_list != NULL) {
+			if (dir_surp_list->num != 0) {
+				dirs_surplus = 1;
+				if (options.list_surplus == 1) {
+					printf("\nSurplus directories\n\n");
+					if (options.delete_surplus != 1) {
+						for (dir_list_element = dir_surp_list->head; dir_list_element != NULL; dir_list_element = dir_list_element->next)
+							printf("directory: %s\n location: %s\n new location: %s\n size: %ld\n\n\n", dir_list_element->name, dir_list_element->dir_location, 
+							dir_list_element->new_location, dir_list_element->size);
+					}
+					else if (options.delete_surplus == 1) {
+						for (dir_list_element = dir_surp_list->head; dir_list_element != NULL; dir_list_element = dir_list_element->next)
+							printf("directory: %s\n location: %s\n size: %ld\n\n\n", dir_list_element->name, dir_list_element->dir_location, 
+							dir_list_element->size);
+					}
 				}
 			}
 		}
-	}
-	file_ml_list = data_copy_info.diff_size_ml_list;
-	if (file_ml_list != NULL) {
-		if (file_ml_list->num != 0) {
-			if (options.ow_main_larger == 1)
-				ow_main_larger = 1; // overwrite main larger
-			if (options.dont_list_data_to_copy != 1 && options.list_conflicting == 1) {
-				printf("\nFiles to overwrite. (source location files larger than destination)\n\n");
-				for (file_list_element = file_ml_list->head; file_list_element != NULL; file_list_element = file_list_element->next) {
-					printf("file: %s\n location: %s\n new location: %s\n size: %ld\n\n\n", file_list_element->name, file_list_element->dir_location, 
-					file_list_element->new_location, file_list_element->size);
+		file_ms_list = data_copy_info.diff_size_ms_list;
+		if (file_ms_list != NULL) {
+			if (file_ms_list->num != 0) {
+				if (options.ow_main_smaller == 1)
+					ow_main_smaller = 1; // overwrite main smaller
+				if (options.dont_list_data_to_copy != 1 && options.list_conflicting == 1) {
+					printf("\nFiles to overwrite. (source location files smaller than destination)\n\n");
+					for (file_list_element = file_ms_list->head; file_list_element != NULL; file_list_element = file_list_element->next) {
+						printf("file: %s\n location: %s\n new location: %s\n size: %ld\n\n\n", file_list_element->name, file_list_element->dir_location, 
+						file_list_element->new_location, file_list_element->size);
+					}
 				}
 			}
 		}
-	}
-	file_mn_list = data_copy_info.diff_time_mn_list;
-	if (file_mn_list != NULL) {
-		if (file_mn_list->num != 0) {
-			if (options.ow_main_newer == 1)
-				ow_main_newer = 1; // overwrite main smaller
-			if (options.dont_list_data_to_copy != 1 && options.list_conflicting == 1) {
-				printf("\nFiles to overwrite. (source location files newer than destination)\n\n");
-				for (file_list_element = file_mn_list->head; file_list_element != NULL; file_list_element = file_list_element->next) {
-					printf("file: %s\n location: %s\n new location: %s\n size: %ld\n\n\n", file_list_element->name, file_list_element->dir_location, 
-					file_list_element->new_location, file_list_element->size);
+		file_ml_list = data_copy_info.diff_size_ml_list;
+		if (file_ml_list != NULL) {
+			if (file_ml_list->num != 0) {
+				if (options.ow_main_larger == 1)
+					ow_main_larger = 1; // overwrite main larger
+				if (options.dont_list_data_to_copy != 1 && options.list_conflicting == 1) {
+					printf("\nFiles to overwrite. (source location files larger than destination)\n\n");
+					for (file_list_element = file_ml_list->head; file_list_element != NULL; file_list_element = file_list_element->next) {
+						printf("file: %s\n location: %s\n new location: %s\n size: %ld\n\n\n", file_list_element->name, file_list_element->dir_location, 
+						file_list_element->new_location, file_list_element->size);
+					}
 				}
 			}
 		}
-	}
-	file_mo_list = data_copy_info.diff_time_mo_list;
-	if (file_mo_list != NULL) {
-		if (file_mo_list->num != 0) {
-			if (options.ow_main_older == 1)
-				ow_main_older = 1; // overwrite main larger
-			if (options.dont_list_data_to_copy != 1 && options.list_conflicting == 1) {
-				printf("\nFiles to overwrite. (source location files older than destination)\n\n");
-				for (file_list_element = file_mo_list->head; file_list_element != NULL; file_list_element = file_list_element->next) {
-					printf("file: %s\n location: %s\n new location: %s\n size: %ld\n\n\n", file_list_element->name, file_list_element->dir_location, 
-					file_list_element->new_location, file_list_element->size);
+		file_mn_list = data_copy_info.diff_time_mn_list;
+		if (file_mn_list != NULL) {
+			if (file_mn_list->num != 0) {
+				if (options.ow_main_newer == 1)
+					ow_main_newer = 1; // overwrite main smaller
+				if (options.dont_list_data_to_copy != 1 && options.list_conflicting == 1) {
+					printf("\nFiles to overwrite. (source location files newer than destination)\n\n");
+					for (file_list_element = file_mn_list->head; file_list_element != NULL; file_list_element = file_list_element->next) {
+						printf("file: %s\n location: %s\n new location: %s\n size: %ld\n\n\n", file_list_element->name, file_list_element->dir_location, 
+						file_list_element->new_location, file_list_element->size);
+					}
 				}
 			}
 		}
-	}
+		file_mo_list = data_copy_info.diff_time_mo_list;
+		if (file_mo_list != NULL) {
+			if (file_mo_list->num != 0) {
+				if (options.ow_main_older == 1)
+					ow_main_older = 1; // overwrite main larger
+				if (options.dont_list_data_to_copy != 1 && options.list_conflicting == 1) {
+					printf("\nFiles to overwrite. (source location files older than destination)\n\n");
+					for (file_list_element = file_mo_list->head; file_list_element != NULL; file_list_element = file_list_element->next) {
+						printf("file: %s\n location: %s\n new location: %s\n size: %ld\n\n\n", file_list_element->name, file_list_element->dir_location, 
+						file_list_element->new_location, file_list_element->size);
+					}
+				}
+			}
+		}
+	} // if (option.dont_list_stats != 1
 
-	// if there is some data, depending on options: copy, overwrite, delete...
+	// if there is some data, depending on options: create copy or content list file, then copy/overwrite/delete the data found
 	if (copy_files == 1 || copy_dirs == 1 || files_surplus == 1 || dirs_surplus == 1 ||  ow_main_smaller == 1 || ow_main_larger == 1 || ow_main_newer == 1 || ow_main_older == 1) {
 		if (options.write_copy_content_file == 1 || options.just_write_copy_content_file == 1) {
 			errno = 0;
@@ -1090,7 +1105,7 @@ int main(int argc, char *argv[])
 		if (options.no_questions == 0) {
 			if (options.dont_list_stats != 1)
 				list_stats(0,copied);
-			if (copy_files == 1 || copy_dirs == 1 && options.just_copy_surplus_back != 1) {
+			if (copy_files == 1 || copy_dirs == 1 && options.just_copy_surplus_back != 1 && options.just_delete_surplus != 1) {
 				printf("Do you want to write the missing files and directories? Type yes or no ...\n");
 				while (fgets(line,BUF,stdin) != NULL) {
 					length = strlen(line);
@@ -1145,7 +1160,7 @@ int main(int argc, char *argv[])
 					}
 				}
 			}
-			else if (options.delete_surplus == 1) {
+			else if (options.delete_surplus == 1 || options.just_delete_surplus == 1) {
 				if (dirs_surplus == 1 || files_surplus == 1) {
 					printf("Do you want to delete the surplus data in the destination directory? Type yes or no...\n");
 					while (fgets(line,BUF,stdin) != NULL) {
@@ -1170,7 +1185,7 @@ int main(int argc, char *argv[])
 					}
 				}
 			}
-			if (ow_main_smaller == 1 && options.just_copy_surplus_back != 1) {
+			if (ow_main_smaller == 1 && options.just_copy_surplus_back != 1 && options.just_delete_surplus != 1) {
 				printf("Scan found two files with the same name, one in the main location being smaller than the file in the secondary location. "); 
 				printf("Should the secondary file be overwritten? Answer yes or no.\n");
 				while (fgets(line,BUF,stdin) != NULL) {
@@ -1190,7 +1205,7 @@ int main(int argc, char *argv[])
 						printf("Unrecognized answer. Type yes or no.\n");
 	 			}
 			}
-			if (ow_main_larger == 1 && options.just_copy_surplus_back != 1) {
+			if (ow_main_larger == 1 && options.just_copy_surplus_back != 1 && options.just_delete_surplus != 1) {
 				printf("Scan found two files with the same name, one in the main location being larger than the file in the secondary location. ");
 				printf("Should the secondary file be overwritten? Answer yes or no.\n");
 				while (fgets(line,BUF,stdin) != NULL) {
@@ -1210,7 +1225,7 @@ int main(int argc, char *argv[])
 						printf("Unrecognized answer. Type yes or no.\n");
 			 	}
 			}
-			if (ow_main_newer == 1 && options.just_copy_surplus_back != 1) {
+			if (ow_main_newer == 1 && options.just_copy_surplus_back != 1 && options.just_delete_surplus != 1) {
 				printf("Scan found two files with the same name, one in the main location being newer than the file in the secondary location. "); 
 				printf("Should the secondary file be overwritten? Answer yes or no.\n");
 				while (fgets(line,BUF,stdin) != NULL) {
@@ -1230,7 +1245,7 @@ int main(int argc, char *argv[])
 						printf("Unrecognized answer. Type yes or no.\n");
 	 			}
 			}
-			if (ow_main_older == 1 && options.just_copy_surplus_back != 1) {
+			if (ow_main_older == 1 && options.just_copy_surplus_back != 1 && options.just_delete_surplus != 1) {
 				printf("Scan found two files with the same name, one in the main location being older than the file in the secondary location. ");
 				printf("Should the secondary file be overwritten? Answer yes or no.\n");
 				while (fgets(line,BUF,stdin) != NULL) {
@@ -1250,37 +1265,54 @@ int main(int argc, char *argv[])
 						printf("Unrecognized answer. Type yes or no.\n");
 			 	}
 			}
-			if (copied.copied_data == 1 || copied.copied_surplus == 1 || copied.deleted_surplus == 1 || copied.ow_smaller == 1 || copied.ow_larger == 1)
+			if (copied.copied_data == 1 || copied.copied_surplus == 1 || copied.deleted_surplus == 1 || copied.ow_smaller == 1 
+			|| copied.ow_larger == 1 || copied.ow_newer == 1 || copied.ow_larger == 1)
 				if (options.dont_list_stats != 1)
 					list_stats(1,copied);
 		} // if (options.no_questions == 0) {
 		else if (options.no_questions == 1) {
-			if (copy_files == 1 && options.just_copy_surplus_back != 1)
+			if (copy_files == 1 && options.just_copy_surplus_back != 1 && options.just_delete_surplus != 1) {
 				read_write_data(data_copy_info.files_to_copy_list,1,NULL,NULL);
-			if (copy_dirs == 1 && options.just_copy_surplus_back != 1)
+				copied.copied_data = 1;
+			}
+			if (copy_dirs == 1 && options.just_copy_surplus_back != 1) {
 				read_write_data(data_copy_info.dirs_to_copy_list,2,NULL,NULL);
+				copied.copied_data = 1;
+			}
 			if (options.copy_surplus_back == 1 || options.just_copy_surplus_back == 1) {
 				if (files_surplus == 1)
 					read_write_data(data_copy_info.files_surplus_list,1,NULL,NULL);
 				if (dirs_surplus == 1)
 					read_write_data(data_copy_info.dirs_surplus_list,2,NULL,NULL);
+				copied.copied_surplus = 1;
 			}
-			else if (options.delete_surplus == 1) {
+			else if (options.delete_surplus == 1 || options.just_delete_surplus == 1) {
 				if (files_surplus == 1)
 					read_write_data(data_copy_info.files_surplus_list,5,NULL,NULL);
 				if (dirs_surplus == 1)
 					read_write_data(data_copy_info.dirs_surplus_list,6,NULL,NULL);
+				copied.deleted_surplus = 1;
 			}
-			if (options.ow_main_smaller == 1 && options.just_copy_surplus_back != 1)
+			if (options.ow_main_smaller == 1 && options.just_copy_surplus_back != 1 && options.just_delete_surplus != 1) {
 				read_write_data(data_copy_info.diff_size_ms_list,4,NULL,NULL);
-			if (options.ow_main_larger == 1 && options.just_copy_surplus_back != 1)
+				copied.ow_smaller = 1;
+			}
+			if (options.ow_main_larger == 1 && options.just_copy_surplus_back != 1 && options.just_delete_surplus != 1) {
 				read_write_data(data_copy_info.diff_size_ml_list,4,NULL,NULL);
-			if (options.ow_main_newer == 1 && options.just_copy_surplus_back != 1)
+				copied.ow_larger = 1;
+			}
+			if (options.ow_main_newer == 1 && options.just_copy_surplus_back != 1 && options.just_delete_surplus != 1) {
 				read_write_data(data_copy_info.diff_time_mn_list,4,NULL,NULL);
-			if (options.ow_main_older == 1 && options.just_copy_surplus_back != 1)
+				copied.ow_newer = 1;
+			}
+			if (options.ow_main_older == 1 && options.just_copy_surplus_back != 1 && options.just_delete_surplus != 1) {
 				read_write_data(data_copy_info.diff_time_mo_list,4,NULL,NULL);
-			if (options.dont_list_stats != 1)
-				list_stats(1,copied);
+				copied.ow_older = 1;
+			}
+			if (copied.copied_data == 1 || copied.copied_surplus == 1 || copied.deleted_surplus == 1 || copied.ow_smaller == 1 
+			|| copied.ow_larger == 1 || copied.ow_newer == 1 || copied.ow_older == 1)
+				if (options.dont_list_stats != 1)
+					list_stats(1,copied);
 		}
 	} // if (files_to_copy == 1 || dirs_to_copy == 1 || etc...
 	else {
@@ -1317,7 +1349,6 @@ void list_stats(int after_c, struct copied_or_not copied)
 
 	size_to_copy = 0;
 
-	// dodat opciju da ovo sve napise u fajl? samo redirect stdout u fajl unutar funkcije?
 	// before copying
 	if (after_c == 0) {
 		printf("\n");
@@ -1454,7 +1485,7 @@ void list_stats(int after_c, struct copied_or_not copied)
 					after_copying_size += data_copy_info.global_diff_size_ml_size;
 				}
 				else if (copied.ow_larger == 0) {
-					printf("Aborted overwriting same files with different sizes.\n");
+					printf("Aborted overwriting the same files with different sizes.\n");
 				}
 			}
 			else if (options.ow_main_smaller == 1) {
@@ -1463,7 +1494,25 @@ void list_stats(int after_c, struct copied_or_not copied)
 					after_copying_size += data_copy_info.global_diff_size_ms_size;
 				}
 				else if (copied.ow_smaller == 0) {
-					printf("Aborted overwriting same files with different sizes.\n");
+					printf("Aborted overwriting the same files with different sizes.\n");
+				}
+			}
+			if (options.ow_main_newer == 1) {
+				if (copied.ow_larger == 1) {
+					after_copying_size -= data_copy_info.global_diff_time_mn_orig_size;
+					after_copying_size += data_copy_info.global_diff_time_mn_size;
+				}
+				else if (copied.ow_larger == 0) {
+					printf("Aborted overwriting the same files with different modification time.\n");
+				}
+			}
+			else if (options.ow_main_older == 1) {
+				if (copied.ow_smaller == 1) {
+					after_copying_size -= data_copy_info.global_diff_time_mo_orig_size;
+					after_copying_size += data_copy_info.global_diff_time_mo_size;
+				}
+				else if (copied.ow_smaller == 0) {
+					printf("Aborted overwriting the same files with different modification time.\n");
 				}
 			}
 			if (options.delete_surplus == 1) {
@@ -1642,6 +1691,7 @@ void list_stats(int after_c, struct copied_or_not copied)
 			printf("\n");
 		}
 	}
+	// full directory copying
 	else if (after_c == 2) {
 		if (copied.full_dir1_copied == 1) {
 			printf("\n");
