@@ -1498,20 +1498,20 @@ void list_stats(int after_c, struct copied_or_not copied)
 				}
 			}
 			if (options.ow_main_newer == 1) {
-				if (copied.ow_larger == 1) {
+				if (copied.ow_newer == 1) {
 					after_copying_size -= data_copy_info.global_diff_time_mn_orig_size;
 					after_copying_size += data_copy_info.global_diff_time_mn_size;
 				}
-				else if (copied.ow_larger == 0) {
+				else if (copied.ow_newer == 0) {
 					printf("Aborted overwriting the same files with different modification time.\n");
 				}
 			}
 			else if (options.ow_main_older == 1) {
-				if (copied.ow_smaller == 1) {
+				if (copied.ow_older == 1) {
 					after_copying_size -= data_copy_info.global_diff_time_mo_orig_size;
 					after_copying_size += data_copy_info.global_diff_time_mo_size;
 				}
-				else if (copied.ow_smaller == 0) {
+				else if (copied.ow_older == 0) {
 					printf("Aborted overwriting the same files with different modification time.\n");
 				}
 			}
