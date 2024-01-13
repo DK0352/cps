@@ -22,7 +22,7 @@ cps OPTIONS directory1 directory2
 ```
 cps /home/user/Documents/photos/2023 /mnt/backup/photos/2023
 ```
-When you are asked if you want to copy missing files and directories, answer yes to begin copying operation or no if you want to quit. Use the -q option if you don't want to be asked for the confirmation. 
+After you are asked if you want to copy missing files and directories, answer yes to begin copying operation or no if you want to quit. Use the -q option if you don't want to be asked for the confirmation. 
 
 The program doesn't differentiate whether the pathnames end with a '/' or not. Whether you type **/mnt/backup/photos/2023** or **/mnt/backup/photos/2023/** - it is the same.
 
@@ -34,7 +34,7 @@ or using the short option:
 ```
 cps -b /home/user/Documents/dir1 /home/user/Documents/dir2
 ```
-When you are asked if you want to copy missing files and directories, answer yes to begin copying operation or no if you want to quit. Then you will be asked: Do you want to write the surplus data from the destination directory back to the source? 
+After you are asked if you want to copy missing files and directories, answer yes to begin copying operation or no if you want to quit. Then you will be asked: Do you want to write the surplus data from the destination directory back to the source? 
 Again, type yes or no if you changed your mind. Typing 'no' to a second question won't abort the result of the previous question/operation. 
 
 Surplus files and directories are identified in the statistical output of the program even during default operation of the program, for example:
@@ -58,7 +58,7 @@ or using the short option:
 ```
 cps -x /home/user/Documents/dir1 /home/user/Documents/dir2
 ```
-When you are asked if you want to copy missing files and directories, answer yes or no if you don't want to. Then you will be asked: Do you want to delete the surplus data from the destionation directory back to the source? 
+After you are asked if you want to copy missing files and directories, answer yes or no if you don't want to. Then you will be asked: Do you want to delete the surplus data from the destionation directory back to the source? 
 Answer yes, or no if you don't want to. Typing 'no' to a second question won't abort the result of the previous question/operation. 
 
 4. If you want to add new data from a directory2 (destination) to a directory1 (source) without copying (syncing) data to a directory2 from a directory1, specify --just-copy-surplus-back or -B. 
@@ -146,7 +146,7 @@ cps -a /home/user/Documents/dir1 /home/user/Documents/dir2
 ```
 cps -q /home/user/Documents/dir1 /home/user/Documents/dir2
 ```
-8. If you want to know what will be copied, including the size of the data, you can just print out the list of files that will be copied without actually coping anything. It is also useful in case there are many files and directories listed out and screen scrolls too fast. Specify the full pathname for the location of the copy-content file and name of the file.
+8. If you want to know what will be copied, you can just print out the list of files that will be copied without actually coping anything. It is also useful in case there are many files and directories listed out and screen scrolls too fast. Specify the full pathname for the location of the copy-content file and name of the file.
 
 option --just-copy-content-file=/path/to/file. /path/to/file is a desired pathname of your choice, or using short option -K
 ```
