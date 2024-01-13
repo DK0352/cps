@@ -1,3 +1,5 @@
+![screenshot1](screenshot/scr1.jpg)
+
 cps compares and syncronizes two directories by copying only the missing files and directories, but also enables you to overwrite the same files of different size or different last modification time, as well as to copy or delete any surplus data. It provides very useful information in it's statistical output after scanning and enables you to see the list and size of the files and directories to be copied before actually commencing the copying operation. It also allows you to create a text file with the list of all the files and directories that are about to be copied without actually copying anything. The program recognizes when two directories are on different disks and will read the contents of the two directories simultaneously during the scanning.  
 
 By default, the program compares files based on their size, but you can suppy the option to compare them based on their last modification time. 
