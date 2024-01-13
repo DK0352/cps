@@ -215,38 +215,5 @@ cps -S /home/user/Documents/dir1 /home/user/Documents/dir2
 
 General view of the program after a directory scan:
 
-```
-SOURCE DIRECTORY
+![screenshot1](screenshot/scr2.jpg)
 
-Number of files: 4124
-Number of directories (excluding the top directory): 393
-Size of directory in bytes: 1409287736
-Size in gigabytes: 1.31 GB
-
-
-DESTINATION DIRECTORY
-
-Number of files: 2430
-Number of directories (excluding the top directory): 264
-Size of directory in bytes: 1190539251
-Size in gigabytes: 1.11 GB
-
-
-Number of individual files to copy: 1694
-Size of individual files to copy in bytes: 132287675
-Size in megabytes: 126.16 MB
-Number of directories to copy: 129
-Size of directories to copy in bytes: 86460810
-Size in megabytes: 82.46 MB
-Files and directories to copy, Size in megabytes: 208.61 MB
-Number of surplus files: 0
-Size of surplus files in bytes: 0
-Number of surplus directories: 0
-Size of surplus directories in bytes: 0
-Same files with different size (main location smaller): 0
-Same files with different size (main location larger): 0
-Same files with different modification time (main location newer): 0
-Same files with different modification time (main location older): 0
-
-Do you want to write the missing files and directories? Type yes or no ...
-```
