@@ -75,6 +75,7 @@ int main(int argc, char *argv[])
 	char *pathname1, *pathname2;					// pathnames for directory1 and directory2
 	extern char file_loc1[PATH_MAX];				// location of the text file with the complete source and destination file trees
 	char file_loc2[PATH_MAX];					// location of the text file with the data to copy content file location
+	char file_location[PATH_MAX];					// copy/content file location + the newline char to avoid using write() sys call just for '\n'
 	const char *src = "source";
 	const char *dst = "destination";
 	char line[BUF];				// get yes or no answer from the user
@@ -995,53 +996,59 @@ int main(int argc, char *argv[])
 				exit(1);
 			}
 			else {
-				if (copy_files == 1 && options.just_copy_surplus_back != 1) {
+				if (copy_files == 1 && options.just_copy_surplus_back != 1 && options.just_delete_surplus != 1) {
 					write(copyfile, string1, strlen(string1));
 					for (file_list_element = file_list->head; file_list_element != NULL; file_list_element = file_list_element->next) {
-						write(copyfile, file_list_element->dir_location, strlen(file_list_element->dir_location));
-						write(copyfile, "\n", 1);
+						strcpy(file_location,file_list_element->dir_location);
+						strcat(file_location,"\n");
+						write(copyfile, file_location, strlen(file_location));
 					}
 				}
-				if (copy_dirs == 1 && options.just_copy_surplus_back != 1) {
+				if (copy_dirs == 1 && options.just_copy_surplus_back != 1 && options.just_delete_surplus != 1) {
 					write(copyfile, string2, strlen(string2));
 					for (dir_list_element = dir_list->head; dir_list_element != NULL; dir_list_element = dir_list_element->next) {
-						write(copyfile, dir_list_element->dir_location, strlen(dir_list_element->dir_location));
-						write(copyfile, "\n", 1);
+						strcpy(file_location,dir_list_element->dir_location);
+						strcat(file_location,"\n");
+						write(copyfile, file_location, strlen(file_location));
 					}
 				}
-				if (options.ow_main_larger == 1 && options.just_copy_surplus_back != 1) {
+				if (options.ow_main_larger == 1 && options.just_copy_surplus_back != 1 && options.just_delete_surplus != 1) {
 					if (ow_main_larger == 1) {
 						write(copyfile, string3, strlen(string3));
 						for (file_list_element = file_ml_list->head; file_list_element != NULL; file_list_element = file_list_element->next) {
-							write(copyfile, file_list_element->dir_location, strlen(file_list_element->dir_location));
-							write(copyfile, "\n", 1);
+							strcpy(file_location,file_list_element->dir_location);
+							strcat(file_location,"\n");
+							write(copyfile, file_location, strlen(file_location));
 						}
 					}
 				}
-				else if (options.ow_main_smaller == 1 && options.just_copy_surplus_back != 1) {
+				else if (options.ow_main_smaller == 1 && options.just_copy_surplus_back != 1 && options.just_delete_surplus != 1) {
 					if (ow_main_smaller == 1) {
 						write(copyfile, string4, strlen(string4));
 						for (file_list_element = file_ms_list->head; file_list_element != NULL; file_list_element = file_list_element->next) {
-							write(copyfile, file_list_element->dir_location, strlen(file_list_element->dir_location));
-							write(copyfile, "\n", 1);
+							strcpy(file_location,file_list_element->dir_location);
+							strcat(file_location,"\n");
+							write(copyfile, file_location, strlen(file_location));
 						}
 					}
 				}
-				if (options.ow_main_newer == 1 && options.just_copy_surplus_back != 1) {
+				if (options.ow_main_newer == 1 && options.just_copy_surplus_back != 1 && options.just_delete_surplus != 1) {
 					if (ow_main_newer == 1) {
 						write(copyfile, string3, strlen(string3));
 						for (file_list_element = file_mn_list->head; file_list_element != NULL; file_list_element = file_list_element->next) {
-							write(copyfile, file_list_element->dir_location, strlen(file_list_element->dir_location));
-							write(copyfile, "\n", 1);
+							strcpy(file_location,file_list_element->dir_location);
+							strcat(file_location,"\n");
+							write(copyfile, file_location, strlen(file_location));
 						}
 					}
 				}
-				else if (options.ow_main_older == 1 && options.just_copy_surplus_back != 1) {
+				else if (options.ow_main_older == 1 && options.just_copy_surplus_back != 1 && options.just_delete_surplus != 1) {
 					if (ow_main_older == 1) {
 						write(copyfile, string4, strlen(string4));
 						for (file_list_element = file_mo_list->head; file_list_element != NULL; file_list_element = file_list_element->next) {
-							write(copyfile, file_list_element->dir_location, strlen(file_list_element->dir_location));
-							write(copyfile, "\n", 1);
+							strcpy(file_location,file_list_element->dir_location);
+							strcat(file_location,"\n");
+							write(copyfile, file_location, strlen(file_location));
 						}
 					}
 				}
@@ -1049,31 +1056,35 @@ int main(int argc, char *argv[])
 					if (files_surplus == 1) {
 						write(copyfile, string5, strlen(string5));
 						for (file_list_element = file_surp_list->head; file_list_element != NULL; file_list_element = file_list_element->next) {
-							write(copyfile, file_list_element->dir_location, strlen(file_list_element->dir_location));
-							write(copyfile, "\n", 1);
+							strcpy(file_location,file_list_element->dir_location);
+							strcat(file_location,"\n");
+							write(copyfile, file_location, strlen(file_location));
 						}
 					}
 					if (dirs_surplus == 1) {
 						write(copyfile, string6, strlen(string6));
 						for (dir_list_element = dir_surp_list->head; dir_list_element != NULL; dir_list_element = dir_list_element->next) {
-							write(copyfile, dir_list_element->dir_location, strlen(dir_list_element->dir_location));
-							write(copyfile, "\n", 1);
+							strcpy(file_location,dir_list_element->dir_location);
+							strcat(file_location,"\n");
+							write(copyfile, file_location, strlen(file_location));
 						}
 					}
 				}
-				else if (options.delete_surplus == 1) {
+				else if (options.delete_surplus == 1 || options.just_delete_surplus == 1) {
 					if (files_surplus == 1) {
 						write(copyfile, string7, strlen(string7));
 						for (file_list_element = file_surp_list->head; file_list_element != NULL; file_list_element = file_list_element->next) {
-							write(copyfile, file_list_element->dir_location, strlen(file_list_element->dir_location));
-							write(copyfile, "\n", 1);
+							strcpy(file_location,file_list_element->dir_location);
+							strcat(file_location,"\n");
+							write(copyfile, file_location, strlen(file_location));
 						}
 					}
 					if (dirs_surplus == 1) {
 						write(copyfile, string8, strlen(string8));
 						for (dir_list_element = dir_surp_list->head; dir_list_element != NULL; dir_list_element = dir_list_element->next) {
-							write(copyfile, dir_list_element->dir_location, strlen(dir_list_element->dir_location));
-							write(copyfile, "\n", 1);
+							strcpy(file_location,dir_list_element->dir_location);
+							strcat(file_location,"\n");
+							write(copyfile, file_location, strlen(file_location));
 						}
 					}
 				}
