@@ -85,6 +85,8 @@ int open_dirs(struct thread_struct *thread_data)
 	dlist_init(thread_data->files);
 	dlist_init(thread_data->directories);
 
+	path_len = strlen(thread_data->directory);
+
 	for (;;) {
 		if (dir_entry_init != 1) {
 			dir_entry = malloc(sizeof(struct dirent));
@@ -111,8 +113,6 @@ int open_dirs(struct thread_struct *thread_data)
 			exit(1);
 		}
 		strcpy(name,dir_entry->d_name);
-		// path_len
-		path_len = strlen(thread_data->directory);
 		// complete_size (or complete len to be more correct) which is pathname + name of the file or directory
 		complete_size = path_len + name_len + 1; // +1 za '/'
 		location = malloc(complete_size);
