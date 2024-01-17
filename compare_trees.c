@@ -77,8 +77,6 @@ int compare_trees(struct thread_struct *thread_data_a, struct thread_struct *thr
 	if (options.naive_mode == 0) {
 		if (top_location_a->file_num != 0 && top_location_b->file_num != 0 || 
 			top_location_a->files_size != top_location_b->files_size) {
-				printf("jel ide tu?");
-				sleep(3);
 				loop_files(top_location_a, top_location_b);
 		}
 	}
