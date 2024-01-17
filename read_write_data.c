@@ -209,8 +209,8 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 				}
 			}
 			// ?????????????
-			strcpy(source_path,read_dir_list->dir_location);
-			strcpy(destination_path,read_dir_list->new_location);
+			//strcpy(source_path,read_dir_list->dir_location);
+			//strcpy(destination_path,read_dir_list->new_location);
 
 			if (options.show_write_proc != 0)
 				printf("Directory: %s\n", read_dir_list->new_location);
