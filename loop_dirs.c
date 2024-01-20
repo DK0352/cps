@@ -112,13 +112,14 @@ int loop_dirs(DList_of_lists *file_tree_element_a, DList_of_lists *file_tree_ele
 								else if (main_mark == COMPARE_S)
 									loop_files(compare_s,compare_l);
 							}
-							if (compare_l->subdirs_size != compare_s->subdirs_size || 
+							if (compare_l->complete_dir_size != compare_s->complete_dir_size || 
 								compare_l->subdir_num != compare_s->subdir_num ||
-								compare_l->subdir_file_num != compare_s->subdir_file_num) {
+								compare_l->subdir_file_num != compare_s->subdir_file_num ||
+								compare_l->subdirs_size != compare_s->subdirs_size) {
 								if (main_mark == COMPARE_L)
-									loop_files(compare_l,compare_s);
+									loop_dirs(compare_l,compare_s);
 								else if (main_mark == COMPARE_S)
-									loop_files(compare_s,compare_l);
+									loop_dirs(compare_s,compare_l);
 							}
 						}
 					} // if (strcmp(compare_l->dirname,compare_s->dirname) == 0)
