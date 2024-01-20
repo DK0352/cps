@@ -107,10 +107,9 @@ int compare_trees(struct thread_struct *thread_data_a, struct thread_struct *thr
 							loop_files(file_tree_element_a, file_tree_element_b);
 						}
 						if (file_tree_element_a->subdirs_size != file_tree_element_b->subdirs_size ||
-							file_tree_element_a->complete_dir_num != file_tree_element_b->complete_dir_num ||
-							file_tree_element_a->subdir_file_num != file_tree_element_b->subdir_file_num) {
+							file_tree_element_a->subdir_num != file_tree_element_b->subdir_num ||
+							file_tree_element_a->subdir_file_num != file_tree_element_b->subdir_file_num)
 								loop_dirs(file_tree_element_a, file_tree_element_b);
-						}
 					}
 				} // if strcmp(dirname,dirname)
 			} // for loop b
