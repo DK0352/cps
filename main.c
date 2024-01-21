@@ -94,7 +94,7 @@ int main(int argc, char *argv[])
 	int ind1 = 0;				// used for checking argv arguments
 	int ind2 = 0;				// used for checking argv arguments
 	int index;				// used for checking argv arguments
-	char *version = "1.1.1";		// cps version number
+	char *version = "1.1.3";		// cps version number
 
 	char *string1 = "Files copied:\n";
 	char *string2 = "Directories copied:\n";
@@ -432,7 +432,7 @@ int main(int argc, char *argv[])
 		printf("Usage: cps OPTIONS directory1 directory2\n");
 		printf("\n");
 		printf("       directory1 (the main directory)\n");
-		printf("       directory2 (the secondary directory (directory that you wish to syncronize with the main directory).\n");
+		printf("       directory2 (the secondary directory (directory that you wish to synchronize with the main directory).\n");
 		printf("\n");
 		printf("OPTIONS: (long option) or (short option) \n");
 		printf("\n");
