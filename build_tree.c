@@ -129,8 +129,6 @@ void build_tree(struct thread_struct *thread_data)
 		p_global_files_size = &data_copy_info.global_files_size_b;
 	}
 
-	no_dirs_a = 0;
-	no_dirs_b = 0;
 	files = thread_data->files;
 	directories = thread_data->directories;
 
