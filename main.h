@@ -38,5 +38,8 @@
 
 #include <sys/times.h>
 #include <time.h>
+#include <sys/acl.h>
+#include <acl/libacl.h>
+#include <sys/xattr.h>
 
 #include <sys/sysmacros.h>
