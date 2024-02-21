@@ -94,7 +94,9 @@ int main(int argc, char *argv[])
 	int ind1 = 0;				// used for checking argv arguments
 	int ind2 = 0;				// used for checking argv arguments
 	int index;				// used for checking argv arguments
-	char *version = "1.1.3";		// cps version number
+	int nice_val;
+	mode_t umask_val;
+	char *version = "1.2";		// cps version number
 
 	char *string1 = "Files copied:\n";
 	char *string2 = "Directories copied:\n";
@@ -169,8 +171,14 @@ int main(int argc, char *argv[])
 	char *help_string60 = "Scan based on modification time instead of size.";
 	char *help_string61 = "--just-delete-surplus or -X";
 	char *help_string62 = "Just delete the surplus data from the secondary location.";
+	char *help_string63 = "--preserve-perms or -P";
+	char *help_string64 = "Preserve the permissions during copying.";
 	//char *help_string61 = "--detailed or -D";
 	//char *help_string62 = "Show detailed information about each file (size, owner, permissions, last modification time) for copy/content file.";
+	char *help_string65 = "--acls";
+	char *help_string66 = "Preserve ACLs during copying.";
+	char *help_string67 = "--xattrs";
+	char *help_string68 = "Preserve extended attributes during copying.";
 
 	// 0 option is inactive, 1 option is active
 	options.quit_read_errors = 1;		// on by default
@@ -208,6 +216,9 @@ int main(int argc, char *argv[])
 	options.naive_mode = 0;
 	options.list_conflicting = 0;
 	//options.detailed = 0;
+	options.preserve_perms = 0;
+	options.acls = 0;
+	options.xattrs = 0;
 
 	copied.copied_data = 0;		// if 1, add size in stats
 	copied.aborted_copying;		// if 1, user aborted copying missing files and dirs
@@ -292,10 +303,13 @@ int main(int argc, char *argv[])
 			{"naive-mode", no_argument, 0, 'n'},
 			{"time-mode", no_argument, 0, 'T'}, 
 			{"list-conflicting", no_argument, 0, 'L'},
+			{"preserve-perms", no_argument, 0, 'P'},
+			{"acls", no_argument, &options.acls, 1 },
+			{"xattrs", no_argument, &options.xattrs, 1 },
 			{0, 0, 0, 0}
 		};
 
-		c = getopt_long(argc, argv, "abc:dfgGhk:lnopqrstuvwxyzABC:K:LMNOSTX", long_options, &option_index);
+		c = getopt_long(argc, argv, "abc:dfgGhk:lnopPqrstuvwxyzABC:K:LMNOSTX", long_options, &option_index);
 		if (c == -1)
 			break;
 		switch (c) {
@@ -416,6 +430,10 @@ int main(int argc, char *argv[])
 			case 'D':
 				options.detailed = 1;
 				break;
+			case 'P':
+				options.preserve_perms = 1;
+				umask(0);
+				break;
 			case '?':
 				printf("%c Unknown option. Exiting.\n", optopt);
 				exit(1);
@@ -431,8 +449,8 @@ int main(int argc, char *argv[])
 		printf("\n");
 		printf("Usage: cps OPTIONS directory1 directory2\n");
 		printf("\n");
-		printf("       directory1 (the main directory)\n");
-		printf("       directory2 (the secondary directory (directory that you wish to synchronize with the main directory).\n");
+		printf("       directory1: the main directory\n");
+		printf("       directory2: the secondary directory (that you wish to synchronize with the main directory).\n");
 		printf("\n");
 		printf("OPTIONS: (long option) or (short option) \n");
 		printf("\n");
@@ -467,6 +485,9 @@ int main(int argc, char *argv[])
 		printf("%-37s  %s\n", help_string51, help_string52);
 		printf("%-37s  %s\n", help_string57, help_string58);
 		printf("%-37s  %s\n", help_string59, help_string60);
+		printf("%-37s  %s\n", help_string63, help_string64);
+		printf("%-37s  %s\n", help_string65, help_string66);
+		printf("%-37s  %s\n", help_string67, help_string68);
 		printf("\n");
 		printf("cps %s\n", version);
 		printf("\n");
@@ -498,10 +519,21 @@ int main(int argc, char *argv[])
 	if (options.follow_sym_links == 0) {
 		options.open_flags |= O_NOFOLLOW;
 		options.stat_f = lstat;
+		if (options.xattrs == 1) {
+			options.setxattr_func = lsetxattr;
+			options.getxattr_func = lgetxattr;
+			options.listxattr_func = llistxattr;
+		}
 	}
 
-	else if (options.follow_sym_links == 1)
+	else if (options.follow_sym_links == 1) {
 		options.stat_f = stat;
+		if (options.xattrs == 1) {
+			options.setxattr_func = setxattr;
+			options.getxattr_func = getxattr;
+			options.listxattr_func = listxattr;
+		}
+	}
 
 	if ((options.copy_surplus_back == 1 || options.just_copy_surplus_back == 1) && (options.delete_surplus == 1 || options.just_delete_surplus == 1)) {
 		printf("Error: Conflicting options. You are attempting to delete the surplus data and to copy it back to the main directory.\n");
@@ -530,7 +562,7 @@ int main(int argc, char *argv[])
 	ow_main_larger = 0;
 
 	// optind is the first non-option argument, so it should be a pathname for the first directory. 
-	// then increment it to point to a second directory if there are more arguments, or exit with an error if there aren't
+	// then increment it to point to a second directory if there are more arguments, or exit with an error if there aren't any
 	index = 1;
 	if (optind < argc) {
 		while (optind < argc) {
@@ -794,6 +826,7 @@ int main(int argc, char *argv[])
 			if (options.dont_list_stats != 1)
 				list_stats(0,copied);
 			read_write_data(NULL,3,pathname1,pathname2);
+			copied.full_dir1_copied = 1;
 			if (options.dont_list_stats != 1)
 				list_stats(2,copied);
 			clean_tree(thread_data_a->file_tree_top_dir,0);
@@ -847,6 +880,7 @@ int main(int argc, char *argv[])
 			if (options.dont_list_stats != 1)
 				list_stats(0,copied);
 			read_write_data(NULL,3,pathname2,pathname1);
+			copied.full_dir2_copied = 1;
 			if (options.dont_list_stats != 1)
 				list_stats(2,copied);
 			clean_tree(thread_data_b->file_tree_top_dir,0);
