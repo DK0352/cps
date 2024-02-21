@@ -23,6 +23,7 @@
 #include "options.h"
 
 #define BUF_SIZE 4096
+#define XATTR_SIZE 10000
 
 extern struct options_menu options;
 
@@ -50,6 +51,12 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 	int		len1, len2;
 	int		i;
 	mode_t		file_perms, dir_perms;
+	acl_t		acl;
+	int		acl_res; // return value for acl function
+	char		xattr_list[XATTR_SIZE], xattr_value[XATTR_SIZE];
+	char		newf_xattr_list[XATTR_SIZE], newf_xattr_value[XATTR_SIZE];
+	int		xattr_len, xattr_val_len, xattr_res, setxattr_res;
+	int		j;
 
 	file_t_init = 0;
 	direntry_init = 0;
@@ -100,7 +107,51 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 							}
 						}
 					}
-					printf("%s\n", read_file_list->new_location);
+					if (options.xattrs == 1) {
+						errno = 0;
+						xattr_len = options.listxattr_func(read_file_list->dir_location, xattr_list, XATTR_SIZE);
+						if (xattr_len == -1) {
+							if (options.quit_read_errors == 1) {
+								perror("listxattr");
+								exit(1);
+							}
+							/* else if (options._quit_read_errors == 0)
+							 	errors.xattr_read_err++;*/ 
+							else if (options.quit_read_errors == 0)
+								perror("listxattr");
+						}
+						for (i = 0; i < xattr_len; i += strlen(&xattr_list[i]) + 1) {
+							errno = 0;
+							xattr_val_len = options.getxattr_func(read_file_list->dir_location, &xattr_list[i], xattr_value, XATTR_SIZE);
+							if (xattr_val_len == -1) {
+								if (options.quit_read_errors == 1) {
+									perror("getxattr");
+									exit(1);
+								}
+								/* else if (options._quit_read_errors == 0)
+								  	errors.xattr_read_err++; */
+								else if (options.quit_read_errors == 0)
+									perror("listxattr");
+							}
+							errno = 0;
+							setxattr_res = options.setxattr_func(read_file_list->new_location, &xattr_list[i], &xattr_value[0], strlen(&xattr_value[0]) + 1, 0);
+							if (setxattr_res == -1) {
+								if (options.quit_write_errors == 1) {
+									printf("setxattr_res = %d\n", setxattr_res);
+									perror("setxattr");
+									exit(1);
+								}
+								/* else if (options._quit_write_errors == 0)
+								  	errors.xattr_write_err++;*/ 
+								else if (options.quit_write_errors == 0)
+									perror("setxattr");
+							}
+							for (j = 0; j < xattr_val_len; j++)
+								xattr_value[j] = '\0';
+						}
+					}
+					if (options.show_write_proc != 0)
+						printf("%s\n", read_file_list->new_location);
 					for (link_del = 0; link_del < link_len; link_del++)
 						linkpath[link_del] = '\0';
 					continue;
@@ -122,7 +173,6 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 				if (options.quit_write_errors == 1)	
 					exit(1);
 			}
-			// novo 14.10.2023
 			else {
 				errno = 0;
 				while ((num_read = read(read_descriptor,buf,BUF_SIZE)) > 0) {
@@ -157,6 +207,62 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 						if (options.quit_write_errors == 1)
 							exit(1);
 					}
+				}
+			}
+			if (options.acls == 1) {
+				errno = 0;
+				acl = acl_get_file(read_file_list->dir_location,ACL_TYPE_ACCESS);
+				if (acl == NULL) {
+					perror("acl_get_file");
+				}
+				errno = 0;
+				acl_res = acl_set_file(read_file_list->new_location,ACL_TYPE_ACCESS,acl);
+				if (acl_res != 0) {
+					perror("acl_set_file");
+				}
+				acl_free(acl);
+			}
+			if (options.xattrs == 1) {
+				errno = 0;
+				xattr_len = options.listxattr_func(read_file_list->dir_location, xattr_list, XATTR_SIZE);
+				if (xattr_len == -1) {
+					if (options.quit_read_errors == 1) {
+						perror("listxattr");
+						exit(1);
+					}
+					/* else if (options._quit_read_errors == 0)
+					 	errors.xattr_read_err++;*/ 
+					else if (options.quit_read_errors == 0)
+						perror("listxattr");
+				}
+				for (i = 0; i < xattr_len; i += strlen(&xattr_list[i]) + 1) {
+					errno = 0;
+					xattr_val_len = options.getxattr_func(read_file_list->dir_location, &xattr_list[i], xattr_value, XATTR_SIZE);
+					if (xattr_val_len == -1) {
+						if (options.quit_read_errors == 1) {
+							perror("getxattr");
+							exit(1);
+						}
+						/* else if (options._quit_read_errors == 0)
+						  	errors.xattr_read_err++; */
+						else if (options.quit_read_errors == 0)
+							perror("listxattr");
+					}
+					errno = 0;
+					setxattr_res = options.setxattr_func(read_file_list->new_location, &xattr_list[i], &xattr_value[0], strlen(&xattr_value[0]) + 1, 0);
+					if (setxattr_res == -1) {
+						if (options.quit_write_errors == 1) {
+							printf("setxattr_res = %d\n", setxattr_res);
+							perror("setxattr");
+							exit(1);
+						}
+						/* else if (options._quit_write_errors == 0)
+						  	errors.xattr_write_err++;*/ 
+						else if (options.quit_write_errors == 0)
+							perror("setxattr");
+					}
+					for (j = 0; j < xattr_val_len; j++)
+						xattr_value[j] = '\0';
 				}
 			}
 			if (options.show_write_proc != 0)
@@ -208,15 +314,68 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 					}
 				}
 			}
-			// ?????????????
-			//strcpy(source_path,read_dir_list->dir_location);
-			//strcpy(destination_path,read_dir_list->new_location);
+			if (options.acls == 1) {
+				errno = 0;
+				acl = acl_get_file(read_file_list->dir_location,ACL_TYPE_ACCESS);
+				if (acl == NULL) {
+					perror("acl_get_file");
+				}
+				errno = 0;
+				acl_res = acl_set_file(read_file_list->new_location,ACL_TYPE_ACCESS,acl);
+				if (acl_res != 0) {
+					perror("acl_set_file");
+				}
+				acl_free(acl);
+			}
+			if (options.xattrs == 1) {
+				errno = 0;
+				xattr_len = options.listxattr_func(read_file_list->dir_location, xattr_list, XATTR_SIZE);
+				if (xattr_len == -1) {
+					if (options.quit_read_errors == 1) {
+						perror("listxattr");
+						exit(1);
+					}
+					/* else if (options._quit_read_errors == 0)
+					 	errors.xattr_read_err++;*/ 
+					else if (options.quit_read_errors == 0)
+						perror("listxattr");
+				}
+				for (i = 0; i < xattr_len; i += strlen(&xattr_list[i]) + 1) {
+					errno = 0;
+					xattr_val_len = options.getxattr_func(read_file_list->dir_location, &xattr_list[i], xattr_value, XATTR_SIZE);
+					if (xattr_val_len == -1) {
+						if (options.quit_read_errors == 1) {
+							perror("getxattr");
+							exit(1);
+						}
+						/* else if (options._quit_read_errors == 0)
+						  	errors.xattr_read_err++; */
+						else if (options.quit_read_errors == 0)
+							perror("listxattr");
+					}
+					errno = 0;
+					setxattr_res = options.setxattr_func(read_file_list->new_location, &xattr_list[i], &xattr_value[0], strlen(&xattr_value[0]) + 1, 0);
+					if (setxattr_res == -1) {
+						if (options.quit_write_errors == 1) {
+							printf("setxattr_res = %d\n", setxattr_res);
+							perror("setxattr");
+							exit(1);
+						}
+						/* else if (options._quit_write_errors == 0)
+						  	errors.xattr_write_err++;*/ 
+						else if (options.quit_write_errors == 0)
+							perror("setxattr");
+					}
+					for (j = 0; j < xattr_val_len; j++)
+						xattr_value[j] = '\0';
+				}
+			}
 
 			if (options.show_write_proc != 0)
 				printf("Directory: %s\n", read_dir_list->new_location);
 
 			// read and copy directories and files and paste them to the destination
-			read_write_data(NULL,3,read_dir_list->dir_location,read_dir_list->new_location);	/* 2 je izaberi direktorije */
+			read_write_data(NULL,3,read_dir_list->dir_location,read_dir_list->new_location);
 		}
 		return 0;
 	}
@@ -323,6 +482,62 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 						}
 					}
 				}
+				if (options.acls == 1) {
+					errno = 0;
+					acl = acl_get_file(read_file_list->dir_location,ACL_TYPE_ACCESS);
+					if (acl == NULL) {
+						perror("acl_get_file");
+					}
+					errno = 0;
+					acl_res = acl_set_file(read_file_list->new_location,ACL_TYPE_ACCESS,acl);
+					if (acl_res != 0) {
+						perror("acl_set_file");
+					}
+					acl_free(acl);
+				}
+				if (options.xattrs == 1) {
+					errno = 0;
+					xattr_len = options.listxattr_func(read_file_list->dir_location, xattr_list, XATTR_SIZE);
+					if (xattr_len == -1) {
+						if (options.quit_read_errors == 1) {
+							perror("listxattr");
+							exit(1);
+						}
+						/* else if (options._quit_read_errors == 0)
+						 	errors.xattr_read_err++;*/ 
+						else if (options.quit_read_errors == 0)
+							perror("listxattr");
+					}
+					for (i = 0; i < xattr_len; i += strlen(&xattr_list[i]) + 1) {
+						errno = 0;
+						xattr_val_len = options.getxattr_func(read_file_list->dir_location, &xattr_list[i], xattr_value, XATTR_SIZE);
+						if (xattr_val_len == -1) {
+							if (options.quit_read_errors == 1) {
+								perror("getxattr");
+								exit(1);
+							}
+							/* else if (options._quit_read_errors == 0)
+							  	errors.xattr_read_err++; */
+							else if (options.quit_read_errors == 0)
+								perror("listxattr");
+						}
+						errno = 0;
+						setxattr_res = options.setxattr_func(read_file_list->new_location, &xattr_list[i], &xattr_value[0], strlen(&xattr_value[0]) + 1, 0);
+						if (setxattr_res == -1) {
+							if (options.quit_write_errors == 1) {
+								printf("setxattr_res = %d\n", setxattr_res);
+								perror("setxattr");
+								exit(1);
+							}
+							/* else if (options._quit_write_errors == 0)
+							  	errors.xattr_write_err++;*/ 
+							else if (options.quit_write_errors == 0)
+								perror("setxattr");
+						}
+						for (j = 0; j < xattr_val_len; j++)
+							xattr_value[j] = '\0';
+					}
+				}
 			}
 			else if (S_ISREG(file_t->st_mode)) {
 				strcpy(new_source,source_path);
@@ -350,7 +565,6 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 					if (options.quit_write_errors == 1)
 						exit(1);
 				}
-				// 14.10.2023
 				else {
 					errno = 0;
 					while ((num_read = read(read_descriptor,buf,BUF_SIZE)) > 0)
@@ -382,6 +596,62 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 							if (options.quit_write_errors == 1)
 								exit(1);
 						}
+					}
+				}
+				if (options.acls == 1) {
+					errno = 0;
+					acl = acl_get_file(read_file_list->dir_location,ACL_TYPE_ACCESS);
+					if (acl == NULL) {
+						perror("acl_get_file");
+					}
+					errno = 0;
+					acl_res = acl_set_file(read_file_list->new_location,ACL_TYPE_ACCESS,acl);
+					if (acl_res != 0) {
+						perror("acl_set_file");
+					}
+					acl_free(acl);
+				}
+				if (options.xattrs == 1) {
+					errno = 0;
+					xattr_len = options.listxattr_func(read_file_list->dir_location, xattr_list, XATTR_SIZE);
+					if (xattr_len == -1) {
+						if (options.quit_read_errors == 1) {
+							perror("listxattr");
+							exit(1);
+						}
+						/* else if (options._quit_read_errors == 0)
+						 	errors.xattr_read_err++;*/ 
+						else if (options.quit_read_errors == 0)
+							perror("listxattr");
+					}
+					for (i = 0; i < xattr_len; i += strlen(&xattr_list[i]) + 1) {
+						errno = 0;
+						xattr_val_len = options.getxattr_func(read_file_list->dir_location, &xattr_list[i], xattr_value, XATTR_SIZE);
+						if (xattr_val_len == -1) {
+							if (options.quit_read_errors == 1) {
+								perror("getxattr");
+								exit(1);
+							}
+							/* else if (options._quit_read_errors == 0)
+							  	errors.xattr_read_err++; */
+							else if (options.quit_read_errors == 0)
+								perror("listxattr");
+						}
+						errno = 0;
+						setxattr_res = options.setxattr_func(read_file_list->new_location, &xattr_list[i], &xattr_value[0], strlen(&xattr_value[0]) + 1, 0);
+						if (setxattr_res == -1) {
+							if (options.quit_write_errors == 1) {
+								printf("setxattr_res = %d\n", setxattr_res);
+								perror("setxattr");
+								exit(1);
+							}
+							/* else if (options._quit_write_errors == 0)
+							  	errors.xattr_write_err++;*/ 
+							else if (options.quit_write_errors == 0)
+								perror("setxattr");
+						}
+						for (j = 0; j < xattr_val_len; j++)
+							xattr_value[j] = '\0';
 					}
 				}
 				if (options.show_write_proc != 0)
@@ -440,6 +710,49 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 							if (options.quit_write_errors == 1)
 								exit(1);
 						}
+					}
+				}
+				if (options.xattrs == 1) {
+					errno = 0;
+					xattr_len = options.listxattr_func(read_file_list->dir_location, xattr_list, XATTR_SIZE);
+					if (xattr_len == -1) {
+						if (options.quit_read_errors == 1) {
+							perror("listxattr");
+							exit(1);
+						}
+						/* else if (options._quit_read_errors == 0)
+						 	errors.xattr_read_err++;*/ 
+						else if (options.quit_read_errors == 0)
+							perror("listxattr");
+					}
+					for (i = 0; i < xattr_len; i += strlen(&xattr_list[i]) + 1) {
+						errno = 0;
+						xattr_val_len = options.getxattr_func(read_file_list->dir_location, &xattr_list[i], xattr_value, XATTR_SIZE);
+						if (xattr_val_len == -1) {
+							if (options.quit_read_errors == 1) {
+								perror("getxattr");
+								exit(1);
+							}
+							/* else if (options._quit_read_errors == 0)
+							  	errors.xattr_read_err++; */
+							else if (options.quit_read_errors == 0)
+								perror("listxattr");
+						}
+						errno = 0;
+						setxattr_res = options.setxattr_func(read_file_list->new_location, &xattr_list[i], &xattr_value[0], strlen(&xattr_value[0]) + 1, 0);
+						if (setxattr_res == -1) {
+							if (options.quit_write_errors == 1) {
+								printf("setxattr_res = %d\n", setxattr_res);
+								perror("setxattr");
+								exit(1);
+							}
+							/* else if (options._quit_write_errors == 0)
+							  	errors.xattr_write_err++;*/ 
+							else if (options.quit_write_errors == 0)
+								perror("setxattr");
+						}
+						for (j = 0; j < xattr_val_len; j++)
+							xattr_value[j] = '\0';
 					}
 				}
 				if (options.show_write_proc != 0)
@@ -518,6 +831,49 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 							}
 						}
 					}
+					if (options.xattrs == 1) {
+						errno = 0;
+						xattr_len = options.listxattr_func(read_file_list->dir_location, xattr_list, XATTR_SIZE);
+						if (xattr_len == -1) {
+							if (options.quit_read_errors == 1) {
+								perror("listxattr");
+								exit(1);
+							}
+							/* else if (options._quit_read_errors == 0)
+							 	errors.xattr_read_err++;*/ 
+							else if (options.quit_read_errors == 0)
+								perror("listxattr");
+						}
+						for (i = 0; i < xattr_len; i += strlen(&xattr_list[i]) + 1) {
+							errno = 0;
+							xattr_val_len = options.getxattr_func(read_file_list->dir_location, &xattr_list[i], xattr_value, XATTR_SIZE);
+							if (xattr_val_len == -1) {
+								if (options.quit_read_errors == 1) {
+									perror("getxattr");
+									exit(1);
+								}
+								/* else if (options._quit_read_errors == 0)
+								  	errors.xattr_read_err++; */
+								else if (options.quit_read_errors == 0)
+									perror("listxattr");
+							}
+							errno = 0;
+							setxattr_res = options.setxattr_func(read_file_list->new_location, &xattr_list[i], &xattr_value[0], strlen(&xattr_value[0]) + 1, 0);
+							if (setxattr_res == -1) {
+								if (options.quit_write_errors == 1) {
+									printf("setxattr_res = %d\n", setxattr_res);
+									perror("setxattr");
+									exit(1);
+								}
+								/* else if (options._quit_write_errors == 0)
+								  	errors.xattr_write_err++;*/ 
+								else if (options.quit_write_errors == 0)
+									perror("setxattr");
+							}
+							for (j = 0; j < xattr_val_len; j++)
+								xattr_value[j] = '\0';
+						}
+					}
 					if (options.show_write_proc != 0)
 						printf("Overwriting: %s\n", read_file_list->new_location);
 					for (link_del = 0; link_del < link_len; link_del++)
@@ -541,7 +897,6 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 				if (options.quit_write_errors == 1)
 					exit(1);
 			}
-			// 14.10.2023
 			else {
 				errno = 0;
 				while ((num_read = read(read_descriptor,buf,BUF_SIZE)) > 0) {
@@ -574,6 +929,62 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 						if (options.quit_write_errors == 1)
 							exit(1);
 					}
+				}
+			}
+			if (options.acls == 1) {
+				errno = 0;
+				acl = acl_get_file(read_file_list->dir_location,ACL_TYPE_ACCESS);
+				if (acl == NULL) {
+					perror("acl_get_file");
+				}
+				errno = 0;
+				acl_res = acl_set_file(read_file_list->new_location,ACL_TYPE_ACCESS,acl);
+				if (acl_res != 0) {
+					perror("acl_set_file");
+				}
+				acl_free(acl);
+			}
+			if (options.xattrs == 1) {
+				errno = 0;
+				xattr_len = options.listxattr_func(read_file_list->dir_location, xattr_list, XATTR_SIZE);
+				if (xattr_len == -1) {
+					if (options.quit_read_errors == 1) {
+						perror("listxattr");
+						exit(1);
+					}
+					/* else if (options._quit_read_errors == 0)
+					 	errors.xattr_read_err++;*/ 
+					else if (options.quit_read_errors == 0)
+						perror("listxattr");
+				}
+				for (i = 0; i < xattr_len; i += strlen(&xattr_list[i]) + 1) {
+					errno = 0;
+					xattr_val_len = options.getxattr_func(read_file_list->dir_location, &xattr_list[i], xattr_value, XATTR_SIZE);
+					if (xattr_val_len == -1) {
+						if (options.quit_read_errors == 1) {
+							perror("getxattr");
+							exit(1);
+						}
+						/* else if (options._quit_read_errors == 0)
+						  	errors.xattr_read_err++; */
+						else if (options.quit_read_errors == 0)
+							perror("listxattr");
+					}
+					errno = 0;
+					setxattr_res = options.setxattr_func(read_file_list->new_location, &xattr_list[i], &xattr_value[0], strlen(&xattr_value[0]) + 1, 0);
+					if (setxattr_res == -1) {
+						if (options.quit_write_errors == 1) {
+							printf("setxattr_res = %d\n", setxattr_res);
+							perror("setxattr");
+							exit(1);
+						}
+						/* else if (options._quit_write_errors == 0)
+						  	errors.xattr_write_err++;*/ 
+						else if (options.quit_write_errors == 0)
+							perror("setxattr");
+					}
+					for (j = 0; j < xattr_val_len; j++)
+						xattr_value[j] = '\0';
 				}
 			}
 			if (options.show_write_proc != 0)
