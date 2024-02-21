@@ -61,4 +61,10 @@ struct options_menu {
 	int	naive_mode;			// go deeper into file tree only if there is difference in size
 	int	list_conflicting;		// files with the same name, but different size or modification time
 	int	detailed;			// 
+	int	preserve_perms;			// preserve file permissions during the copying
+	int	acls;				// preserve ACLs (Access Control Lists)
+	int	xattrs;				// preserve extended attributes
+	int	(*setxattr_func)(const char *path, const char *name, const void *value, size_t size, int flags);
+	ssize_t	(*getxattr_func)(const char *path, const char *name, void *value, size_t size);
+	ssize_t	(*listxattr_func)(const char *path, char *list, size_t size);
 };
