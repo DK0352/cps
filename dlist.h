@@ -72,8 +72,8 @@ typedef struct DListElmt_ {
 
 /* doubly-linked lists */
 typedef struct DList_ {
-	int		num;				// number of files in a directory
-	long		files_size;			// size of all files in a directory
+	unsigned long	num;				// number of files in a directory
+	unsigned long	files_size;			// size of all files in a directory
 	DListElmt	*head;
 	DListElmt	*tail;
 } DList;
