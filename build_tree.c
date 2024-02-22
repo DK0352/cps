@@ -45,7 +45,7 @@ void build_tree(struct thread_struct *thread_data)
 	char				*locate_char;	// to find the last "/" in the pathname with strrchr
 	int				locate_char_size; // strlen size for locate char string
 	int				len;
-	unsigned long			*p_global_file_num, *p_global_dir_num;
+	unsigned long			*p_global_file_num, *p_global_dir_num, *p_global_symlink_num;
 	unsigned long			*p_global_files_size;
 
 	file_tree_top_dir = malloc(sizeof(DList_of_lists));
@@ -119,12 +119,14 @@ void build_tree(struct thread_struct *thread_data)
 	}
 	if (strcmp(thread_data->id,"source") == 0) {
 		p_global_file_num = &data_copy_info.global_file_num_a;
+		p_global_symlink_num = &data_copy_info.global_symlink_num_a;
 		p_global_dir_num = &data_copy_info.global_dir_num_a;
 		p_global_files_size = &data_copy_info.global_files_size_a;
 	}
 	else if (strcmp(thread_data->id,"destination") == 0) {
-		data_copy_info.file_tree_top_dir_b = file_tree_top_dir;
+		data_copy_info.file_tree_top_dir_b = file_tree_top_dir; // ?
 		p_global_file_num = &data_copy_info.global_file_num_b;
+		p_global_symlink_num = &data_copy_info.global_symlink_num_b;
 		p_global_dir_num = &data_copy_info.global_dir_num_b;
 		p_global_files_size = &data_copy_info.global_files_size_b;
 	}
@@ -220,11 +222,9 @@ void build_rest_of_the_tree(struct thread_struct *thread_data, unsigned long *p_
 	DList_of_lists 		*file_tree_top_dir, *file_tree_element, *alloc, *save_up_position;
 	DList			*files, *directories;
 	extern struct Data_Copy_Info data_copy_info; // benchmark
-						     //
 	files = thread_data->files;
 	directories = thread_data->directories;
 	file_tree_element = thread_data->file_tree;
-	extern struct Data_Copy_Info data_copy_info; // benchmark
 
 	/* files only */
 	if (directories == NULL && files != NULL) {
@@ -252,7 +252,6 @@ void build_rest_of_the_tree(struct thread_struct *thread_data, unsigned long *p_
 				printf("built_the_rest_of_the_tree(): malloc() error 2.\n");
 				exit(1);
 			}
-			data_copy_info.dlist_of_lists_num++;
 			init_to_zero(alloc);
 			alloc->dirname = file_tree_element->dirname;
 			alloc->dir_location = file_tree_element->dir_location;
@@ -284,8 +283,8 @@ void build_rest_of_the_tree(struct thread_struct *thread_data, unsigned long *p_
 			file_tree_element->complete_file_num += files->num;
 			file_tree_element->dir_num += directories->num;
 			file_tree_element->complete_dir_num += directories->num;
-			*p_global_files_size += files->files_size;
 			*p_global_file_num += files->num;
+			*p_global_files_size += files->files_size;
 			*p_global_dir_num += directories->num;
 			alloc = malloc(sizeof(DList_of_lists));
 			if (alloc == NULL) {
