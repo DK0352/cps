@@ -261,10 +261,10 @@ int main(int argc, char *argv[])
 	data_copy_info.global_files_size_b = 0;
 	data_copy_info.global_dir_num_a = 0;
 	data_copy_info.global_dir_num_b = 0;
-	data_copy_info.global_sym_links_num_a = 0;
-	data_copy_info.global_sym_links_num_b = 0;
-	data_copy_info.global_sym_links_size_a = 0;
-	data_copy_info.global_sym_links_size_b = 0;
+	data_copy_info.global_symlink_num_a = 0;
+	data_copy_info.global_symlink_num_b = 0;
+	data_copy_info.global_symlink_size_a = 0;
+	data_copy_info.global_symlink_size_b = 0;
 	data_copy_info.dlist_of_lists_num = 0;
 
 	while (1) {
@@ -1411,6 +1411,7 @@ void list_stats(int after_c, struct copied_or_not copied)
 		printf("SOURCE DIRECTORY\n");
 		printf("\n");
 		printf("Number of files: %ld\n", data_copy_info.global_file_num_a);
+		printf("Of which are symbolic links: %ld\n", data_copy_info.global_symlink_num_a);
 		printf("Number of directories (excluding the top directory): %ld\n", data_copy_info.global_dir_num_a);
 		printf("Size of directory in bytes: %ld\n", data_copy_info.global_files_size_a);
 		// calc_size(): size of files/directories in the more appropriate or user specified unit
@@ -1420,6 +1421,7 @@ void list_stats(int after_c, struct copied_or_not copied)
 		printf("DESTINATION DIRECTORY\n");
 		printf("\n");
 		printf("Number of files: %ld\n", data_copy_info.global_file_num_b);
+		printf("Of which are symbolic links: %ld\n", data_copy_info.global_symlink_num_a);
 		printf("Number of directories (excluding the top directory): %ld\n", data_copy_info.global_dir_num_b);
 		printf("Size of directory in bytes: %ld\n", data_copy_info.global_files_size_b);
 		calc_size(data_copy_info.global_files_size_b,options.other_unit);
