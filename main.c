@@ -96,7 +96,7 @@ int main(int argc, char *argv[])
 	int index;				// used for checking argv arguments
 	int nice_val;
 	mode_t umask_val;
-	char *version = "1.2";		// cps version number
+	char *version = "1.2.1";		// cps version number
 
 	char *string1 = "Files copied:\n";
 	char *string2 = "Directories copied:\n";
@@ -515,6 +515,8 @@ int main(int argc, char *argv[])
 			exit(1);
 		}
 	}
+	if (options.acls == 1)
+		umask(0);
 
 	if (options.follow_sym_links == 0) {
 		options.open_flags |= O_NOFOLLOW;
