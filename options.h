@@ -26,13 +26,13 @@ struct options_menu {
 	int	quit_delete_errors;		// if delete error occurs, if 1 (default) quit the program. if 0, don't quit the program.
 	int	ignore_read_errors;		// ignore read errors. files or dirs that failed to be read will be added to list.
 	int	ignore_write_errors;		// ignore write errors. files or dirs that failed to be written will be added to list.
-	int	copy_surplus_back;		// copy surplus data from secondary location into main along with syncing directories
-	int	just_copy_surplus_back;		// copy surplus data from secondary location into main, without syncing directories
-	int	delete_surplus; 		// delete surplus files and dirs from the destination directory
-	int	just_delete_surplus;		// just delete surplus files and dirs from the destination directory and quit
+	int	copy_extraneous_back;		// copy extraneous data from secondary location into main along with syncing directories
+	int	just_copy_extraneous_back;		// copy extraneous data from secondary location into main, without syncing directories
+	int	delete_extraneous; 		// delete extraneous files and dirs from the destination directory
+	int	just_delete_extraneous;		// just delete extraneous files and dirs from the destination directory and quit
 	int	ow_main_smaller;		// if two files with the same name are found, overwrite the larger file in the secondary location with the smaller from the main location
 	int	ow_main_larger;			// if two files with the same name are found, overwrite the smaller file in the secondary location with the larger file from the main location
-	int	list_surplus;			// just list surplus files/dirs, but dont copy them.
+	int	list_extraneous;			// just list extraneous files/dirs, but dont copy them.
 	int	dont_list_data_to_copy;		// don't list files and directories to copy
 	int	no_questions;			// don't ask for confirmation whether to copy/write data
 	int	help;				// show help
@@ -64,6 +64,7 @@ struct options_menu {
 	int	preserve_perms;			// preserve file permissions during the copying
 	int	acls;				// preserve ACLs (Access Control Lists)
 	int	xattrs;				// preserve extended attributes
+	int	ignore_symlinks;		// don't copy symbolic links
 	int	(*setxattr_func)(const char *path, const char *name, const void *value, size_t size, int flags);
 	ssize_t	(*getxattr_func)(const char *path, const char *name, void *value, size_t size);
 	ssize_t	(*listxattr_func)(const char *path, char *list, size_t size);
