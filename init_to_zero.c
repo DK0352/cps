@@ -46,8 +46,8 @@ void init_to_zero(DList_of_lists *file_tree_element)
 	/*
 	file_tree_element->files_to_copy = NULL;
 	file_tree_element->dirs_to_copy = NULL;
-	file_tree_element->files_surplus = NULL;
-	file_tree_element->dirs_surplus = NULL;
+	file_tree_element->files_extraneous = NULL;
+	file_tree_element->dirs_extraneous = NULL;
 	file_tree_element->diff_type = NULL;
 	file_tree_element->diff_size = NULL;
 	file_tree_element->diff_size_ml = NULL;
