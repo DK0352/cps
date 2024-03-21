@@ -26,7 +26,8 @@
 DList_of_lists *create_dirs(DList *list, DList_of_lists *file_tree_element, DList_of_lists *file_tree_top_dir);
 DList_of_lists *create_top_dirs(DList *list, DList_of_lists *file_tree_element);
 void extract_size(DList_of_lists *file_tree_element);
-void build_rest_of_the_tree(struct thread_struct *thread_data, unsigned long *p_global_file_size, unsigned long *p_global_dir_size, unsigned long *p_global_files_size);
+void build_rest_of_the_tree(struct thread_struct *thread_data, unsigned long *p_global_file_size, unsigned long *p_global_dir_size, unsigned long *p_global_files_size,
+unsigned long *p_global_sym_links_num, unsigned long *p_global_sym_links_size);
 int open_dirs(struct thread_struct *thread_data);
 void init_to_zero(DList_of_lists *file_tree_element);
 
@@ -34,6 +35,8 @@ int no_files_and_dirs_a = 0; // external variable that signals that the source d
 int no_files_and_dirs_b = 0; // external variable that signals that the destination directory is empty
 int no_dirs_a = 0;	// don't start the loop to create/compare directories if there aren't any
 int no_dirs_b = 0;	// don't start the loop to create/compare directories if there aren't any
+
+// no files_a,b ??????????????
 
 /* builds file trees for the source and destination directory. */
 void build_tree(struct thread_struct *thread_data)
@@ -45,8 +48,8 @@ void build_tree(struct thread_struct *thread_data)
 	char				*locate_char;	// to find the last "/" in the pathname with strrchr
 	int				locate_char_size; // strlen size for locate char string
 	int				len;
-	unsigned long			*p_global_file_num, *p_global_dir_num, *p_global_symlink_num;
-	unsigned long			*p_global_files_size;
+	unsigned long			*p_global_file_num, *p_global_dir_num, *p_global_sym_links_num;
+	unsigned long			*p_global_files_size, *p_global_sym_links_size;
 
 	file_tree_top_dir = malloc(sizeof(DList_of_lists));
 	if (file_tree_top_dir == NULL) {
@@ -119,70 +122,153 @@ void build_tree(struct thread_struct *thread_data)
 	}
 	if (strcmp(thread_data->id,"source") == 0) {
 		p_global_file_num = &data_copy_info.global_file_num_a;
-		p_global_symlink_num = &data_copy_info.global_symlink_num_a;
+		p_global_sym_links_num = &data_copy_info.global_symlink_num_a;
 		p_global_dir_num = &data_copy_info.global_dir_num_a;
 		p_global_files_size = &data_copy_info.global_files_size_a;
+		p_global_sym_links_size = &data_copy_info.global_symlink_size_a;
 	}
 	else if (strcmp(thread_data->id,"destination") == 0) {
-		data_copy_info.file_tree_top_dir_b = file_tree_top_dir; // ?
+		//data_copy_info.file_tree_top_dir_b = file_tree_top_dir; // ?
 		p_global_file_num = &data_copy_info.global_file_num_b;
-		p_global_symlink_num = &data_copy_info.global_symlink_num_b;
+		p_global_sym_links_num = &data_copy_info.global_symlink_num_b;
 		p_global_dir_num = &data_copy_info.global_dir_num_b;
 		p_global_files_size = &data_copy_info.global_files_size_b;
+		p_global_sym_links_size = &data_copy_info.global_symlink_size_b;
 	}
 
 	files = thread_data->files;
+	sym_links = thread_data->sym_links;
 	directories = thread_data->directories;
 
 	/* files only, top dir */
-	if (directories == NULL && files != NULL) {
-		if (directories == NULL && files->num > 0) {
-			file_tree_element->files = files;
-			file_tree_element->files_size += files->files_size;
-			file_tree_element->file_num += files->num;
-			file_tree_element->complete_file_num += files->num;
-			file_tree_element->complete_dir_size += files->files_size;
-			*p_global_files_size += files->files_size;
-			*p_global_file_num += files->num;
-			thread_data->file_tree = file_tree_element;
-			thread_data->file_tree_top_dir = file_tree_element;
-			if (strcmp(thread_data->id,"source") == 0)
-				no_dirs_a = 1;
-			else if (strcmp(thread_data->id,"destination") == 0)
-				no_dirs_b = 1;
-		}
+	if (files != NULL && sym_links == NULL && directories == NULL) {
+		file_tree_element->files = files;
+		file_tree_element->sym_links = NULL;
+		file_tree_element->directories = NULL;
+		file_tree_element->files_size += files->files_size;
+		file_tree_element->file_num += files->num;
+		file_tree_element->complete_file_num += files->num;
+		file_tree_element->complete_dir_size += files->files_size;
+		*p_global_files_size += files->files_size;
+		*p_global_file_num += files->num;
+		thread_data->file_tree = file_tree_element;
+		thread_data->file_tree_top_dir = file_tree_element;
+		if (strcmp(thread_data->id,"source") == 0)
+			no_dirs_a = 1;
+		else if (strcmp(thread_data->id,"destination") == 0)
+			no_dirs_b = 1;
+	}
+	/* symbolic links only, top dir */
+	else if (files == NULL && sym_links != NULL && directories == NULL) {
+		file_tree_element->files = NULL;
+		file_tree_element->sym_links = sym_links;
+		file_tree_element->directories = NULL;
+		file_tree_element->sym_links_size += sym_links->files_size;
+		file_tree_element->file_num += sym_links->num;
+		file_tree_element->complete_file_num += sym_links->num;
+		file_tree_element->complete_dir_size += sym_links->files_size;
+		*p_global_sym_links_num += sym_links->num;
+		*p_global_sym_links_size += sym_links->files_size;
+		thread_data->file_tree = file_tree_element;
+		thread_data->file_tree_top_dir = file_tree_element;
+		if (strcmp(thread_data->id,"source") == 0)
+			no_dirs_a = 1;
+		else if (strcmp(thread_data->id,"destination") == 0)
+			no_dirs_b = 1;
 	}
 	/* directories only, top dir */
-	else if (directories != NULL && files == NULL) {
-		if (directories->num > 0 && files == NULL) {
-			file_tree_element->directories = thread_data->directories;
-			*p_global_dir_num += directories->num;
-			file_tree_element->dir_num += directories->num;
-			file_tree_element->complete_dir_num += directories->num;
-			file_tree_element->subdir_num += directories->num;
-			file_tree_element = create_top_dirs(file_tree_element->directories,file_tree_element);
-		}
+	else if (files == NULL && sym_links == NULL && directories != NULL) {
+		file_tree_element->files = NULL;
+		file_tree_element->sym_links = NULL;
+		file_tree_element->directories = thread_data->directories;
+		*p_global_dir_num += directories->num;
+		file_tree_element->dir_num += directories->num;
+		file_tree_element->complete_dir_num += directories->num;
+		file_tree_element->subdir_num += directories->num;
+		file_tree_element = create_top_dirs(file_tree_element->directories,file_tree_element);
 	}
-	/* found directories and files, top dir */
-	else if (directories != NULL && files != NULL) {
-		if (directories->num > 0 && files->num > 0) {
-			file_tree_element->files = thread_data->files;
-			file_tree_element->directories = thread_data->directories;
-			file_tree_element->files_size += files->files_size;
-			file_tree_element->complete_dir_size += files->files_size;
-			file_tree_element->file_num += files->num;
-			file_tree_element->complete_file_num += files->num;
-			file_tree_element->dir_num += directories->num;
-			file_tree_element->complete_dir_num += directories->num;
-			file_tree_element->subdir_num += directories->num;
-			*p_global_file_num += files->num;
-			*p_global_dir_num += directories->num;
-			*p_global_files_size += files->files_size;
-			file_tree_element = create_top_dirs(file_tree_element->directories,file_tree_element);
-		}
+	/* files and sym_links, top dir */
+	else if (files != NULL && sym_links != NULL && directories == NULL) {
+		file_tree_element->files = files;
+		file_tree_element->files_size += files->files_size;
+		file_tree_element->file_num += files->num;
+		file_tree_element->complete_file_num += files->num;
+		file_tree_element->complete_dir_size += files->files_size;
+		*p_global_file_num += files->num;
+		*p_global_files_size += files->files_size;
+		file_tree_element->sym_links = sym_links;
+		file_tree_element->sym_links_size += sym_links->files_size;
+		file_tree_element->file_num += sym_links->num;
+		file_tree_element->complete_file_num += sym_links->num;
+		file_tree_element->complete_dir_size += sym_links->files_size;
+		*p_global_sym_links_num += sym_links->num;
+		*p_global_sym_links_size += sym_links->files_size;
+		file_tree_element->directories = NULL;
+		thread_data->file_tree = file_tree_element;
+		thread_data->file_tree_top_dir = file_tree_element;
+		if (strcmp(thread_data->id,"source") == 0)
+			no_dirs_a = 1;
+		else if (strcmp(thread_data->id,"destination") == 0)
+			no_dirs_b = 1;
+	}
+	/* files and directories, top dir */
+	else if (files != NULL && sym_links == NULL && directories != NULL) {
+		file_tree_element->files = files;
+		file_tree_element->sym_links = NULL;
+		file_tree_element->directories = directories;
+		file_tree_element->files_size += files->files_size;
+		file_tree_element->complete_dir_size += files->files_size;
+		file_tree_element->file_num += files->num;
+		file_tree_element->complete_file_num += files->num;
+		file_tree_element->dir_num += directories->num;
+		file_tree_element->complete_dir_num += directories->num;
+		file_tree_element->subdir_num += directories->num;
+		*p_global_file_num += files->num;
+		*p_global_files_size += files->files_size;
+		*p_global_dir_num += directories->num;
+		file_tree_element = create_top_dirs(file_tree_element->directories,file_tree_element);
+	}
+	/* sym_links and directories */
+	else if (files == NULL && sym_links != NULL && directories != NULL) {
+		file_tree_element->files = NULL;
+		file_tree_element->sym_links = sym_links;
+		file_tree_element->directories = directories;
+		file_tree_element->sym_links_size += sym_links->files_size;
+		file_tree_element->complete_dir_size += sym_links->files_size;
+		file_tree_element->sym_links_num += sym_links->num;
+		file_tree_element->complete_sym_links_num += sym_links->num;
+		file_tree_element->dir_num += directories->num;
+		file_tree_element->complete_dir_num += directories->num;
+		file_tree_element->subdir_num += directories->num;
+		*p_global_sym_links_num += sym_links->num;
+		*p_global_sym_links_size += files->files_size;
+		*p_global_dir_num += directories->num;
+		file_tree_element = create_top_dirs(file_tree_element->directories,file_tree_element);
+	}
+	/* files, sym_links and directories */
+	else if (files != NULL && sym_links != NULL && directories != NULL) {
+		file_tree_element->files = files;
+		file_tree_element->directories = directories;
+		file_tree_element->sym_links = sym_links;
+		file_tree_element->files_size += files->files_size;
+		file_tree_element->complete_dir_size += files->files_size;
+		file_tree_element->sym_links_size += sym_links->files_size;
+		file_tree_element->file_num += files->num;
+		file_tree_element->sym_links_num += sym_links->num;
+		file_tree_element->complete_file_num += files->num;
+		file_tree_element->complete_sym_links_num += sym_links->num;
+		file_tree_element->dir_num += directories->num;
+		file_tree_element->complete_dir_num += directories->num;
+		file_tree_element->subdir_num += directories->num;
+		*p_global_file_num += files->num;
+		*p_global_files_size += files->files_size;
+		*p_global_sym_links_num += sym_links->num;
+		*p_global_sym_links_size += files->files_size;
+		*p_global_dir_num += directories->num;
+		file_tree_element = create_top_dirs(file_tree_element->directories,file_tree_element);
 	}
 	/* empty directory, top dir */
-	else if (directories == NULL && files == NULL) {
+	else if (files == NULL && sym_links == NULL && directories == NULL) {
 		if (strcmp(thread_data->id,"source") == 0)
 			no_files_and_dirs_a = 1;
 		else if (strcmp(thread_data->id,"destination") == 0)
@@ -196,7 +282,7 @@ void build_tree(struct thread_struct *thread_data)
 				thread_data->directory = one_of_the_top_dirs->dir_location;
 				thread_data->file_tree = one_of_the_top_dirs;
 				open_dirs(thread_data);
-				build_rest_of_the_tree(thread_data,p_global_file_num,p_global_dir_num,p_global_files_size);
+				build_rest_of_the_tree(thread_data,p_global_file_num,p_global_dir_num,p_global_files_size,p_global_sym_links_num,p_global_sym_links_size);
 				if (one_of_the_top_dirs->last_dir == 1)
 					extract_size(one_of_the_top_dirs);
 			}
@@ -208,7 +294,7 @@ void build_tree(struct thread_struct *thread_data)
 				thread_data->directory = one_of_the_top_dirs->dir_location;
 				thread_data->file_tree = one_of_the_top_dirs;
 				open_dirs(thread_data);
-				build_rest_of_the_tree(thread_data,p_global_file_num,p_global_dir_num,p_global_files_size);
+				build_rest_of_the_tree(thread_data,p_global_file_num,p_global_dir_num,p_global_files_size,p_global_sym_links_num,p_global_sym_links_size);
 				if (one_of_the_top_dirs->last_dir == 1)
 					extract_size(one_of_the_top_dirs);
 			}
@@ -217,101 +303,214 @@ void build_tree(struct thread_struct *thread_data)
 } // build_tree()
 
 /* called from the each top directory to build the file tree underneath */
-void build_rest_of_the_tree(struct thread_struct *thread_data, unsigned long *p_global_file_num, unsigned long *p_global_dir_num, unsigned long *p_global_files_size)
+void build_rest_of_the_tree(struct thread_struct *thread_data, unsigned long *p_global_file_num, unsigned long *p_global_dir_num, unsigned long *p_global_files_size, 
+unsigned long *p_global_sym_links_num, unsigned long *p_global_sym_links_size)
 {
 	DList_of_lists 		*file_tree_top_dir, *file_tree_element, *alloc, *save_up_position;
-	DList			*files, *directories;
-	extern struct Data_Copy_Info data_copy_info; // benchmark
+	DList			*files, *sym_links, *directories;
+
 	files = thread_data->files;
+	sym_links = thread_data->sym_links;
 	directories = thread_data->directories;
 	file_tree_element = thread_data->file_tree;
 
 	/* files only */
-	if (directories == NULL && files != NULL) {
-		if (files->num > 0 && directories == NULL) {
-			save_up_position = file_tree_element;
-			file_tree_element->files = files;
-			*p_global_file_num += files->num;
-			*p_global_files_size += files->files_size;
-			file_tree_element->file_num += files->num;
-			file_tree_element->complete_file_num += files->num;
-			file_tree_element->files_size += files->files_size;
-			file_tree_element->complete_dir_size += files->files_size;
-		}
+	if (files != NULL && sym_links == NULL && directories == NULL) {
+		save_up_position = file_tree_element;
+		file_tree_element->files = files;
+		file_tree_element->sym_links = NULL;
+		file_tree_element->directories = NULL;
+		*p_global_file_num += files->num;
+		*p_global_files_size += files->files_size;
+		file_tree_element->file_num += files->num;
+		file_tree_element->complete_file_num += files->num;
+		file_tree_element->files_size += files->files_size;
+		file_tree_element->complete_dir_size += files->files_size;
+	}
+	/* sym_links only */
+	else if (files == NULL && sym_links != NULL && directories == NULL) {
+		save_up_position = file_tree_element;
+		file_tree_element->files = NULL;
+		file_tree_element->sym_links = sym_links;
+		file_tree_element->directories = NULL;
+		*p_global_sym_links_num += sym_links->num;
+		*p_global_sym_links_size += sym_links->files_size;
+		file_tree_element->sym_links_num += sym_links->num;
+		file_tree_element->complete_sym_links_num += sym_links->num;
+		file_tree_element->sym_links_size += sym_links->files_size;
+		file_tree_element->complete_dir_size += sym_links->files_size;
 	}
 	/* directories only */
-	else if (directories != NULL && files == NULL) {
-		if (directories->num > 0 && files == NULL) {
-			save_up_position = file_tree_element;
-			file_tree_element->directories = directories;
-			file_tree_element->dir_num += directories->num;
-			file_tree_element->complete_dir_num += directories->num;
-			*p_global_dir_num += directories->num;
-			alloc = malloc(sizeof(DList_of_lists));
-			if (alloc == NULL) {
-				printf("built_the_rest_of_the_tree(): malloc() error 2.\n");
-				exit(1);
-			}
-			init_to_zero(alloc);
-			alloc->dirname = file_tree_element->dirname;
-			alloc->dir_location = file_tree_element->dir_location;
-			alloc->file_tree_top_dir = file_tree_element->file_tree_top_dir;
-			file_tree_element->down = alloc;
-			file_tree_element = file_tree_element->down;
-			file_tree_element->up = save_up_position;
-			file_tree_element->one_of_the_top_dirs = save_up_position->one_of_the_top_dirs;
-			file_tree_element = create_dirs(directories,file_tree_element,file_tree_top_dir);
-			for ( ; file_tree_element != NULL; file_tree_element = file_tree_element->next) {
-				thread_data->directory = file_tree_element->dir_location;
-				thread_data->file_tree = file_tree_element;
-				open_dirs(thread_data);
-				build_rest_of_the_tree(thread_data,p_global_file_num,p_global_dir_num,p_global_files_size);
-				if (file_tree_element->last_dir == 1)
-					extract_size(file_tree_element);
-			}
+	else if (files == NULL && sym_links == NULL && directories != NULL) {
+		save_up_position = file_tree_element;
+		file_tree_element->files = NULL;
+		file_tree_element->sym_links = NULL;
+		file_tree_element->directories = directories;
+		file_tree_element->dir_num += directories->num;
+		file_tree_element->complete_dir_num += directories->num;
+		*p_global_dir_num += directories->num;
+		alloc = malloc(sizeof(DList_of_lists));
+		if (alloc == NULL) {
+			printf("built_the_rest_of_the_tree(): malloc() error 2.\n");
+			exit(1);
+		}
+		init_to_zero(alloc);
+		alloc->dirname = file_tree_element->dirname;
+		alloc->dir_location = file_tree_element->dir_location;
+		alloc->file_tree_top_dir = file_tree_element->file_tree_top_dir;
+		file_tree_element->down = alloc;
+		file_tree_element = file_tree_element->down;
+		file_tree_element->up = save_up_position;
+		file_tree_element->one_of_the_top_dirs = save_up_position->one_of_the_top_dirs;
+		file_tree_element = create_dirs(directories,file_tree_element,file_tree_top_dir);
+		for ( ; file_tree_element != NULL; file_tree_element = file_tree_element->next) {
+			thread_data->directory = file_tree_element->dir_location;
+			thread_data->file_tree = file_tree_element;
+			open_dirs(thread_data);
+			build_rest_of_the_tree(thread_data,p_global_file_num,p_global_dir_num,p_global_files_size,p_global_sym_links_num,p_global_sym_links_size);
+			if (file_tree_element->last_dir == 1)
+				extract_size(file_tree_element);
 		}
 	}
+	/* files and sym_links */
+	else if (files != NULL && sym_links != NULL && directories == NULL) {
+		save_up_position = file_tree_element;
+		file_tree_element->files = files;
+		file_tree_element->sym_links = sym_links;
+		file_tree_element->directories = NULL;
+		*p_global_file_num += files->num;
+		*p_global_files_size += files->files_size;
+		file_tree_element->file_num += files->num;
+		file_tree_element->complete_file_num += files->num;
+		file_tree_element->files_size += files->files_size;
+		file_tree_element->complete_dir_size += files->files_size;
+		file_tree_element->sym_links = sym_links;
+		*p_global_sym_links_num += sym_links->num;
+		*p_global_sym_links_size += sym_links->files_size;
+		file_tree_element->sym_links_num += sym_links->num;
+		file_tree_element->complete_sym_links_num += sym_links->num;
+		file_tree_element->sym_links_size += sym_links->files_size;
+		file_tree_element->complete_dir_size += sym_links->files_size;
+	}
 	/* directories and files */
-	else if (directories != NULL && files != NULL) {
-		if (directories->num > 0 && files->num > 0) {
-			save_up_position = file_tree_element;
-			file_tree_element->files = files;	
-			file_tree_element->directories = directories;	
-			file_tree_element->files_size += files->files_size;
-			file_tree_element->complete_dir_size += files->files_size;
-			file_tree_element->file_num += files->num;
-			file_tree_element->complete_file_num += files->num;
-			file_tree_element->dir_num += directories->num;
-			file_tree_element->complete_dir_num += directories->num;
-			*p_global_file_num += files->num;
-			*p_global_files_size += files->files_size;
-			*p_global_dir_num += directories->num;
-			alloc = malloc(sizeof(DList_of_lists));
-			if (alloc == NULL) {
-				printf("built_the_rest_of_the_tree(): malloc() error 3.\n");
-				exit(1);
-			}
-			data_copy_info.dlist_of_lists_num++;
-			init_to_zero(alloc);
-			alloc->dirname = file_tree_element->dirname;
-			alloc->dir_location = file_tree_element->dir_location;
-			file_tree_element->down = alloc;
-			file_tree_element = file_tree_element->down;
-			file_tree_element->up = save_up_position;
-			file_tree_element->one_of_the_top_dirs = save_up_position->one_of_the_top_dirs;
-			file_tree_element = create_dirs(directories,file_tree_element,file_tree_top_dir);
-			for ( ; file_tree_element != NULL; file_tree_element = file_tree_element->next) {
-				thread_data->directory = file_tree_element->dir_location;
-				thread_data->file_tree = file_tree_element;
-				open_dirs(thread_data);
-				build_rest_of_the_tree(thread_data,p_global_file_num,p_global_dir_num,p_global_files_size);
-				if (file_tree_element->last_dir == 1)
-					extract_size(file_tree_element);
-			}
+	else if (files != NULL && sym_links == NULL && directories != NULL) {
+		save_up_position = file_tree_element;
+		file_tree_element->files = files;	
+		file_tree_element->sym_links = NULL;
+		file_tree_element->directories = directories;	
+		file_tree_element->files_size += files->files_size;
+		file_tree_element->complete_dir_size += files->files_size;
+		file_tree_element->file_num += files->num;
+		file_tree_element->complete_file_num += files->num;
+		file_tree_element->dir_num += directories->num;
+		file_tree_element->complete_dir_num += directories->num;
+		*p_global_file_num += files->num;
+		*p_global_files_size += files->files_size;
+		*p_global_dir_num += directories->num;
+		alloc = malloc(sizeof(DList_of_lists));
+		if (alloc == NULL) {
+			printf("built_the_rest_of_the_tree(): malloc() error 3.\n");
+			exit(1);
+		}
+		init_to_zero(alloc);
+		alloc->dirname = file_tree_element->dirname;
+		alloc->dir_location = file_tree_element->dir_location;
+		file_tree_element->down = alloc;
+		file_tree_element = file_tree_element->down;
+		file_tree_element->up = save_up_position;
+		file_tree_element->one_of_the_top_dirs = save_up_position->one_of_the_top_dirs;
+		file_tree_element = create_dirs(directories,file_tree_element,file_tree_top_dir);
+		for ( ; file_tree_element != NULL; file_tree_element = file_tree_element->next) {
+			thread_data->directory = file_tree_element->dir_location;
+			thread_data->file_tree = file_tree_element;
+			open_dirs(thread_data);
+			build_rest_of_the_tree(thread_data,p_global_file_num,p_global_dir_num,p_global_files_size,p_global_sym_links_num,p_global_sym_links_size);
+			if (file_tree_element->last_dir == 1)
+				extract_size(file_tree_element);
+		}
+	}
+	/* directories and sym_links */
+	else if (files == NULL && sym_links != NULL && directories != NULL) {
+		save_up_position = file_tree_element;
+		file_tree_element->files = NULL;
+		file_tree_element->sym_links = sym_links;	
+		file_tree_element->directories = directories;	
+		file_tree_element->sym_links_size += sym_links->files_size;
+		file_tree_element->complete_dir_size += sym_links->files_size;
+		file_tree_element->sym_links_num += sym_links->num;
+		file_tree_element->complete_sym_links_num += sym_links->num;
+		file_tree_element->dir_num += directories->num;
+		file_tree_element->complete_dir_num += directories->num;
+		*p_global_sym_links_num += sym_links->num;
+		*p_global_sym_links_size += sym_links->files_size;
+		*p_global_dir_num += directories->num;
+		alloc = malloc(sizeof(DList_of_lists));
+		if (alloc == NULL) {
+			printf("built_the_rest_of_the_tree(): malloc() error 3.\n");
+			exit(1);
+		}
+		init_to_zero(alloc);
+		alloc->dirname = file_tree_element->dirname;
+		alloc->dir_location = file_tree_element->dir_location;
+		file_tree_element->down = alloc;
+		file_tree_element = file_tree_element->down;
+		file_tree_element->up = save_up_position;
+		file_tree_element->one_of_the_top_dirs = save_up_position->one_of_the_top_dirs;
+		file_tree_element = create_dirs(directories,file_tree_element,file_tree_top_dir);
+		for ( ; file_tree_element != NULL; file_tree_element = file_tree_element->next) {
+			thread_data->directory = file_tree_element->dir_location;
+			thread_data->file_tree = file_tree_element;
+			open_dirs(thread_data);
+			build_rest_of_the_tree(thread_data,p_global_file_num,p_global_dir_num,p_global_files_size,p_global_sym_links_num,p_global_sym_links_size);
+			if (file_tree_element->last_dir == 1)
+				extract_size(file_tree_element);
+		}
+	}
+	/* files, sym_links and directories */
+	else if (files != NULL && sym_links != NULL && directories != NULL) {
+		save_up_position = file_tree_element;
+		file_tree_element->files = files;	
+		file_tree_element->sym_links = sym_links;	
+		file_tree_element->directories = directories;	
+		file_tree_element->files_size += files->files_size;
+		file_tree_element->sym_links_size += sym_links->files_size;
+		file_tree_element->complete_dir_size += files->files_size;
+		file_tree_element->complete_dir_size += sym_links->files_size;
+		file_tree_element->file_num += files->num;
+		file_tree_element->sym_links_num += sym_links->num;
+		file_tree_element->complete_file_num += files->num;
+		file_tree_element->complete_sym_links_num += sym_links->num;
+		file_tree_element->dir_num += directories->num;
+		file_tree_element->complete_dir_num += directories->num;
+		*p_global_file_num += files->num;
+		*p_global_sym_links_num += sym_links->num;
+		*p_global_files_size += files->files_size;
+		*p_global_sym_links_size += sym_links->files_size;
+		*p_global_dir_num += directories->num;
+		alloc = malloc(sizeof(DList_of_lists));
+		if (alloc == NULL) {
+			printf("built_the_rest_of_the_tree(): malloc() error 3.\n");
+			exit(1);
+		}
+		init_to_zero(alloc);
+		alloc->dirname = file_tree_element->dirname;
+		alloc->dir_location = file_tree_element->dir_location;
+		file_tree_element->down = alloc;
+		file_tree_element = file_tree_element->down;
+		file_tree_element->up = save_up_position;
+		file_tree_element->one_of_the_top_dirs = save_up_position->one_of_the_top_dirs;
+		file_tree_element = create_dirs(directories,file_tree_element,file_tree_top_dir);
+		for ( ; file_tree_element != NULL; file_tree_element = file_tree_element->next) {
+			thread_data->directory = file_tree_element->dir_location;
+			thread_data->file_tree = file_tree_element;
+			open_dirs(thread_data);
+			build_rest_of_the_tree(thread_data,p_global_file_num,p_global_dir_num,p_global_files_size,p_global_sym_links_num,p_global_sym_links_size);
+			if (file_tree_element->last_dir == 1)
+				extract_size(file_tree_element);
 		}
 	}
 	/* empty directory */
-	else if (directories == NULL && files == NULL) {
+	else if (files == NULL && sym_links == NULL && directories == NULL) {
 		file_tree_element->down = NULL;
 	}
 } /* build_the_rest_of_the_tree */
