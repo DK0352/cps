@@ -25,11 +25,12 @@
 #define BUF_SIZE 4096
 #define XATTR_SIZE 10000
 
-extern struct options_menu options;
 
 /* Function that writes data; data argument is linked list or NULL, choose is explained before each if/else, source and destination are used when data argument is NULL, and function dives into directory tree by itself, reading and writing files and directories, or overwriting, deleting, depending on the choose argument number. */
-int read_write_data(DList *data, int choose, char *source, char *destination) // kasnije dodat optionss argument
+int read_write_data(DList *data, int choose, char *source, char *destination)
 {
+	extern struct options_menu options;
+
 	DIR		*dir;
 	DListElmt	*read_file_list, *read_dir_list;
 	DList 		*file_list, *dir_list;
@@ -53,12 +54,12 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 	mode_t		file_perms, dir_perms;
 	acl_t		acl;
 	int		acl_res; // return value for acl function
-				 // ///////////////
+				 //
 	char		xattr_list[XATTR_SIZE], xattr_value[XATTR_SIZE];
 	char		newf_xattr_list[XATTR_SIZE], newf_xattr_value[XATTR_SIZE];
 	int		xattr_len, xattr_val_len, xattr_res, setxattr_res;
 	int		j;
-	///
+
 	char		*xbuf, *key, *val;
 	ssize_t		buflen, keylen, vallen;
 	int		setxattr_status;
@@ -1466,7 +1467,7 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 		return 0;
 	}
 
-	/* open directories and delete all files from them, and after they are empty, delete these directories */
+	/* open directories and delete all files from them, and afterwards delete these directories */
 	else if (choose == 7) {
 		errno = 0;
 		dir = opendir(source);
