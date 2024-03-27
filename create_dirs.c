@@ -29,9 +29,11 @@ DList_of_lists *create_top_dirs(DList *list, DList_of_lists *file_tree_element)
 {
 	DList_of_lists 		*save_old_position, *alloc, *save_first_dir, *save_file_tree_top_dir;
 	DListElmt		*dirlist_pointer;
+
 	int a, limit;
-	int top_dir_num;	// broj top direktorija
-	extern struct Data_Copy_Info data_copy_info; // benchmark
+	int top_dir_num;
+
+	extern struct Data_Copy_Info data_copy_info; 
 
 	limit = list->num;
 	dirlist_pointer = list->head;
@@ -144,8 +146,10 @@ DList_of_lists *create_dirs(DList *list, DList_of_lists *file_tree_element, DLis
 {
 	DList_of_lists 		*save_old_position, *save_up_position, *alloc, *save_first_dir, *save_one_of_top_dirs;
 	DListElmt		*dirlist_pointer;
+
 	int a, limit;
-	extern struct Data_Copy_Info data_copy_info; // benchmark
+	
+	extern struct Data_Copy_Info data_copy_info;
 
 	if (list != NULL) {
 		limit = list->num;
