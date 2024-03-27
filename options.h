@@ -32,14 +32,14 @@ struct options_menu {
 	int	just_delete_extraneous;		// just delete extraneous files and dirs from the destination directory and quit
 	int	ow_main_smaller;		// if two files with the same name are found, overwrite the larger file in the secondary location with the smaller from the main location
 	int	ow_main_larger;			// if two files with the same name are found, overwrite the smaller file in the secondary location with the larger file from the main location
-	int	list_extraneous;			// just list extraneous files/dirs, but dont copy them.
+	int	list_extraneous;		// just list extraneous files/dirs, but dont copy them.
 	int	dont_list_data_to_copy;		// don't list files and directories to copy
 	int	no_questions;			// don't ask for confirmation whether to copy/write data
 	int	help;				// show help
-	int	write_content_file;		// write file trees of both directories into file after copying
-	int	just_write_content_file;	// write file trees of both directories, but don't copy anything
-	int	write_copy_content_file;	// write copyied files and directories into the file
-	int	just_write_copy_content_file;	// just write files and directories to copy into the file, bud don't copy anything
+	//int	write_content_file;		// write file trees of both directories into file after copying
+	//int	just_write_content_file;	// write file trees of both directories, but don't copy anything
+	int	write_copy_content_file;	// write copied files and directories into the file
+	int	just_write_copy_content_file;	// just write files and directories to copy into the file, but don't copy anything
 	int	dont_list_stats;		// dont list statistics about files and dirs, their size, number, etc...
 	int	other_unit;			// if 1, use nondefault, user specified size unit (KB, MB, GB)
 	int	si_units;			// if 1, use multiples of 1000 insted of 1024 for units (KB, MB, GB)
@@ -60,7 +60,7 @@ struct options_menu {
 	int	ow_main_older;			// overwrite newer files with older
 	int	naive_mode;			// go deeper into file tree only if there is difference in size
 	int	list_conflicting;		// files with the same name, but different size or modification time
-	int	detailed;			// 
+	int	detailed;			// detailed information about data to copy
 	int	preserve_perms;			// preserve file permissions during the copying
 	int	acls;				// preserve ACLs (Access Control Lists)
 	int	xattrs;				// preserve extended attributes
