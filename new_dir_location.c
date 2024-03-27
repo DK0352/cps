@@ -20,10 +20,11 @@
 #include "main.h"
 #include "dlist.h"
 #include "options.h"
-extern struct options_menu options;
 
 char *new_dir_location(DList_of_lists *main_location, DList_of_lists *new_location, DList *insert_to)
 {
+	extern struct options_menu options;
+
 	int size1, size2, size3;
 	char *dirname, *dir_location, *new_dir_location;
 	mode_t perm;
