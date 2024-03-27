@@ -17,7 +17,6 @@
     51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-#include "main.h"
 #include "dlist.h"
 
 void init_to_zero(DList_of_lists *file_tree_element)
