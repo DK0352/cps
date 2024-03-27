@@ -43,8 +43,10 @@ void build_tree(struct thread_struct *thread_data)
 {
 	DList_of_lists 			*file_tree_top_dir, *file_tree_element;
 	DList_of_lists			*one_of_the_top_dirs;
-	extern struct Data_Copy_Info 	data_copy_info;
 	DList				*files, *directories, *sym_links;
+
+	extern struct Data_Copy_Info 	data_copy_info;
+
 	char				*locate_char;	// to find the last "/" in the pathname with strrchr
 	int				locate_char_size; // strlen size for locate char string
 	int				len;
