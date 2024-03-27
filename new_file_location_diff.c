@@ -20,12 +20,12 @@
 #include "main.h"
 #include "dlist.h"
 #include "options.h"
-extern struct options_menu options;
 
 // This function is used when two files with the same name are found, but different size. It just adds a file to a list to copy. It can be used to invert location in case of adding the file
 // to a surplus list, so the file is read from the destionation directory and written to the source directory
 char *new_file_location_diff(DListElmt *main_location, DListElmt *new_location, DList *insert_to)
 {
+	extern struct options_menu options;
 	int size1, size2, size3;
 	char *name, *dir_location_1, *dir_location_2;
 	mode_t st_mode;
