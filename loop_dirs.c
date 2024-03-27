@@ -35,7 +35,9 @@ int loop_dirs(DList_of_lists *file_tree_element_a, DList_of_lists *file_tree_ele
 {
 	extern struct Data_Copy_Info data_copy_info;
 	extern struct options_menu options;
+
 	DList_of_lists *upper_a, *upper_b, *location_a_down, *location_b_down, *compare_l, *compare_s, *list_l, *list_s, *start_a, *start_b;
+
 	int same_dir_num, main_mark;
 	int dirlist_size_a;
 	int dirlist_size_b;
