@@ -35,10 +35,13 @@ int compare_trees(struct thread_struct *thread_data_a, struct thread_struct *thr
 	extern int			no_files_and_dirs_b;
 	extern int			no_dirs_a;
 	extern int			no_dirs_b;
+
 	extern struct Data_Copy_Info	data_copy_info;
 	extern struct options_menu	options;
+
 	DList_of_lists 			*file_tree_element_a, *file_tree_element_b, *top_location_a, *top_location_b, *location_a_down, *location_b_down;
 	DList_of_lists			*start_a, *start_b;
+
 	int				same_dir_num;
 	int				dirlist_size_a, dirlist_size_b;
 
