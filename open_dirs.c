@@ -24,7 +24,7 @@
 
 int open_dirs(struct thread_struct *thread_data)
 {
-	extern struct Data_Copy_Info data_copy_info;
+	//extern struct Data_Copy_Info data_copy_info;
 	extern struct options_menu options;
 	DIR *dir;
 	struct dirent *dir_entry;
@@ -112,7 +112,7 @@ int open_dirs(struct thread_struct *thread_data)
 		if (strcmp(dir_entry->d_name, ".") == 0 || strcmp(dir_entry->d_name, "..") == 0)
 			continue;
 		// name_len
-		name_len = strlen(dir_entry->d_name)+1; // +1 za '\0'
+		name_len = strlen(dir_entry->d_name)+1; // +1 for '\0'
 		name = malloc(name_len);
 		if (name == NULL) {
 			printf("open_dirs(): malloc error 3\n");
@@ -120,7 +120,7 @@ int open_dirs(struct thread_struct *thread_data)
 		}
 		strcpy(name,dir_entry->d_name);
 		// complete_size (or complete length to be more correct) which is pathname + name of the file or directory
-		complete_size = path_len + name_len + 1; // +1 za '/'
+		complete_size = path_len + name_len + 1; // +1 for '/'
 		location = malloc(complete_size);
 		if (location == NULL) {
 			printf("open_dirs(): malloc error 4\n");
