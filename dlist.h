@@ -17,6 +17,9 @@
     51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
+#include <time.h>
+#include <fcntl.h>
+
 typedef struct DListElmt_ DListElmt;
 typedef struct DList_ DList;
 
@@ -66,8 +69,8 @@ typedef struct DListElmt_ {
 	mode_t				st_mode;	// type and permissions
 	unsigned long 			size;		// size of a file
 	char				*dir_location;	// location of a file
-	int				match;		// used in loop_files and loop_dirs function to signal that files has been compared
-	char				*new_location;	// new location for a file in case it needs to be copied to a new location
+	int				match;		// used in loop_files function to signal that file has been compared
+	char				*new_location;	// new location for the file
 	time_t				atime;		// access time
 	time_t				mtime;		// modification time
 	struct DList_of_lists_		*tree_position;	// position in the file tree. (dlist of lists). used to refer back to it from the file or dir. lists to copy.
