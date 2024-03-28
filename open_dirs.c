@@ -32,13 +32,11 @@ int open_dirs(struct thread_struct *thread_data)
 	char *name, *location;
 	int path_len, name_len, complete_size;
 	long size;
-	int data5_val;
 	int dir_entry_init, file_t_init;
 	struct errors_data error;
 
 	dir_entry_init = 0;
 	file_t_init = 0;
-	data5_val = 0;
 
 	errno = 0;
 	dir = opendir(thread_data->directory);
@@ -150,13 +148,13 @@ int open_dirs(struct thread_struct *thread_data)
 			exit(1);
 		}
 		if (S_ISDIR(file_t->st_mode)) {
-			dlist_ins_next(thread_data->directories, thread_data->directories->tail, name, file_t->st_mode, 0, location, 0, NULL, file_t->st_atime, file_t->st_mtime,NULL);
+			dlist_ins_next(thread_data->directories, thread_data->directories->tail, name, file_t->st_mode, 0, location, 0, NULL, file_t->st_atime, file_t->st_mtime, NULL);
 		}
 		else if (S_ISREG(file_t->st_mode)) {
-			dlist_ins_next(thread_data->files, thread_data->files->tail, name, file_t->st_mode, file_t->st_size, location, 0, NULL, file_t->st_atime, file_t->st_mtime,NULL);
+			dlist_ins_next(thread_data->files, thread_data->files->tail, name, file_t->st_mode, file_t->st_size, location, 0, NULL, file_t->st_atime, file_t->st_mtime, NULL);
 		}
 		else if (S_ISLNK(file_t->st_mode)) {
-			dlist_ins_next(thread_data->sym_links, thread_data->sym_links->tail, name, file_t->st_mode, file_t->st_size, location, data5_val, NULL, file_t->st_atime, file_t->st_mtime,NULL);
+			dlist_ins_next(thread_data->sym_links, thread_data->sym_links->tail, name, file_t->st_mode, file_t->st_size, location, 0, NULL, file_t->st_atime, file_t->st_mtime, NULL);
 		}
 	} // for (;;)
 
