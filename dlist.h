@@ -27,6 +27,7 @@ typedef struct DList_ DList;
 typedef struct DList_of_lists_ {
 	unsigned long			file_num;		// number of files
 	unsigned long			subdir_file_num;	// number of files in all subdirectories
+	unsigned long			subdir_sym_links_num;
 	unsigned long			sym_links_num;		// number of symbolic links
 	unsigned long			complete_file_num;	// complete file number of a directory including the subdirectories
 	unsigned long			complete_sym_links_num;	// complete number of a symbolic links of a directory including the subdirectories
@@ -46,8 +47,8 @@ typedef struct DList_of_lists_ {
 	mode_t				st_mode;		// type/permission
 	time_t				atime;			// acccess time
 	time_t				mtime;			// modification time
-	char				*source_pathname;	// source directory
-	char				*destination_pathname;	// destination directory
+	char				*source_pathname;	// source directory -------------?
+	char				*destination_pathname;	// destination directory ----------------?
 	char				*dirname;		// name of directory
 	char				*dir_location;		// directory location
 	DList				*files;			// linked list of files
