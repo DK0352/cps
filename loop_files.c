@@ -78,7 +78,7 @@ int loop_files(DList_of_lists *file_tree_element_a, DList_of_lists *file_tree_el
 			filelist_num_b = 0;
 		}
 	}
-	if (options.ignore_symlinks != 1 && options.follow_sym_links != 1 && loop_links == 0) {
+	if (options.ignore_symlinks != 1 && loop_links == 0) {
 		if (file_tree_element_a->sym_links != NULL) {
 			symlinks_a = file_tree_element_a->sym_links;
 			symlink_list_num_a = symlinks_a->num;
@@ -664,6 +664,7 @@ int loop_files(DList_of_lists *file_tree_element_a, DList_of_lists *file_tree_el
 			} // if (filelist_num_b > same_file_num)
 			compare_s = list_s;
 		} // else if (loop_links == 1)
+		return 0;
 	} // if (main_mark == COMPARE_L)
 
 	// source directory is compare_s
@@ -764,5 +765,6 @@ int loop_files(DList_of_lists *file_tree_element_a, DList_of_lists *file_tree_el
 				} // while (compare_l != NULL)
 			} // if (filelist_num_a > same_file_num)
 		} // else if (loop_links == 1) 
+		return 0;
 	} // else if (main_mark == COMPARE_S)
 }
