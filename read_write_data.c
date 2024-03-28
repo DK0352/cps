@@ -938,6 +938,8 @@ int read_write_data(DList *data, int choose, char *source, char *destination)
 				}
 			}
 			else if (S_ISLNK(file_t->st_mode)) {
+				if (options.ignore_symlinks == 1)
+					continue;
 				strcpy(new_source,source_path);
 				strcat(new_source,"/");
 				strcat(new_source,direntry->d_name);
