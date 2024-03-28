@@ -77,30 +77,15 @@ int compare_trees(struct thread_struct *thread_data_a, struct thread_struct *thr
 	else
 		dirlist_size_b = 0;
 
-	if (options.naive_mode == 0) {
-		if (options.ignore_symlinks != 1) {
-			if ((top_location_a->file_num != 0 && top_location_b->file_num != 0 || top_location_a->files_size != top_location_b->files_size) ||
-			top_location_a->sym_links_num != 0 && top_location_b->sym_links_num != 0 || top_location_a->sym_links_size != top_location_b->sym_links_size ) {
-				loop_files(top_location_a, top_location_b);
-			}
-		}
-		else if (options.ignore_symlinks == 1) {
-			if (top_location_a->file_num != 0 && top_location_b->file_num != 0 || top_location_a->files_size != top_location_b->files_size)
-				loop_files(top_location_a, top_location_b);
+	if (options.ignore_symlinks != 1) {
+		if ((top_location_a->file_num != 0 && top_location_b->file_num != 0 || top_location_a->files_size != top_location_b->files_size) ||
+		top_location_a->sym_links_num != 0 && top_location_b->sym_links_num != 0 || top_location_a->sym_links_size != top_location_b->sym_links_size ) {
+			loop_files(top_location_a, top_location_b);
 		}
 	}
-	else if (options.naive_mode == 1) {
-		if (options.ignore_symlinks != 1) {
-			if ((top_location_a->file_num != top_location_b->file_num || top_location_a->files_size != top_location_b->files_size) ||
-			top_location_a->sym_links_num != top_location_b->sym_links_num || top_location_a->sym_links_size != top_location_b->sym_links_size ) {
-				loop_files(top_location_a, top_location_b);
-			}
-		}
-		else if (options.ignore_symlinks == 1) {
-			if (top_location_a->file_num != top_location_b->file_num || top_location_a->files_size != top_location_b->files_size) {
-				loop_files(top_location_a, top_location_b);
-			}
-		}
+	else if (options.ignore_symlinks == 1) {
+		if (top_location_a->file_num != top_location_b->file_num || top_location_a->files_size != top_location_b->files_size)
+			loop_files(top_location_a, top_location_b);
 	}
 	/* This for loop compares just the top directories, and if there are differences in size, it calls loop_files() for difference in file size/number or modification time, and loop_dirs for 
 	 * differences in subdirectory size/number. It increments sam_dir_num variable for each directory with the same name, and if it matches the number of directories in each directory, the function
@@ -112,38 +97,16 @@ int compare_trees(struct thread_struct *thread_data_a, struct thread_struct *thr
 					++same_dir_num;
 					file_tree_element_a->found_dir_match = 1;
 					file_tree_element_b->found_dir_match = 1;
-					if (options.naive_mode == 0) {
-						if (options.ignore_symlinks != 1) {
-							if ((file_tree_element_a->file_num != 0 || file_tree_element_b->file_num != 0) || 
-							(file_tree_element_a->sym_links_num != 0 || file_tree_element_a->sym_links_num != 0))
-								loop_files(file_tree_element_a, file_tree_element_b);
-						}
-						else if (options.ignore_symlinks == 1) {
-							if (file_tree_element_a->file_num != 0 || file_tree_element_b->file_num != 0)
-								loop_files(file_tree_element_a, file_tree_element_b);
-						}
-						loop_dirs(file_tree_element_a, file_tree_element_b);
+					if (options.ignore_symlinks != 1) {
+						if ((file_tree_element_a->file_num != 0 || file_tree_element_b->file_num != 0) || 
+						(file_tree_element_a->sym_links_num != 0 || file_tree_element_a->sym_links_num != 0))
+							loop_files(file_tree_element_a, file_tree_element_b);
 					}
-					else if (options.naive_mode == 1) {
-						if (options.ignore_symlinks != 1) {
-							if ((file_tree_element_a->files_size != file_tree_element_b->files_size ||
-							file_tree_element_a->file_num != file_tree_element_b->file_num) || 
-							(file_tree_element_a->sym_links_num != file_tree_element_b->sym_links_num ||
-							file_tree_element_a->sym_links_size != file_tree_element_b->sym_links_size)) {
-								loop_files(file_tree_element_a, file_tree_element_b);
-							}
-						}
-						else if (options.ignore_symlinks == 1) {
-							if (file_tree_element_a->files_size != file_tree_element_b->files_size ||
-							file_tree_element_a->file_num != file_tree_element_b->file_num) {
-								loop_files(file_tree_element_a, file_tree_element_b);
-							}
-						}
-						if (file_tree_element_a->subdirs_size != file_tree_element_b->subdirs_size ||
-							file_tree_element_a->subdir_num != file_tree_element_b->subdir_num ||
-							file_tree_element_a->subdir_file_num != file_tree_element_b->subdir_file_num)
-								loop_dirs(file_tree_element_a, file_tree_element_b);
+					else if (options.ignore_symlinks == 1) {
+						if (file_tree_element_a->file_num != 0 || file_tree_element_b->file_num != 0)
+							loop_files(file_tree_element_a, file_tree_element_b);
 					}
+					loop_dirs(file_tree_element_a, file_tree_element_b);
 				} // if strcmp(dirname,dirname)
 			} // for loop b
 		} // for loop a
