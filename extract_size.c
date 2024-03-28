@@ -32,8 +32,12 @@ void extract_size(DList_of_lists *file_tree_element)
 		while (file_tree_element->last_dir != 1) {
 			hold_for_up->subdir_file_num += file_tree_element->file_num;
 			hold_for_up->subdir_file_num += file_tree_element->subdir_file_num;
+			hold_for_up->subdir_sym_links_num += file_tree_element->sym_links_num;
+			hold_for_up->subdir_sym_links_num += file_tree_element->subdir_sym_links_num;
 			hold_for_up->complete_file_num += file_tree_element->file_num;
 			hold_for_up->complete_file_num += file_tree_element->subdir_file_num;
+			hold_for_up->complete_sym_links_num += file_tree_element->sym_links_num;
+			hold_for_up->complete_sym_links_num += file_tree_element->subdir_sym_links_num;
 			hold_for_up->subdirs_size += file_tree_element->complete_dir_size;
 			hold_for_up->complete_dir_size += file_tree_element->complete_dir_size;
 			hold_for_up->subdir_num += file_tree_element->dir_num;
@@ -45,8 +49,12 @@ void extract_size(DList_of_lists *file_tree_element)
 		if (file_tree_element->last_dir == 1) {
 			hold_for_up->subdir_file_num += file_tree_element->file_num;
 			hold_for_up->subdir_file_num += file_tree_element->subdir_file_num;
+			hold_for_up->subdir_sym_links_num += file_tree_element->sym_links_num;
+			hold_for_up->subdir_sym_links_num += file_tree_element->subdir_sym_links_num;
 			hold_for_up->complete_file_num += file_tree_element->file_num;
 			hold_for_up->complete_file_num += file_tree_element->subdir_file_num;
+			hold_for_up->complete_sym_links_num += file_tree_element->sym_links_num;
+			hold_for_up->complete_sym_links_num += file_tree_element->subdir_sym_links_num;
 			hold_for_up->subdirs_size += file_tree_element->complete_dir_size;
 			hold_for_up->complete_dir_size += file_tree_element->complete_dir_size;
 			hold_for_up->subdir_num += file_tree_element->dir_num;
@@ -63,8 +71,12 @@ void extract_size(DList_of_lists *file_tree_element)
 		while (file_tree_element->last_dir != 1) {
 			hold_pos->subdir_file_num += file_tree_element->file_num;
 			hold_pos->subdir_file_num += file_tree_element->subdir_file_num;
+			hold_pos->subdir_sym_links_num += file_tree_element->sym_links_num;
+			hold_pos->subdir_sym_links_num += file_tree_element->subdir_sym_links_num;
 			hold_pos->complete_file_num += file_tree_element->file_num;
 			hold_pos->complete_file_num += file_tree_element->subdir_file_num;
+			hold_pos->complete_sym_links_num += file_tree_element->sym_links_num;
+			hold_pos->complete_sym_links_num += file_tree_element->subdir_sym_links_num;
 			hold_pos->subdirs_size += file_tree_element->complete_dir_size;
 			hold_pos->complete_dir_size += file_tree_element->complete_dir_size;
 			hold_pos->subdir_num += file_tree_element->dir_num;
@@ -76,8 +88,12 @@ void extract_size(DList_of_lists *file_tree_element)
 		if (file_tree_element->last_dir == 1) {
 			hold_pos->subdir_file_num += file_tree_element->file_num;
 			hold_pos->subdir_file_num += file_tree_element->subdir_file_num;
+			hold_pos->subdir_sym_links_num += file_tree_element->sym_links_num;
+			hold_pos->subdir_sym_links_num += file_tree_element->subdir_sym_links_num;
 			hold_pos->complete_file_num += file_tree_element->file_num;
 			hold_pos->complete_file_num += file_tree_element->subdir_file_num;
+			hold_pos->complete_sym_links_num += file_tree_element->sym_links_num;
+			hold_pos->complete_sym_links_num += file_tree_element->subdir_sym_links_num;
 			hold_pos->subdirs_size += file_tree_element->complete_dir_size;
 			hold_pos->complete_dir_size += file_tree_element->complete_dir_size;
 			hold_pos->subdir_num += file_tree_element->dir_num;
@@ -86,5 +102,6 @@ void extract_size(DList_of_lists *file_tree_element)
 			hold_pos->complete_dir_num += file_tree_element->subdir_num;
 		}
 		hold_pos->complete_file_num += hold_pos->subdir_file_num;
+		hold_pos->complete_sym_links_num += hold_pos->subdir_sym_links_num;
 	}
 }
