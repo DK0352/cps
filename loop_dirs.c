@@ -95,35 +95,14 @@ int loop_dirs(DList_of_lists *file_tree_element_a, DList_of_lists *file_tree_ele
 						compare_l->found_dir_match = 1;
 						compare_s->found_dir_match = 1;
 						same_dir_num++;
-						if (options.naive_mode == 0) {
-							if (compare_l->file_num != 0 || compare_s->file_num != 0) {
-								if (main_mark == COMPARE_L)
-									loop_files(compare_l,compare_s);
-								else if (main_mark == COMPARE_S)
-									loop_files(compare_s,compare_l);
-							}
-							if (main_mark == COMPARE_L)
-								loop_dirs(compare_l,compare_s);
-							else if (main_mark == COMPARE_S)
-								loop_dirs(compare_s,compare_l);
-						}
-						else if (options.naive_mode == 1) {
-							if (compare_l->files_size != compare_s->files_size || compare_l->file_num != compare_s->file_num) {
-								if (main_mark == COMPARE_L)
-									loop_files(compare_l,compare_s);
-								else if (main_mark == COMPARE_S)
-									loop_files(compare_s,compare_l);
-							}
-							if (compare_l->complete_dir_size != compare_s->complete_dir_size || 
-								compare_l->subdir_num != compare_s->subdir_num ||
-								compare_l->subdir_file_num != compare_s->subdir_file_num ||
-								compare_l->subdirs_size != compare_s->subdirs_size) {
-								if (main_mark == COMPARE_L)
-									loop_dirs(compare_l,compare_s);
-								else if (main_mark == COMPARE_S)
-									loop_dirs(compare_s,compare_l);
-							}
-						}
+						if (main_mark == COMPARE_L)
+							loop_files(compare_l,compare_s);
+						else if (main_mark == COMPARE_S)
+							loop_files(compare_s,compare_l);
+						if (main_mark == COMPARE_L)
+							loop_dirs(compare_l,compare_s);
+						else if (main_mark == COMPARE_S)
+							loop_dirs(compare_s,compare_l);
 					} // if (strcmp(compare_l->dirname,compare_s->dirname) == 0)
 				}
 			} // for_loop 2
