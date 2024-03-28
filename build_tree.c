@@ -58,11 +58,10 @@ void build_tree(struct thread_struct *thread_data)
 		printf("build_tree(): malloc() error 1.\n");
 		exit(1);
 	}
-	data_copy_info.dlist_of_lists_num++;
+	init_to_zero(file_tree_top_dir);
 	thread_data->file_tree_top_dir = file_tree_top_dir;
-	file_tree_element = file_tree_top_dir;	/* same element, but this top_dir stays to refer to the top of the tree, first directory from which everything starts */
-	file_tree_element->file_tree_top_dir = file_tree_top_dir;	/* same element, but this top_dir stays to refer to the top of the tree, first directory from which everything starts */
-	init_to_zero(file_tree_element);
+	file_tree_element = file_tree_top_dir;
+	file_tree_element->file_tree_top_dir = thread_data->file_tree_top_dir;	/* file_tree_top_dir, to refer to the top of the tree, first directory from which everything starts */
 	file_tree_element->this_is_top_dir = 1;
 
 	// need to separete the pathname from the directory behind the last '/' (slash)
@@ -230,7 +229,7 @@ void build_tree(struct thread_struct *thread_data)
 		*p_global_dir_num += directories->num;
 		file_tree_element = create_top_dirs(file_tree_element->directories,file_tree_element);
 	}
-	/* sym_links and directories */
+	/* sym_links and directories, top dir */
 	else if (files == NULL && sym_links != NULL && directories != NULL) {
 		file_tree_element->files = NULL;
 		file_tree_element->sym_links = sym_links;
@@ -243,11 +242,11 @@ void build_tree(struct thread_struct *thread_data)
 		file_tree_element->complete_dir_num += directories->num;
 		file_tree_element->subdir_num += directories->num;
 		*p_global_sym_links_num += sym_links->num;
-		*p_global_sym_links_size += files->files_size;
+		*p_global_sym_links_size += sym_links->files_size;
 		*p_global_dir_num += directories->num;
 		file_tree_element = create_top_dirs(file_tree_element->directories,file_tree_element);
 	}
-	/* files, sym_links and directories */
+	/* files, sym_links and directories, top dir */
 	else if (files != NULL && sym_links != NULL && directories != NULL) {
 		file_tree_element->files = files;
 		file_tree_element->directories = directories;
@@ -265,7 +264,7 @@ void build_tree(struct thread_struct *thread_data)
 		*p_global_file_num += files->num;
 		*p_global_files_size += files->files_size;
 		*p_global_sym_links_num += sym_links->num;
-		*p_global_sym_links_size += files->files_size;
+		*p_global_sym_links_size += sym_links->files_size;
 		*p_global_dir_num += directories->num;
 		file_tree_element = create_top_dirs(file_tree_element->directories,file_tree_element);
 	}
