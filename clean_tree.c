@@ -33,6 +33,8 @@ int clean_tree(DList_of_lists *file_tree_element, short deeper)
 			if (file_tree_element == file_tree_element->first_dir_in_chain) {
 				if (file_tree_element->files != NULL)
 					dlist_destroy(file_tree_element->files);
+				if (file_tree_element->sym_links != NULL)
+					dlist_destroy(file_tree_element->sym_links);
 				if (file_tree_element->directories != NULL)
 					dlist_destroy(file_tree_element->directories);
 				free(file_tree_element);
@@ -44,6 +46,8 @@ int clean_tree(DList_of_lists *file_tree_element, short deeper)
 		while (file_tree_element != file_tree_element->file_tree_top_dir) {
 			if (file_tree_element->files != NULL)
 				dlist_destroy(file_tree_element->files);
+			if (file_tree_element->sym_links != NULL)
+				dlist_destroy(file_tree_element->sym_links);
 			if (file_tree_element->directories != NULL)
 				dlist_destroy(file_tree_element->directories);
 			if (file_tree_element->next != NULL) {
@@ -58,6 +62,8 @@ int clean_tree(DList_of_lists *file_tree_element, short deeper)
 		if (file_tree_element == file_tree_element->file_tree_top_dir) {
 			if (file_tree_element->files != NULL)
 				dlist_destroy(file_tree_element->files);
+			if (file_tree_element->sym_links != NULL)
+				dlist_destroy(file_tree_element->sym_links);
 			if (file_tree_element->directories != NULL)
 				dlist_destroy(file_tree_element->directories);
 			if (file_tree_element->next != NULL) {
@@ -85,6 +91,8 @@ int clean_tree(DList_of_lists *file_tree_element, short deeper)
 		while (file_tree_element != file_tree_element->first_dir_in_chain) {
 			if (file_tree_element->files != NULL)
 				dlist_destroy(file_tree_element->files);
+			if (file_tree_element->sym_links != NULL)
+				dlist_destroy(file_tree_element->sym_links);
 			if (file_tree_element->directories != NULL)
 				dlist_destroy(file_tree_element->directories);
 			if (file_tree_element->next != NULL) {
@@ -99,6 +107,8 @@ int clean_tree(DList_of_lists *file_tree_element, short deeper)
 		if (file_tree_element == file_tree_element->first_dir_in_chain) {
 			if (file_tree_element->files != NULL)
 				dlist_destroy(file_tree_element->files);
+			if (file_tree_element->sym_links != NULL)
+				dlist_destroy(file_tree_element->sym_links);
 			if (file_tree_element->directories != NULL)
 				dlist_destroy(file_tree_element->directories);
 			if (file_tree_element->next != NULL) {
