@@ -58,9 +58,8 @@ struct options_menu {
 	int	size_based;			// decide what to copy based on size
 	int	ow_main_newer;			// overwrite older files with newer
 	int	ow_main_older;			// overwrite newer files with older
-	int	naive_mode;			// go deeper into file tree only if there is difference in size
 	int	list_conflicting;		// files with the same name, but different size or modification time
-	int	detailed;			// detailed information about data to copy
+	int	less_detailed;			// detailed information about data to copy
 	int	preserve_perms;			// preserve file permissions during the copying
 	int	acls;				// preserve ACLs (Access Control Lists)
 	int	xattrs;				// preserve extended attributes
