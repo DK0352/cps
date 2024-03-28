@@ -51,7 +51,6 @@ DList_of_lists *create_top_dirs(DList *list, DList_of_lists *file_tree_element)
 				printf("error allocating memory - create_top_dirs(1)\n");
 				exit(1);
 			}
-			data_copy_info.dlist_of_lists_num++;
 			file_tree_element->next = alloc;
 			file_tree_element->first_dir_in_chain = alloc;
 			file_tree_element = file_tree_element->next;
@@ -87,7 +86,6 @@ DList_of_lists *create_top_dirs(DList *list, DList_of_lists *file_tree_element)
 				printf("error allocating memory - create_top_dirs(2)\n");
 				exit(1);
 			}
-			data_copy_info.dlist_of_lists_num++;
 			file_tree_element->next = alloc;
 			file_tree_element = file_tree_element->next;
 			init_to_zero(file_tree_element);
@@ -113,7 +111,6 @@ DList_of_lists *create_top_dirs(DList *list, DList_of_lists *file_tree_element)
 				printf("error allocating memory - create_top_dirs(3)\n");
 				exit(1);
 			}
-			data_copy_info.dlist_of_lists_num++;
 			file_tree_element->next = alloc;
 			file_tree_element = file_tree_element->next;
 			init_to_zero(file_tree_element);
@@ -186,7 +183,6 @@ DList_of_lists *create_dirs(DList *list, DList_of_lists *file_tree_element, DLis
 				printf("error allocating memory - create_dirs(2)\n");
 				exit(1);
 			}
-			data_copy_info.dlist_of_lists_num++;
 			file_tree_element->next = alloc;
 			file_tree_element = file_tree_element->next;
 			init_to_zero(file_tree_element);
@@ -209,7 +205,6 @@ DList_of_lists *create_dirs(DList *list, DList_of_lists *file_tree_element, DLis
 				printf("error allocating memory - create_dirs(3)\n");
 				exit(1);
 			}
-			data_copy_info.dlist_of_lists_num++;
 			file_tree_element->next = alloc;
 			file_tree_element = file_tree_element->next;
 			init_to_zero(file_tree_element);
