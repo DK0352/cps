@@ -18,11 +18,28 @@
 */
 
 struct errors_data {
-	long	file_read_error_count;
-	long 	file_write_error_count;
-	long	dir_read_error_count;
-	long	dir_write_error_count;
-	long	file_perms_error_count;
-	long	dir_perms_error_count;
-	DList *file_read_error, *file_write_error, *dir_read_error, *dir_write_error;
+	long	file_open_errors;
+	long	file_read_errors;
+	long	symlink_read_errors;
+	long 	file_write_errors;
+	long 	symlink_write_errors;
+	long	dir_read_errors;
+	long	dir_create_errors;
+	long	file_perms_errors;
+	long	dir_perms_errors;
+
+	long	set_atime_errors;
+	long	set_mtime_errors;
+	//long	read_attr_errors;
+	//long	set_attr_errors;
+	long	read_xattr_errors;
+	long	set_xattr_errors;
+	long	get_acl_errors;
+	long	set_acl_errors;
+
+	int	acl_malloc_fatal;	// to be able to inspect -1 value
+
+	// new option: quit on attribute set error??
+	DList *file_read_error, *file_write_error, *dir_read_error, *dir_create_error;
+	DList *symlink_read_error, *symlink_write_error;
 };
