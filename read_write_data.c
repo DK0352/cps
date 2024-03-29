@@ -24,16 +24,21 @@
 
 #define BUF_SIZE 4096
 #define XATTR_SIZE 10000
+#define LIST 300	// use linked lists in set_xattrs()
+#define ARRAY 301	// use char array in set_xattrs()
 
+int set_xattrs(DListElmt *, char source[], char destination[], int use);
 
 /* Function that writes data; data argument is linked list or NULL, choose is explained before each if/else, source and destination are used when data argument is NULL, and function dives into directory tree by itself, reading and writing files and directories, or overwriting, deleting, depending on the choose argument number. */
 int read_write_data(DList *data, int choose, char *source, char *destination)
 {
 	extern struct options_menu options;
+	extern struct errors_data errors;
 
 	DIR		*dir;
 	DListElmt	*read_file_list, *read_dir_list;
 	DList 		*file_list, *dir_list;
+
 	int		read_descriptor, write_descriptor; // file descriptors + flags
 	ssize_t 	num_read;
 	char 		buf[BUF_SIZE];
@@ -52,9 +57,10 @@ int read_write_data(DList *data, int choose, char *source, char *destination)
 	int		len1, len2;
 	int		i;
 	mode_t		file_perms, dir_perms;
+
 	acl_t		acl;
 	int		acl_res; // return value for acl function
-				 //
+
 	char		xattr_list[XATTR_SIZE], xattr_value[XATTR_SIZE];
 	char		newf_xattr_list[XATTR_SIZE], newf_xattr_value[XATTR_SIZE];
 	int		xattr_len, xattr_val_len, xattr_res, setxattr_res;
@@ -63,6 +69,8 @@ int read_write_data(DList *data, int choose, char *source, char *destination)
 	char		*xbuf, *key, *val;
 	ssize_t		buflen, keylen, vallen;
 	int		setxattr_status;
+
+	int		set_xattrs_res;
 
 	file_t_init = 0;
 	direntry_init = 0;
@@ -82,16 +90,28 @@ int read_write_data(DList *data, int choose, char *source, char *destination)
 					}
 					else {
 						perror("readlink");
-						printf("read_write_data() 1: %s\n", read_file_list->dir_location);
-						if (options.quit_read_errors == 1)
-							exit(1);
+						fprintf(stderr, ": %s", read_file_list->dir_location);
+						if (options.quit_read_errors != 1) {
+							errors.symlink_read_errors++;
+							// dlist_ins_next(read_file_error);
+							// read_file_list->match = 2; set to 2 to reattempt later?
+						}
+						else if (options.quit_read_errors == 1) {
+							errors.symlink_read_errors++;
+							return -1;
+						}
 					}
 					errno = 0;
 					if (symlink(linkpath,read_file_list->new_location) != 0) {
 						perror("symlink");
-						printf("read_write_data() 1: %s\n", read_file_list->new_location);
-						if (options.quit_write_errors == 1)
-							exit(1);
+						fprintf(stderr, ": %s\n", read_file_list->new_location);
+						if (options.quit_read_errors != 1) {
+							errors.symlink_write_errors++;
+						}
+						else if (options.quit_read_errors == 1) {
+							errors.symlink_write_errors++;
+							return -1;
+						}
 					}
 					if (options.time_mods == 1) {
 						if (options.preserve_a_time == 1) {
@@ -99,8 +119,8 @@ int read_write_data(DList *data, int choose, char *source, char *destination)
 							errno = 0;
 							if (utimensat(0, read_file_list->new_location, options.times, AT_SYMLINK_NOFOLLOW) == -1) {
 								perror("utimensat");
-								if (options.quit_write_errors == 1)
-									exit(1);
+								fprintf(stderr, ": %s\n", read_file_list->new_location);
+								errors.set_atime_errors++;
 							}
 						}
 						if (options.preserve_m_time == 1) {
@@ -108,106 +128,32 @@ int read_write_data(DList *data, int choose, char *source, char *destination)
 							errno = 0;
 							if (utimensat(0, read_file_list->new_location, options.times, AT_SYMLINK_NOFOLLOW) == -1) {
 								perror("utimensat");
-								if (options.quit_write_errors == 1)
-									exit(1);
+								fprintf(stderr, ": %s\n", read_file_list->new_location);
+								errors.set_mtime_errors++;
 							}
 						}
 					}
-					if (options.xattrs == 1) {
+					if (options.acls == 1 && options.xattrs == 0) {
 						errno = 0;
-						buflen = options.listxattr_func(read_file_list->dir_location, NULL, 0);
-						if (buflen == -1) {
-							if (options.quit_read_errors == 1) {
-								perror("listxattr");
-								exit(1);
-							}
-							/* else if (options._quit_read_errors == 0)
-							 	errors.xattr_read_err++;*/ 
-							else if (options.quit_read_errors == 0)
-								perror("listxattr");
+						acl = acl_get_file(read_file_list->dir_location,ACL_TYPE_ACCESS);
+						if (acl == NULL) {
+							perror("acl_get_file");
+							fprintf(stderr, " %s\n", read_file_list->dir_location);
+							errors.get_acl_errors++;
 						}
-						if (buflen != 0) {
-							xbuf = malloc(buflen);
-							if (xbuf != NULL)
-								key = xbuf;
-							else {
-								printf("read_write_data(): choose = %d xattr_len malloc() error.\n",  choose);
-								exit(1);
-							}
-							buflen = options.listxattr_func(read_file_list->dir_location, xbuf, buflen);
-							if (buflen == -1) {
-								if (options.quit_read_errors == 1) {
-									perror("listxattr");
-									exit(1);
-								}
-								/* else if (options._quit_read_errors == 0)
-								 	errors.xattr_read_err++;*/ 
-								else if (options.quit_read_errors == 0)
-									perror("listxattr");
-							}
-							key = xbuf;
-							while (buflen > 0) {
-								if (strcmp("system.posix_acl_access",key) == 0 && options.acls != 1) {
-									keylen = strlen(key)+1;
-									buflen -= keylen;
-									key += keylen;
-									continue;
-								}
-								vallen = getxattr(read_file_list->dir_location, key, NULL, 0);
-								if (vallen == -1) {
-									if (options.quit_read_errors == 1) {
-										perror("getxattr");
-										exit(1);
-									}
-									/* else if (options._quit_read_errors == 0)
-									  	errors.xattr_read_err++; */
-									else if (options.quit_read_errors == 0)
-										perror("getxattr");
-								}
-								else if (vallen > 0) {
-									val = malloc(vallen+1);
-									if (val == NULL) {
-										printf("read_write_data(): choose = %d val malloc() error.\n", choose);
-										exit(1);
-									}
-									vallen = getxattr(read_file_list->dir_location, key, val, vallen);
-									if (vallen == -1) {
-										if (options.quit_read_errors == 1) {
-											perror("getxattr");
-											exit(1);
-										}
-										/* else if (options._quit_read_errors == 0)
-										  	errors.xattr_read_err++; */
-										else if (options.quit_read_errors == 0)
-											perror("listxattr");
-									}
-									else {
-										val[vallen] = 0;
-										errno = 0;
-										setxattr_status = options.setxattr_func(read_file_list->new_location, key, val, vallen, XATTR_CREATE);
-										if (setxattr_status == -1) {
-											if (options.quit_read_errors == 1) {
-												perror("estxattr");
-												exit(1);
-											}
-											/* else if (options._quit_read_errors == 0)
-											  	errors.xattr_read_err++; */
-											else if (options.quit_read_errors == 0)
-												perror("setxattr");
-										}
-										free(val);
-									}
-								}
-								else if (vallen == 0) {
-									free(xbuf);
-									break;
-								}
-								keylen = strlen(key)+1;
-								buflen -= keylen;
-								key += keylen;
-							}
-							free(xbuf);
+						errno = 0;
+						acl_res = acl_set_file(read_file_list->new_location,ACL_TYPE_ACCESS,acl);
+						if (acl_res != 0) {
+							perror("acl_set_file");
+							fprintf(stderr, " %s\n", read_file_list->dir_location);
+							errors.set_acl_errors++;
 						}
+						acl_free(acl);
+					}
+					if (options.xattrs == 1) {
+						set_xattrs_res = set_xattrs(read_file_list,0,0,LIST);
+						if (set_xattrs_res != 0)
+							return -1;
 					}
 					if (options.show_write_proc != 0)
 						printf("%s\n", read_file_list->new_location);
@@ -216,33 +162,49 @@ int read_write_data(DList *data, int choose, char *source, char *destination)
 					continue;
 				}
 				else {
-					perror("open");
-					printf("read_write_data() 1: %s\n", read_file_list->dir_location);
-					if (options.quit_read_errors == 1)
-						exit(1);
+					if (options.quit_read_errors != 1) {
+						perror("open");
+						errors.file_open_errors++;
+					}
+					else if (options.quit_read_errors == 1) {
+						errors.file_open_errors++;
+						perror("open");
+						return -1;
+					}
 				}
-			}
-			errno = 0;
+			} // if (read_descriptor == -1)
 			file_perms = 0;
 			file_perms |= read_file_list->st_mode;
+			errno = 0;
 			write_descriptor = open(read_file_list->new_location, O_WRONLY | O_CREAT | O_EXCL, file_perms);	
 			if (write_descriptor == -1) {
 				perror("open");
-				printf("read_write_data() 1: %s\n", read_file_list->new_location);
-				if (options.quit_write_errors == 1)	
-					exit(1);
+				printf(": %s\n", read_file_list->new_location);
+				if (options.quit_write_errors != 1) {	
+					errors.file_open_errors++;
+					continue;
+				}
+				if (options.quit_write_errors == 1)
+					errors.file_open_errors++;
+					return -1;	
 			}
 			else {
 				errno = 0;
 				while ((num_read = read(read_descriptor,buf,BUF_SIZE)) > 0) {
 					if (write(write_descriptor, buf, num_read) != num_read) {
-						printf("read_write_data() 1: coudn't write the whole buffer.\n");
+						fprintf(stderr, "read_write_data() 1: coudn't write the whole buffer.\n");
+						if (options.quit_write_errors != 1)
+							errors.file_write_errors++;	// there is probably a better way to do this
+						else if (options.quit_write_errors == 1) {
+							errors.file_write_errors++;
+							return -1;
+						}
 					}
 				}
 				if (num_read == -1) {
 					perror("read");
-					printf("read_write_data() 1: error reading the data.\n");
-					exit(1);
+					fprintf(stderr, " %s\n", read_file_list->dir_location);
+					return -1;
 				}
 			}
 			if (options.time_mods == 1) {
@@ -251,20 +213,17 @@ int read_write_data(DList *data, int choose, char *source, char *destination)
 					errno = 0;
 					if (utimensat(0, read_file_list->new_location, options.times, 0) == -1) {
 						perror("utimensat");
-						if (options.quit_write_errors == 1)
-							exit(1);
+						fprintf(stderr, " %s\n", read_file_list->new_location);
+						errors.set_atime_errors++;
 					}
-					printf("atime = %s\n", ctime(&read_file_list->atime));
-					sleep(3);
-					printf("options.preserve_m_time = %d\n", options.preserve_m_time);
 				}
 				if (options.preserve_m_time == 1) {
 					options.times[1].tv_sec = read_file_list->mtime;
 					errno = 0;
 					if (utimensat(0, read_file_list->new_location, options.times, 0) == -1) {
 						perror("utimensat");
-						if (options.quit_write_errors == 1)
-							exit(1);
+						fprintf(stderr, " %s\n", read_file_list->new_location);
+						errors.set_atime_errors++;
 					}
 				}
 			}
@@ -273,121 +232,35 @@ int read_write_data(DList *data, int choose, char *source, char *destination)
 				acl = acl_get_file(read_file_list->dir_location,ACL_TYPE_ACCESS);
 				if (acl == NULL) {
 					perror("acl_get_file");
+					fprintf(stderr, " %s\n", read_file_list->dir_location);
+					errors.get_acl_errors++;
 				}
 				errno = 0;
 				acl_res = acl_set_file(read_file_list->new_location,ACL_TYPE_ACCESS,acl);
 				if (acl_res != 0) {
 					perror("acl_set_file");
+					fprintf(stderr, " %s\n", read_file_list->dir_location);
+					errors.set_acl_errors++;
 				}
 				acl_free(acl);
 			}
 			if (options.xattrs == 1) {
-				errno = 0;
-				buflen = options.listxattr_func(read_file_list->dir_location, NULL, 0);
-				if (buflen == -1) {
-					if (options.quit_read_errors == 1) {
-						perror("listxattr");
-						exit(1);
-					}
-					/* else if (options._quit_read_errors == 0)
-					 	errors.xattr_read_err++;*/ 
-					else if (options.quit_read_errors == 0)
-						perror("listxattr");
-				}
-				if (buflen != 0) {
-					xbuf = malloc(buflen);
-					if (xbuf != NULL)
-						key = xbuf;
-					else {
-						printf("read_write_data(): choose = %d xattr_len malloc() error.\n",  choose);
-						exit(1);
-					}
-					buflen = options.listxattr_func(read_file_list->dir_location, xbuf, buflen);
-					if (buflen == -1) {
-						if (options.quit_read_errors == 1) {
-							perror("listxattr");
-							exit(1);
-						}
-						/* else if (options._quit_read_errors == 0)
-						 	errors.xattr_read_err++;*/ 
-						else if (options.quit_read_errors == 0)
-							perror("listxattr");
-					}
-					key = xbuf;
-					while (buflen > 0) {
-						if (strcmp("system.posix_acl_access",key) == 0 && options.acls != 1) {
-							keylen = strlen(key)+1;
-							buflen -= keylen;
-							key += keylen;
-							continue;
-						}
-						vallen = getxattr(read_file_list->dir_location, key, NULL, 0);
-						if (vallen == -1) {
-							if (options.quit_read_errors == 1) {
-								perror("getxattr");
-								exit(1);
-							}
-							/* else if (options._quit_read_errors == 0)
-							  	errors.xattr_read_err++; */
-							else if (options.quit_read_errors == 0)
-								perror("getxattr");
-						}
-						else if (vallen > 0) {
-							val = malloc(vallen+1);
-							if (val == NULL) {
-								printf("read_write_data(): choose = %d val malloc() error.\n", choose);
-								exit(1);
-							}
-							vallen = getxattr(read_file_list->dir_location, key, val, vallen);
-							if (vallen == -1) {
-								if (options.quit_read_errors == 1) {
-									perror("getxattr");
-									exit(1);
-								}
-								/* else if (options._quit_read_errors == 0)
-								  	errors.xattr_read_err++; */
-								else if (options.quit_read_errors == 0)
-									perror("listxattr");
-							}
-							else {
-								val[vallen] = 0;
-								errno = 0;
-								setxattr_status = options.setxattr_func(read_file_list->new_location, key, val, vallen, XATTR_CREATE);
-								if (setxattr_status == -1) {
-									if (options.quit_read_errors == 1) {
-										perror("estxattr");
-										exit(1);
-									}
-									/* else if (options._quit_read_errors == 0)
-									  	errors.xattr_read_err++; */
-									else if (options.quit_read_errors == 0)
-										perror("setxattr");
-								}
-								free(val);
-							}
-						}
-						else if (vallen == 0) {
-							free(xbuf);
-							break;
-						}
-						keylen = strlen(key)+1;
-						buflen -= keylen;
-						key += keylen;
-					}
-					free(xbuf);
-				}
+				set_xattrs_res = set_xattrs(read_file_list,0,0,LIST);
+				if (set_xattrs_res != 0)
+					return -1;
 			}
 			if (options.show_write_proc != 0)
 				printf("%s\n", read_file_list->new_location);
+			errno = 0;
 			if (close(read_descriptor) == -1) {
-				printf("read_write_data() 1: error closing the read descriptor.\n");
-				if (options.quit_read_errors == 1)
-					exit(1);
+				perror("close");
+				fprintf(stderr, " read_write_data() (1)\n");
+				return -1;
 			}
 			if (close(write_descriptor) == -1) {
-				printf("read_write_data: error closing the write descriptor.\n");
-				if (options.quit_write_errors == 1)
-					exit(1);
+				perror("close");
+				fprintf(stderr, " read_write_data() (2)\n");
+				return -1;
 			}
 		} // for (read_file_list = file_list->head...
 		return 0;
@@ -440,100 +313,9 @@ int read_write_data(DList *data, int choose, char *source, char *destination)
 				acl_free(acl);
 			}
 			if (options.xattrs == 1) {
-				errno = 0;
-				buflen = options.listxattr_func(read_dir_list->dir_location, NULL, 0);
-				if (buflen == -1) {
-					if (options.quit_read_errors == 1) {
-						perror("listxattr");
-						exit(1);
-					}
-					/* else if (options._quit_read_errors == 0)
-					 	errors.xattr_read_err++;*/ 
-					else if (options.quit_read_errors == 0)
-						perror("listxattr");
-				}
-				if (buflen != 0) {
-					xbuf = malloc(buflen);
-					if (xbuf != NULL)
-						key = xbuf;
-					else {
-						printf("read_write_data(): choose = %d xattr_len malloc() error.\n",  choose);
-						exit(1);
-					}
-					buflen = options.listxattr_func(read_dir_list->dir_location, xbuf, buflen);
-					if (buflen == -1) {
-						if (options.quit_read_errors == 1) {
-							perror("listxattr");
-							exit(1);
-						}
-						/* else if (options._quit_read_errors == 0)
-						 	errors.xattr_read_err++;*/ 
-						else if (options.quit_read_errors == 0)
-							perror("listxattr");
-					}
-					key = xbuf;
-					while (buflen > 0) {
-						if (strcmp("system.posix_acl_access",key) == 0 && options.acls != 1) {
-							keylen = strlen(key)+1;
-							buflen -= keylen;
-							key += keylen;
-							continue;
-						}
-						vallen = getxattr(read_dir_list->dir_location, key, NULL, 0);
-						if (vallen == -1) {
-							if (options.quit_read_errors == 1) {
-								perror("getxattr");
-								exit(1);
-							}
-							/* else if (options._quit_read_errors == 0)
-							  	errors.xattr_read_err++; */
-							else if (options.quit_read_errors == 0)
-								perror("getxattr");
-						}
-						else if (vallen > 0) {
-							val = malloc(vallen+1);
-							if (val == NULL) {
-								printf("read_write_data(): choose = %d val malloc() error.\n", choose);
-								exit(1);
-							}
-							vallen = getxattr(read_dir_list->dir_location, key, val, vallen);
-							if (vallen == -1) {
-								if (options.quit_read_errors == 1) {
-									perror("getxattr");
-									exit(1);
-								}
-								/* else if (options._quit_read_errors == 0)
-								  	errors.xattr_read_err++; */
-								else if (options.quit_read_errors == 0)
-									perror("listxattr");
-							}
-							else {
-								val[vallen] = 0;
-								errno = 0;
-								setxattr_status = options.setxattr_func(read_dir_list->dir_location, key, val, vallen, XATTR_CREATE);
-								if (setxattr_status == -1) {
-									if (options.quit_read_errors == 1) {
-										perror("estxattr");
-										exit(1);
-									}
-									/* else if (options._quit_read_errors == 0)
-									  	errors.xattr_read_err++; */
-									else if (options.quit_read_errors == 0)
-										perror("setxattr");
-								}
-								free(val);
-							}
-						}
-						else if (vallen == 0) {
-							free(xbuf);
-							break;
-						}
-						keylen = strlen(key)+1;
-						buflen -= keylen;
-						key += keylen;
-					}
-					free(xbuf);
-				}
+				set_xattrs_res = set_xattrs(read_dir_list,0,0,LIST);
+				if (set_xattrs_res != 0)
+					return -1;
 			}
 			if (options.show_write_proc != 0)
 				printf("Directory: %s\n", read_dir_list->new_location);
@@ -660,100 +442,9 @@ int read_write_data(DList *data, int choose, char *source, char *destination)
 					acl_free(acl);
 				}
 				if (options.xattrs == 1) {
-					errno = 0;
-					buflen = options.listxattr_func(new_source, NULL, 0);
-					if (buflen == -1) {
-						if (options.quit_read_errors == 1) {
-							perror("listxattr");
-							exit(1);
-						}
-						/* else if (options._quit_read_errors == 0)
-						 	errors.xattr_read_err++;*/ 
-						else if (options.quit_read_errors == 0)
-							perror("listxattr");
-					}
-					if (buflen != 0) {
-						xbuf = malloc(buflen);
-						if (xbuf != NULL)
-							key = xbuf;
-						else {
-							printf("read_write_data(): choose = %d xattr_len malloc() error.\n",  choose);
-							exit(1);
-						}
-						buflen = options.listxattr_func(new_source, xbuf, buflen);
-						if (buflen == -1) {
-							if (options.quit_read_errors == 1) {
-								perror("listxattr");
-								exit(1);
-							}
-							/* else if (options._quit_read_errors == 0)
-							 	errors.xattr_read_err++;*/ 
-							else if (options.quit_read_errors == 0)
-								perror("listxattr");
-						}
-						key = xbuf;
-						while (buflen > 0) {
-							if (strcmp("system.posix_acl_access",key) == 0 && options.acls != 1) {
-								keylen = strlen(key)+1;
-								buflen -= keylen;
-								key += keylen;
-								continue;
-							}
-							vallen = getxattr(new_source, key, NULL, 0);
-							if (vallen == -1) {
-								if (options.quit_read_errors == 1) {
-									perror("getxattr");
-									exit(1);
-								}
-								/* else if (options._quit_read_errors == 0)
-								  	errors.xattr_read_err++; */
-								else if (options.quit_read_errors == 0)
-									perror("getxattr");
-							}
-							else if (vallen > 0) {
-								val = malloc(vallen+1);
-								if (val == NULL) {
-									printf("read_write_data(): choose = %d val malloc() error.\n", choose);
-									exit(1);
-								}
-								vallen = getxattr(new_source, key, val, vallen);
-								if (vallen == -1) {
-									if (options.quit_read_errors == 1) {
-										perror("getxattr");
-										exit(1);
-									}
-									/* else if (options._quit_read_errors == 0)
-									  	errors.xattr_read_err++; */
-									else if (options.quit_read_errors == 0)
-										perror("listxattr");
-								}
-								else {
-									val[vallen] = 0;
-									errno = 0;
-									setxattr_status = options.setxattr_func(new_destination, key, val, vallen, XATTR_CREATE);
-									if (setxattr_status == -1) {
-										if (options.quit_read_errors == 1) {
-											perror("estxattr");
-											exit(1);
-										}
-										/* else if (options._quit_read_errors == 0)
-										  	errors.xattr_read_err++; */
-										else if (options.quit_read_errors == 0)
-											perror("setxattr");
-									}
-									free(val);
-								}
-							}
-							else if (vallen == 0) {
-								free(xbuf);
-								break;
-							}
-							keylen = strlen(key)+1;
-							buflen -= keylen;
-							key += keylen;
-						}
-						free(xbuf);
-					}
+					set_xattrs_res = set_xattrs(NULL,new_source,new_destination,ARRAY);
+					if (set_xattrs_res != 0)
+						return -1;
 				}
 			}
 			else if (S_ISREG(file_t->st_mode)) {
@@ -829,100 +520,9 @@ int read_write_data(DList *data, int choose, char *source, char *destination)
 					acl_free(acl);
 				}
 				if (options.xattrs == 1) {
-					errno = 0;
-					buflen = options.listxattr_func(new_source, NULL, 0);
-					if (buflen == -1) {
-						if (options.quit_read_errors == 1) {
-							perror("listxattr");
-							exit(1);
-						}
-						/* else if (options._quit_read_errors == 0)
-						 	errors.xattr_read_err++;*/ 
-						else if (options.quit_read_errors == 0)
-							perror("listxattr");
-					}
-					if (buflen != 0) {
-						xbuf = malloc(buflen);
-						if (xbuf != NULL)
-							key = xbuf;
-						else {
-							printf("read_write_data(): choose = %d xattr_len malloc() error.\n",  choose);
-							exit(1);
-						}
-						buflen = options.listxattr_func(new_source, xbuf, buflen);
-						if (buflen == -1) {
-							if (options.quit_read_errors == 1) {
-								perror("listxattr");
-								exit(1);
-							}
-							/* else if (options._quit_read_errors == 0)
-							 	errors.xattr_read_err++;*/ 
-							else if (options.quit_read_errors == 0)
-								perror("listxattr");
-						}
-						key = xbuf;
-						while (buflen > 0) {
-							if (strcmp("system.posix_acl_access",key) == 0 && options.acls != 1) {
-								keylen = strlen(key)+1;
-								buflen -= keylen;
-								key += keylen;
-								continue;
-							}
-							vallen = getxattr(new_source, key, NULL, 0);
-							if (vallen == -1) {
-								if (options.quit_read_errors == 1) {
-									perror("getxattr");
-									exit(1);
-								}
-								/* else if (options._quit_read_errors == 0)
-								  	errors.xattr_read_err++; */
-								else if (options.quit_read_errors == 0)
-									perror("getxattr");
-							}
-							else if (vallen > 0) {
-								val = malloc(vallen+1);
-								if (val == NULL) {
-									printf("read_write_data(): choose = %d val malloc() error.\n", choose);
-									exit(1);
-								}
-								vallen = getxattr(new_source, key, val, vallen);
-								if (vallen == -1) {
-									if (options.quit_read_errors == 1) {
-										perror("getxattr");
-										exit(1);
-									}
-									/* else if (options._quit_read_errors == 0)
-									  	errors.xattr_read_err++; */
-									else if (options.quit_read_errors == 0)
-										perror("listxattr");
-								}
-								else {
-									val[vallen] = 0;
-									errno = 0;
-									setxattr_status = options.setxattr_func(new_destination, key, val, vallen, XATTR_CREATE);
-									if (setxattr_status == -1) {
-										if (options.quit_read_errors == 1) {
-											perror("estxattr");
-											exit(1);
-										}
-										/* else if (options._quit_read_errors == 0)
-										  	errors.xattr_read_err++; */
-										else if (options.quit_read_errors == 0)
-											perror("setxattr");
-									}
-									free(val);
-								}
-							}
-							else if (vallen == 0) {
-								free(xbuf);
-								break;
-							}
-							keylen = strlen(key)+1;
-							buflen -= keylen;
-							key += keylen;
-						}
-						free(xbuf);
-					}
+					set_xattrs_res = set_xattrs(NULL,new_source,new_destination,ARRAY);
+					if (set_xattrs_res != 0)
+						return -1;
 				}
 				if (options.show_write_proc != 0)
 					printf("%s\n", new_destination);
@@ -985,100 +585,9 @@ int read_write_data(DList *data, int choose, char *source, char *destination)
 					}
 				}
 				if (options.xattrs == 1) {
-					errno = 0;
-					buflen = options.listxattr_func(new_source, NULL, 0);
-					if (buflen == -1) {
-						if (options.quit_read_errors == 1) {
-							perror("listxattr");
-							exit(1);
-						}
-						/* else if (options._quit_read_errors == 0)
-						 	errors.xattr_read_err++;*/ 
-						else if (options.quit_read_errors == 0)
-							perror("listxattr");
-					}
-					if (buflen != 0) {
-						xbuf = malloc(buflen);
-						if (xbuf != NULL)
-							key = xbuf;
-						else {
-							printf("read_write_data(): choose = %d xattr_len malloc() error.\n",  choose);
-							exit(1);
-						}
-						buflen = options.listxattr_func(new_source, xbuf, buflen);
-						if (buflen == -1) {
-							if (options.quit_read_errors == 1) {
-								perror("listxattr");
-								exit(1);
-							}
-							/* else if (options._quit_read_errors == 0)
-							 	errors.xattr_read_err++;*/ 
-							else if (options.quit_read_errors == 0)
-								perror("listxattr");
-						}
-						key = xbuf;
-						while (buflen > 0) {
-							if (strcmp("system.posix_acl_access",key) == 0 && options.acls != 1) {
-								keylen = strlen(key)+1;
-								buflen -= keylen;
-								key += keylen;
-								continue;
-							}
-							vallen = getxattr(new_source, key, NULL, 0);
-							if (vallen == -1) {
-								if (options.quit_read_errors == 1) {
-									perror("getxattr");
-									exit(1);
-								}
-								/* else if (options._quit_read_errors == 0)
-								  	errors.xattr_read_err++; */
-								else if (options.quit_read_errors == 0)
-									perror("getxattr");
-							}
-							else if (vallen > 0) {
-								val = malloc(vallen+1);
-								if (val == NULL) {
-									printf("read_write_data(): choose = %d val malloc() error.\n", choose);
-									exit(1);
-								}
-								vallen = getxattr(new_source, key, val, vallen);
-								if (vallen == -1) {
-									if (options.quit_read_errors == 1) {
-										perror("getxattr");
-										exit(1);
-									}
-									/* else if (options._quit_read_errors == 0)
-									  	errors.xattr_read_err++; */
-									else if (options.quit_read_errors == 0)
-										perror("listxattr");
-								}
-								else {
-									val[vallen] = 0;
-									errno = 0;
-									setxattr_status = options.setxattr_func(new_destination, key, val, vallen, XATTR_CREATE);
-									if (setxattr_status == -1) {
-										if (options.quit_read_errors == 1) {
-											perror("estxattr");
-											exit(1);
-										}
-										/* else if (options._quit_read_errors == 0)
-										  	errors.xattr_read_err++; */
-										else if (options.quit_read_errors == 0)
-											perror("setxattr");
-									}
-									free(val);
-								}
-							}
-							else if (vallen == 0) {
-								free(xbuf);
-								break;
-							}
-							keylen = strlen(key)+1;
-							buflen -= keylen;
-							key += keylen;
-						}
-						free(xbuf);
-					}
+					set_xattrs_res = set_xattrs(NULL,new_source,new_destination,ARRAY);
+					if (set_xattrs_res != 0)
+						return -1;
 				}
 				if (options.show_write_proc != 0)
 					printf("%s\n", new_destination);
@@ -1156,101 +665,27 @@ int read_write_data(DList *data, int choose, char *source, char *destination)
 							}
 						}
 					}
-					if (options.xattrs == 1) {
+					if (options.acls == 1 && options.xattrs == 0) {
 						errno = 0;
-						buflen = options.listxattr_func(read_file_list->dir_location, NULL, 0);
-						if (buflen == -1) {
-							if (options.quit_read_errors == 1) {
-								perror("listxattr");
-								exit(1);
-							}
-							/* else if (options._quit_read_errors == 0)
-							 	errors.xattr_read_err++;*/ 
-							else if (options.quit_read_errors == 0)
-								perror("listxattr");
+						acl = acl_get_file(read_file_list->dir_location,ACL_TYPE_ACCESS);
+						if (acl == NULL) {
+							perror("acl_get_file");
+							fprintf(stderr, " %s\n", read_file_list->dir_location);
+							errors.get_acl_errors++;
 						}
-						if (buflen != 0) {
-							xbuf = malloc(buflen);
-							if (xbuf != NULL)
-								key = xbuf;
-							else {
-								printf("read_write_data(): choose = %d xattr_len malloc() error.\n",  choose);
-								exit(1);
-							}
-							buflen = options.listxattr_func(read_file_list->dir_location, xbuf, buflen);
-							if (buflen == -1) {
-								if (options.quit_read_errors == 1) {
-									perror("listxattr");
-									exit(1);
-								}
-								/* else if (options._quit_read_errors == 0)
-								 	errors.xattr_read_err++;*/ 
-								else if (options.quit_read_errors == 0)
-									perror("listxattr");
-							}
-							key = xbuf;
-							while (buflen > 0) {
-								if (strcmp("system.posix_acl_access",key) == 0 && options.acls != 1) {
-									keylen = strlen(key)+1;
-									buflen -= keylen;
-									key += keylen;
-									continue;
-								}
-								vallen = getxattr(read_file_list->dir_location, key, NULL, 0);
-								if (vallen == -1) {
-									if (options.quit_read_errors == 1) {
-										perror("getxattr");
-										exit(1);
-									}
-									/* else if (options._quit_read_errors == 0)
-									  	errors.xattr_read_err++; */
-									else if (options.quit_read_errors == 0)
-										perror("getxattr");
-								}
-								else if (vallen > 0) {
-									val = malloc(vallen+1);
-									if (val == NULL) {
-										printf("read_write_data(): choose = %d val malloc() error.\n", choose);
-										exit(1);
-									}
-									vallen = getxattr(read_file_list->dir_location, key, val, vallen);
-									if (vallen == -1) {
-										if (options.quit_read_errors == 1) {
-											perror("getxattr");
-											exit(1);
-										}
-										/* else if (options._quit_read_errors == 0)
-										  	errors.xattr_read_err++; */
-										else if (options.quit_read_errors == 0)
-											perror("listxattr");
-									}
-									else {
-										val[vallen] = 0;
-										errno = 0;
-										setxattr_status = options.setxattr_func(read_file_list->new_location, key, val, vallen, XATTR_CREATE);
-										if (setxattr_status == -1) {
-											if (options.quit_read_errors == 1) {
-												perror("estxattr");
-												exit(1);
-											}
-											/* else if (options._quit_read_errors == 0)
-											  	errors.xattr_read_err++; */
-											else if (options.quit_read_errors == 0)
-												perror("setxattr");
-										}
-										free(val);
-									}
-								}
-								else if (vallen == 0) {
-									free(xbuf);
-									break;
-								}
-								keylen = strlen(key)+1;
-								buflen -= keylen;
-								key += keylen;
-							}
-							free(xbuf);
+						errno = 0;
+						acl_res = acl_set_file(read_file_list->new_location,ACL_TYPE_ACCESS,acl);
+						if (acl_res != 0) {
+							perror("acl_set_file");
+							fprintf(stderr, " %s\n", read_file_list->dir_location);
+							errors.set_acl_errors++;
 						}
+						acl_free(acl);
+					}
+					if (options.xattrs == 1) {
+						set_xattrs_res = set_xattrs(read_file_list,0,0,LIST);
+						if (set_xattrs_res != 0)
+							return -1;
 					}
 					if (options.show_write_proc != 0)
 						printf("Overwriting: %s\n", read_file_list->new_location);
@@ -1323,100 +758,9 @@ int read_write_data(DList *data, int choose, char *source, char *destination)
 				acl_free(acl);
 			}
 			if (options.xattrs == 1) {
-				errno = 0;
-				buflen = options.listxattr_func(read_file_list->dir_location, NULL, 0);
-				if (buflen == -1) {
-					if (options.quit_read_errors == 1) {
-						perror("listxattr");
-						exit(1);
-					}
-					/* else if (options._quit_read_errors == 0)
-					 	errors.xattr_read_err++;*/ 
-					else if (options.quit_read_errors == 0)
-						perror("listxattr");
-				}
-				if (buflen != 0) {
-					xbuf = malloc(buflen);
-					if (xbuf != NULL)
-						key = xbuf;
-					else {
-						printf("read_write_data(): choose = %d xattr_len malloc() error.\n",  choose);
-						exit(1);
-					}
-					buflen = options.listxattr_func(read_file_list->dir_location, xbuf, buflen);
-					if (buflen == -1) {
-						if (options.quit_read_errors == 1) {
-							perror("listxattr");
-							exit(1);
-						}
-						/* else if (options._quit_read_errors == 0)
-						 	errors.xattr_read_err++;*/ 
-						else if (options.quit_read_errors == 0)
-							perror("listxattr");
-					}
-					key = xbuf;
-					while (buflen > 0) {
-						if (strcmp("system.posix_acl_access",key) == 0 && options.acls != 1) {
-							keylen = strlen(key)+1;
-							buflen -= keylen;
-							key += keylen;
-							continue;
-						}
-						vallen = getxattr(read_file_list->dir_location, key, NULL, 0);
-						if (vallen == -1) {
-							if (options.quit_read_errors == 1) {
-								perror("getxattr");
-								exit(1);
-							}
-							/* else if (options._quit_read_errors == 0)
-							  	errors.xattr_read_err++; */
-							else if (options.quit_read_errors == 0)
-								perror("getxattr");
-						}
-						else if (vallen > 0) {
-							val = malloc(vallen+1);
-							if (val == NULL) {
-								printf("read_write_data(): choose = %d val malloc() error.\n", choose);
-								exit(1);
-							}
-							vallen = getxattr(read_file_list->dir_location, key, val, vallen);
-							if (vallen == -1) {
-								if (options.quit_read_errors == 1) {
-									perror("getxattr");
-									exit(1);
-								}
-								/* else if (options._quit_read_errors == 0)
-								  	errors.xattr_read_err++; */
-								else if (options.quit_read_errors == 0)
-									perror("listxattr");
-							}
-							else {
-								val[vallen] = 0;
-								errno = 0;
-								setxattr_status = options.setxattr_func(read_file_list->new_location, key, val, vallen, XATTR_CREATE);
-								if (setxattr_status == -1) {
-									if (options.quit_read_errors == 1) {
-										perror("estxattr");
-										exit(1);
-									}
-									/* else if (options._quit_read_errors == 0)
-									  	errors.xattr_read_err++; */
-									else if (options.quit_read_errors == 0)
-										perror("setxattr");
-								}
-								free(val);
-							}
-						}
-						else if (vallen == 0) {
-							free(xbuf);
-							break;
-						}
-						keylen = strlen(key)+1;
-						buflen -= keylen;
-						key += keylen;
-					}
-					free(xbuf);
-				}
+				set_xattrs_res = set_xattrs(read_file_list,0,0,LIST);
+				if (set_xattrs_res != 0)
+					return -1;
 			}
 			if (options.show_write_proc != 0)
 				printf("Overwriting: %s\n", read_file_list->new_location);
@@ -1677,4 +1021,106 @@ int read_write_data(DList *data, int choose, char *source, char *destination)
 		}
 		return 0;
 	}
+}
+
+int set_xattrs(DListElmt *to_copy, char source[], char destination[], int use)
+{
+	extern struct options_menu options;
+	extern struct errors_data errors;
+
+	acl_t		acl;
+	int		acl_res; // return value for acl function
+
+	char		xattr_list[XATTR_SIZE], xattr_value[XATTR_SIZE];
+	char		newf_xattr_list[XATTR_SIZE], newf_xattr_value[XATTR_SIZE];
+	int		xattr_len, xattr_val_len, xattr_res, setxattr_res;
+	int		j;
+
+	char		*xbuf, *key, *val;
+	ssize_t		buflen, keylen, vallen;
+	int		setxattr_status;
+
+	char 		*current_loc, *new_loc;
+
+	if (use == LIST) {
+		current_loc = to_copy->dir_location;
+		new_loc = to_copy->new_location;
+	}
+	else if (use == ARRAY) {
+		current_loc = &source[0];
+		new_loc = &destination[0];
+	}
+		
+	errno = 0;
+	buflen = options.listxattr_func(current_loc, NULL, 0);
+	if (buflen == -1) {
+		perror("listxattr");
+		errors.read_xattr_errors++;
+		fprintf(stderr, "set_xattrs(1): %s\n", current_loc);
+	}
+	if (buflen != 0) {
+		xbuf = malloc(buflen);
+		if (xbuf != NULL)
+			key = xbuf;
+		else {
+			fprintf(stderr, "set_xattrs(): buflen malloc() error.\n");
+			return -1;
+		}
+		buflen = options.listxattr_func(current_loc, xbuf, buflen);
+		if (buflen == -1) {
+			errors.read_xattr_errors++;
+			perror("listxattr");
+			fprintf(stderr, "set_xattrs(2): %s\n", current_loc);
+		}
+		key = xbuf;
+		while (buflen > 0) {
+			if (strcmp("system.posix_acl_access",key) == 0 && options.acls != 1) {
+				keylen = strlen(key)+1;
+				buflen -= keylen;
+				key += keylen;
+				continue;
+			}
+			errno = 0;
+			vallen = options.getxattr_func(current_loc, key, NULL, 0);
+			if (vallen == -1) {
+				errors.read_xattr_errors++;
+				perror("getxattr");
+				fprintf(stderr, "set_xattrs(3): %s\n", to_copy->dir_location);
+			}
+			else if (vallen > 0) {
+				val = malloc(vallen+1);
+				if (val == NULL) {
+					fprintf(stderr, "set_xattrs(4): vallen+1 malloc() error.\n");
+					return -1;
+				}
+				errno = 0;
+				vallen = options.getxattr_func(current_loc, key, val, vallen);
+				if (vallen == -1) {
+					errors.read_xattr_errors++;
+					perror("getxattr");
+					fprintf(stderr, "set_xattrs(5): %s\n", current_loc);
+				}
+				else {
+					val[vallen] = 0;
+					errno = 0;
+					setxattr_status = options.setxattr_func(new_loc, key, val, vallen, XATTR_CREATE);
+					if (setxattr_status == -1) {
+						errors.set_xattr_errors++;
+						perror("setxattr");
+						fprintf(stderr, "set_xattrs(6): %s\n", new_loc);
+					}
+					free(val);
+				}
+			}
+			else if (vallen == 0) {
+				free(xbuf);
+				break;
+			}
+			keylen = strlen(key)+1;
+			buflen -= keylen;
+			key += keylen;
+		}
+		free(xbuf);
+	}
+	return 0;
 }
