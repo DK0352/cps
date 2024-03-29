@@ -42,14 +42,16 @@ char *list_stats(int after_c, struct copied_or_not copied);
 char *calc_size(unsigned long data_size, int other_unit, int output, int fd);
 char *detailed_output(DList *to_copy_list, int output, char *what_is_copied, int fd);
 void destroy_data_structs(void);
+int clean_up_exit(struct thread_struct *, struct thread_struct *);
 
 int full_dir_write = 0;		// if set to 1, copy the complete source directory, if set to 2, copy the complete destination directory
 char file_loc1[PATH_MAX];	// file tree content file location
+char *pathname1, *pathname2;					// pathnames for directory1 and directory2
 
 struct options_menu options;				// data structure used to set options
 struct Data_Copy_Info data_copy_info;			// data structure with statistical info, holds lists of files and dirs to copy...
 struct copied_or_not copied;
-struct errors_data error;				// errors information
+struct errors_data errors;				// errors information
 
 int main(int argc, char *argv[])
 {
@@ -73,7 +75,7 @@ int main(int argc, char *argv[])
 	int use_threads = 0;						// in case source and destination directories are on different disk, use threads is set to 1
 	int open_linearly = 0;
 	int len;
-	char *pathname1, *pathname2;					// pathnames for directory1 and directory2
+	//char *pathname1, *pathname2;					// pathnames for directory1 and directory2
 	char file_loc2[PATH_MAX];					// location of the text file with the data to copy content file location
 	char file_location[PATH_MAX];					// copy/content file location + the newline char to avoid using write() sys call just for '\n'
 	const char *src = "source";
@@ -81,20 +83,20 @@ int main(int argc, char *argv[])
 	char line[BUF];				// get yes or no answer from the user
 	int length;
 
-	int copy_files;				// there are files to copy if 1
-	int copy_symlinks;			// there are symbolic links to copy if 1
-	int copy_dirs;				// there are directories to copy if 1
-	int files_extraneous;			// there are extraneous files to copy or delete if 1
-	int symlinks_extraneous;		// there are extraneous symlinks if 1
-	int dirs_extraneous;			// there are extraneous directories to copy or delete if 1
-	int ow_main_smaller;			// there are files with the same name, smaller in the main location to overwrite if 1
-	int ow_main_larger;			// there are files with the same name, larger in the main location to overwrite if 1
-	int ow_main_newer;			// there are files with the same name, newer in the main location to overwrite if 1
-	int ow_main_older;			// there are files with the same name, older in the main location to overwrite if 1
-	int ow_symlinks_main_smaller;		// there are symbolic links with the same name, smaller in the main location to overwrite if 1
-	int ow_symlinks_main_larger;		// there are symbolic links with the same name, larger in the main location to overwrite if 1
-	int ow_symlinks_main_newer;		// there are symbolic links with the same name, newer in the main location to overwrite if 1
-	int ow_symlinks_main_older;		// there are symbolic links with the same name, older in the main location to overwrite if 1
+	int copy_files = 0;			// there are files to copy if 1
+	int copy_symlinks = 0;			// there are symbolic links to copy if 1
+	int copy_dirs = 0;			// there are directories to copy if 1
+	int files_extraneous = 0;		// there are extraneous files to copy or delete if 1
+	int symlinks_extraneous = 0;		// there are extraneous symlinks if 1
+	int dirs_extraneous = 0;		// there are extraneous directories to copy or delete if 1
+	int ow_main_smaller = 0;		// there are files with the same name, smaller in the main location to overwrite if 1
+	int ow_main_larger = 0;			// there are files with the same name, larger in the main location to overwrite if 1
+	int ow_main_newer = 0;			// there are files with the same name, newer in the main location to overwrite if 1
+	int ow_main_older = 0;			// there are files with the same name, older in the main location to overwrite if 1
+	int ow_symlinks_main_smaller = 0;	// there are symbolic links with the same name, smaller in the main location to overwrite if 1
+	int ow_symlinks_main_larger = 0;	// there are symbolic links with the same name, larger in the main location to overwrite if 1
+	int ow_symlinks_main_newer = 0;		// there are symbolic links with the same name, newer in the main location to overwrite if 1
+	int ow_symlinks_main_older = 0;		// there are symbolic links with the same name, older in the main location to overwrite if 1
 
 	struct stat buf1, buf2; 		// used to test source and destination arguments for program, whether arguments are directories and devices they are located on.
 	int copyfile;				// file descriptor for copy content file
@@ -237,73 +239,6 @@ int main(int argc, char *argv[])
 	options.xattrs = 0;
 	options.ignore_symlinks = 0;
 
-	copied.copied_data = 0;		// if 1, add size in stats
-	copied.aborted_copying;		// if 1, user aborted copying missing files and dirs
-	copied.copied_extraneous = 0;	// if 1, add size in stats
-	copied.deleted_extraneous = 0;	// if 1, subtract size in stats
-	copied.ow_smaller = 0;
-	copied.ow_larger = 0;
-	copied.full_dir1_copied = 0;	// if 1, add size in stats
-	copied.full_dir2_copied = 0;	// if 1, add size in stats
-
-	// global, unnecessary to init?
-	data_copy_info.files_to_copy_list = NULL;
-	data_copy_info.symlinks_to_copy_list = NULL;
-	data_copy_info.dirs_to_copy_list = NULL;
-	data_copy_info.files_extraneous_list = NULL;
-	data_copy_info.symlinks_extraneous_list = NULL;
-	data_copy_info.dirs_extraneous_list = NULL;
-	data_copy_info.diff_size_ms_list = NULL;
-	data_copy_info.diff_size_ml_list = NULL;
-	data_copy_info.diff_time_mn_list = NULL;
-	data_copy_info.diff_time_mo_list = NULL;
-	data_copy_info.symlinks_diff_size_ms_list = NULL;
-	data_copy_info.symlinks_diff_size_ml_list = NULL;
-	data_copy_info.symlinks_diff_time_mn_list = NULL;
-	data_copy_info.symlinks_diff_time_mo_list = NULL;
-	data_copy_info.global_files_to_copy_num = 0;
-	data_copy_info.global_files_to_copy_size = 0;
-	data_copy_info.global_dirs_to_copy_num = 0;
-	data_copy_info.global_dirs_to_copy_size = 0;
-	data_copy_info.global_files_extraneous_num = 0;
-	data_copy_info.global_files_extraneous_size = 0;
-	data_copy_info.global_dirs_extraneous_num = 0;
-	data_copy_info.global_dirs_extraneous_size = 0;
-	data_copy_info.global_diff_size_ms_num = 0;
-	data_copy_info.global_diff_size_ms_size = 0;
-	data_copy_info.global_diff_size_ms_orig_size = 0;
-	data_copy_info.global_diff_size_ml_num = 0;
-	data_copy_info.global_diff_size_ml_size = 0;
-	data_copy_info.global_diff_size_ml_orig_size = 0;
-	data_copy_info.global_diff_time_mn_num = 0;
-	data_copy_info.global_diff_time_mn_size = 0;
-	data_copy_info.global_diff_time_mn_orig_size = 0;
-	data_copy_info.global_diff_time_mo_num = 0;
-	data_copy_info.global_diff_time_mo_size = 0;
-	data_copy_info.global_diff_time_mo_orig_size = 0;
-	data_copy_info.global_diff_symlinks_size_ms_num = 0;
-	data_copy_info.global_diff_symlinks_size_ms_size = 0;
-	data_copy_info.global_diff_symlinks_size_ms_orig_size = 0;
-	data_copy_info.global_diff_symlinks_size_ml_num = 0;
-	data_copy_info.global_diff_symlinks_size_ml_size = 0;
-	data_copy_info.global_diff_symlinks_size_ml_orig_size = 0;
-	data_copy_info.global_diff_symlinks_time_mn_num = 0;
-	data_copy_info.global_diff_symlinks_time_mn_size = 0;
-	data_copy_info.global_diff_symlinks_time_mn_orig_size = 0;
-	data_copy_info.global_diff_symlinks_time_mo_num = 0;
-	data_copy_info.global_diff_symlinks_time_mo_size = 0;
-	data_copy_info.global_diff_symlinks_time_mo_orig_size = 0;
-	data_copy_info.global_file_num_a = 0;
-	data_copy_info.global_file_num_b = 0;
-	data_copy_info.global_files_size_a = 0;
-	data_copy_info.global_files_size_b = 0;
-	data_copy_info.global_dir_num_a = 0;
-	data_copy_info.global_dir_num_b = 0;
-	data_copy_info.global_symlink_num_a = 0;
-	data_copy_info.global_symlink_num_b = 0;
-	data_copy_info.global_symlink_size_a = 0;
-	data_copy_info.global_symlink_size_b = 0;
-
 	while (1) {
 		int this_option_optind = optind ? optind : 1;
 		int option_index = 0;
@@ -337,7 +272,6 @@ int main(int argc, char *argv[])
 			{"preserve-mtime", no_argument, 0, 'M' },
 			{"overwrite-with-newer", no_argument, 0, 'N' },
 			{"overwrite-with-older", no_argument, 0, 'O' },
-			//{"naive-mode", no_argument, 0, 'n'},
 			{"size-mode", no_argument, 0, 'S'}, 
 			{"list-conflicting", no_argument, 0, 'L'},
 			{"preserve-perms", no_argument, 0, 'P'},
@@ -596,21 +530,6 @@ int main(int argc, char *argv[])
 		exit(1);
 	}*/
 
-	copy_files = 0;
-	copy_symlinks = 0;
-	copy_dirs = 0;
-	files_extraneous = 0;
-	symlinks_extraneous = 0;
-	dirs_extraneous = 0;
-	ow_main_smaller = 0;
-	ow_main_larger = 0;
-	ow_main_newer = 0;
-	ow_main_older = 0;
-	ow_symlinks_main_smaller = 0;
-	ow_symlinks_main_larger = 0;
-	ow_symlinks_main_newer = 0;
-	ow_symlinks_main_older = 0;
-
 	// optind is the first non-option argument, so it should be a pathname for the first directory. 
 	// then increment it to point to a second directory if there are more arguments, or exit with an error if there aren't any
 	index = 1;
@@ -765,16 +684,7 @@ int main(int argc, char *argv[])
 		build_tree(thread_data_b);
 		if (compare_trees(thread_data_a,thread_data_b) == -1) {
 			printf("Empty directories. Exiting.\n");
-			clean_tree(thread_data_a->file_tree_top_dir,0);
-			clean_tree(thread_data_b->file_tree_top_dir,0);
-			free(pathname1);
-			free(pathname2);
-			if (thread_data_a->id != NULL)
-				free(thread_data_a->id);
-			if (thread_data_b->id != NULL)
-				free(thread_data_b->id);
-			free(thread_data_a);
-			free(thread_data_b);
+			clean_up_exit(thread_data_a, thread_data_b);
 			exit(0);
 		}
 	}
@@ -782,36 +692,31 @@ int main(int argc, char *argv[])
 		th3_status = pthread_create(&th3,NULL,(void *)build_tree,(void *)thread_data_a);
 		if (th3_status != 0) {
 			fprintf(stderr, "pthread_create() thread3 (%d)%s\n", th3_status, strerror(th3_status));
+			clean_up_exit(thread_data_a, thread_data_b);
 			exit(1);
 		}
 		th4_status = pthread_create(&th4,NULL,(void *)build_tree,(void *)thread_data_b);
 		if (th4_status != 0) {
 			fprintf(stderr, "pthread_create() thread4 (%d)%s\n", th4_status, strerror(th4_status));
+			clean_up_exit(thread_data_a, thread_data_b);
 			exit(1);
 		}
 		th3_status = pthread_join(th3,NULL);
 		if (th3_status != 0) {
 			fprintf(stderr, "pthread_join() thread3 (%d)%s\n", th3_status, strerror(th3_status));
+			clean_up_exit(thread_data_a, thread_data_b);
 			exit(1);
 		}
 		th4_status = pthread_join(th4,NULL);
 		if (th4_status != 0) {
 			fprintf(stderr, "pthread_join() thread4 (%d)%s\n", th4_status, strerror(th4_status));
+			clean_up_exit(thread_data_a, thread_data_b);
 			exit(1);
 		}
 		if (th3_status == 0 && th4_status == 0) {
 			if (compare_trees(thread_data_a,thread_data_b) == -1) {
 				printf("Empty directories. Exiting.\n");
-				clean_tree(thread_data_a->file_tree_top_dir,0);
-				clean_tree(thread_data_b->file_tree_top_dir,0);
-				free(pathname1);
-				free(pathname2);
-				if (thread_data_a->id != NULL)
-					free(thread_data_a->id);
-				if (thread_data_b->id != NULL)
-					free(thread_data_b->id);
-				free(thread_data_a);
-				free(thread_data_b);
+				clean_up_exit(thread_data_a, thread_data_b);
 				exit(0);
 			}
 		}
@@ -854,35 +759,15 @@ int main(int argc, char *argv[])
 						copied.full_dir1_copied = 1;
 					}
 					else {
-						printf("Error copying entire source. Exiting.\n");
-						if (options.dont_list_stats != 1)
-							list_stats(2,copied);
-						clean_tree(thread_data_a->file_tree_top_dir,0);
-						free(pathname1);
-						free(pathname2);
-						if (thread_data_a->id != NULL)
-							free(thread_data_a->id);
-						if (thread_data_b->id != NULL)
-							free(thread_data_b->id);
-						free(thread_data_a);
-						free(thread_data_b);
-						destroy_data_structs();
+						printf("Error copying entire source directory. Exiting.\n");
+						clean_up_exit(thread_data_a, thread_data_b);
 						exit(1);
 					}
 					if (options.dont_list_stats != 1)
 						list_stats(2,copied);
-					clean_tree(thread_data_a->file_tree_top_dir,0);
-					free(pathname1);
-					free(pathname2);
-					if (thread_data_a->id != NULL)
-						free(thread_data_a->id);
-					if (thread_data_b->id != NULL)
-						free(thread_data_b->id);
-					free(thread_data_a);
-					free(thread_data_b);
-					destroy_data_structs();
+					clean_up_exit(thread_data_a, thread_data_b);
 
-					return 0;
+					exit(0);
 				}
 				else if (strcmp(line,"no") == 0)
 					break;
@@ -899,34 +784,13 @@ int main(int argc, char *argv[])
 			}
 			else {
 				printf("Error copying entire source directory. Exiting.\n");
-				if (options.dont_list_stats != 1)
-					list_stats(2,copied);
-				clean_tree(thread_data_a->file_tree_top_dir,0);
-				free(pathname1);
-				free(pathname2);
-				if (thread_data_a->id != NULL)
-					free(thread_data_a->id);
-				if (thread_data_b->id != NULL)
-					free(thread_data_b->id);
-				free(thread_data_a);
-				free(thread_data_b);
-				destroy_data_structs();
+				clean_up_exit(thread_data_a, thread_data_b);
 				exit(1);
 			}
 			if (options.dont_list_stats != 1)
 				list_stats(2,copied);
-			clean_tree(thread_data_a->file_tree_top_dir,0);
-			free(pathname1);
-			free(pathname2);
-			if (thread_data_a->id != NULL)
-				free(thread_data_a->id);
-			if (thread_data_b->id != NULL)
-				free(thread_data_b->id);
-			free(thread_data_a);
-			free(thread_data_b);
-			destroy_data_structs();
-
-			return 0;
+			clean_up_exit(thread_data_a, thread_data_b);
+			exit(0);
 		}
 	}
 	// copy entire destination directory to the source because it's empty
@@ -945,34 +809,13 @@ int main(int argc, char *argv[])
 					}
 					else {
 						printf("Error copying entire destination directory. Exiting.\n");
-						if (options.dont_list_stats != 1)
-							list_stats(2,copied);
-						clean_tree(thread_data_b->file_tree_top_dir,0);
-						free(pathname1);
-						free(pathname2);
-						if (thread_data_a->id != NULL)
-							free(thread_data_a->id);
-						if (thread_data_b->id != NULL)
-							free(thread_data_b->id);
-						free(thread_data_a);
-						free(thread_data_b);
-						destroy_data_structs();
+						clean_up_exit(thread_data_a, thread_data_b);
 						exit(1);
 					}
 					if (options.dont_list_stats != 1)
 						list_stats(2,copied);
-					clean_tree(thread_data_b->file_tree_top_dir,0);
-					free(pathname1);
-					free(pathname2);
-					if (thread_data_a->id != NULL)
-						free(thread_data_a->id);
-					if (thread_data_b->id != NULL)
-						free(thread_data_b->id);
-					free(thread_data_a);
-					free(thread_data_b);
-					destroy_data_structs();
-
-					return 0;
+					clean_up_exit(thread_data_a, thread_data_b);
+					exit(0);
 				}
 				else if (strcmp(line,"no") == 0)
 					break;
@@ -989,34 +832,13 @@ int main(int argc, char *argv[])
 			}
 			else {
 				printf("Error copying entire destination directory. Exiting.\n");
-				if (options.dont_list_stats != 1)
-					list_stats(2,copied);
-				clean_tree(thread_data_b->file_tree_top_dir,0);
-				free(pathname1);
-				free(pathname2);
-				if (thread_data_a->id != NULL)
-					free(thread_data_a->id);
-				if (thread_data_b->id != NULL)
-					free(thread_data_b->id);
-				free(thread_data_a);
-				free(thread_data_b);
-				destroy_data_structs();
+				clean_up_exit(thread_data_a, thread_data_b);
 				exit(1);
 			}
 			if (options.dont_list_stats != 1)
 				list_stats(2,copied);
-			clean_tree(thread_data_b->file_tree_top_dir,0);
-			free(pathname1);
-			free(pathname2);
-			if (thread_data_a->id != NULL)
-				free(thread_data_a->id);
-			if (thread_data_b->id != NULL)
-				free(thread_data_b->id);
-			free(thread_data_a);
-			free(thread_data_b);
-			destroy_data_structs();
-
-			return 0;
+			clean_up_exit(thread_data_a, thread_data_b);
+			exit(0);
 		}
 	}
 	file_list = data_copy_info.files_to_copy_list;
@@ -1449,60 +1271,53 @@ int main(int argc, char *argv[])
 			}
 		}
 		if (options.just_write_copy_content_file == 1) {
-			clean_tree(thread_data_a->file_tree_top_dir,0);
-			clean_tree(thread_data_b->file_tree_top_dir,0);
-			free(pathname1);
-			free(pathname2);
-			if (thread_data_a->id != NULL)
-				free(thread_data_a->id);
-			if (thread_data_b->id != NULL)
-				free(thread_data_b->id);
-			free(thread_data_a);
-			free(thread_data_b);
-			destroy_data_structs();
-
-			return 0;
-		} // if (options.write_copy_content_file == 1 ...
+			clean_up_exit(thread_data_a, thread_data_b);
+			exit(0);
+		}
 	} // if (copy_files == 1 | copy_dirs == 1 ...
 	if (options.no_questions == 0) {
 		if (options.dont_list_stats != 1)
 			list_stats(0,copied);
 		if (options.just_copy_extraneous_back != 1 && options.just_delete_extraneous != 1) {
 			if (copy_files == 1 || copy_dirs == 1 || copy_symlinks == 1) {
-				printf("Do you want to write the missing files and directories? Type yes or no ...\n");
+				printf("Do you want to copy the missing files and directories? Type yes or no ...\n");
 				while (fgets(line,BUF,stdin) != NULL) {
 					length = strlen(line);
 					line[length-1] = '\0';
 					if (strcmp(line,"yes") == 0) {
 						if (copy_files == 1) {
-							if (read_write_data(data_copy_info.files_to_copy_list,1,NULL,NULL) == 0)
-								printf("\nFiles written successfully.\n");
+							if (read_write_data(data_copy_info.files_to_copy_list,1,NULL,NULL) == 0) {
+								printf("\nFiles copied successfully.\n");
+								copied.copied_files = 1;
+								copied.copied_data = 1; // ovo provjerit jel ima smisla!!!
+							}
 							else {
-								// ignore read errors option?
-								printf("\nread_write_data(); Error writing the files.\n");
+								clean_up_exit(thread_data_a, thread_data_b);
 								exit(1);
 							}
-							copied.copied_files = 1;
 						}
 						if (copy_symlinks == 1) {
-							if (read_write_data(data_copy_info.symlinks_to_copy_list,1,NULL,NULL) == 0)
-								printf("\nSymbolic links written successfully.\n");
+							if (read_write_data(data_copy_info.symlinks_to_copy_list,1,NULL,NULL) == 0) {
+								printf("\nSymbolic links copied successfully.\n");
+								copied.copied_symlinks = 1;
+								copied.copied_data = 1;
+							}
 							else {
-								printf("\nread_write_data(); Error writing the symbolic links.\n");
+								clean_up_exit(thread_data_a, thread_data_b);
 								exit(1);
 							}
-							copied.copied_symlinks = 1;
 						}
 						if (copy_dirs == 1) {
-							if (read_write_data(data_copy_info.dirs_to_copy_list,2,NULL,NULL) == 0)
-								printf("\nDirectories written successfully.\n");
+							if (read_write_data(data_copy_info.dirs_to_copy_list,2,NULL,NULL) == 0) {
+								printf("\nDirectories copied successfully.\n");
+								copied.copied_directories = 1;
+								copied.copied_data = 1;
+							}
 							else {
-								printf("\nread_write_data(); Error writing the directories.\n");
+								clean_up_exit(thread_data_a, thread_data_b);
 								exit(1);
 							}
-							copied.copied_directories = 1;
 						}
-						copied.copied_data = 1;
 						printf("\n");
 						break;
 					}
@@ -1512,13 +1327,13 @@ int main(int argc, char *argv[])
 						break;
 					}
 					else
-						printf("unrecognized answer. type yes or no.\n");
+						printf("Unrecognized answer. Type yes or no.\n");
 				}
 			}
 		}
 		if (options.copy_extraneous_back == 1 || options.just_copy_extraneous_back == 1) {
 			if (dirs_extraneous == 1 || files_extraneous == 1 || symlinks_extraneous == 1) {
-				printf("Do you want to write the extraneous data from the destionation directory back to the source? Type yes or no ...\n");
+				printf("Do you want to copy the extraneous data from the destionation directory back to the source? Type yes or no ...\n");
 				while (fgets(line,BUF,stdin) != NULL) {
 					length = strlen(line);
 					line[length-1] = '\0';
@@ -1950,19 +1765,8 @@ int main(int argc, char *argv[])
 	}
 
 
-	// free the data structures used for file trees
-	clean_tree(thread_data_a->file_tree_top_dir,0);
-	clean_tree(thread_data_b->file_tree_top_dir,0);
-
-	free(pathname1);
-	free(pathname2);
-	if (thread_data_a->id != NULL)
-		free(thread_data_a->id);
-	if (thread_data_b->id != NULL)
-		free(thread_data_b->id);
-	free(thread_data_a);
-	free(thread_data_b);
-	destroy_data_structs();
+	// free the data structures used for file trees among
+	clean_up_exit(thread_data_a, thread_data_b);
 
 	exit(0);
 }
@@ -1997,3 +1801,26 @@ void destroy_data_structs(void) {
 	if (data_copy_info.symlinks_diff_time_mo_list != NULL)
 		dlist_destroy_3(data_copy_info.symlinks_diff_time_mo_list);
 }
+
+int clean_up_exit(struct thread_struct *thread_data_a, struct thread_struct *thread_data_b)
+{
+	if (full_dir_write == 1)
+		clean_tree(thread_data_a->file_tree_top_dir,0);
+	else if (full_dir_write == 2)
+		clean_tree(thread_data_b->file_tree_top_dir,0);
+	else {
+		clean_tree(thread_data_a->file_tree_top_dir,0);
+		clean_tree(thread_data_b->file_tree_top_dir,0);
+	}
+	free(pathname1);
+	free(pathname2);
+	if (thread_data_a->id != NULL)
+		free(thread_data_a->id);
+	if (thread_data_b->id != NULL)
+		free(thread_data_b->id);
+	free(thread_data_a);
+	free(thread_data_b);
+	destroy_data_structs();
+}
+
+// options: do you want to reload scan (with different options?)
