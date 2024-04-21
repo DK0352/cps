@@ -142,10 +142,10 @@ int main(int argc, char *argv[])
 	char *help_string14 = "Don't list the files and directories to copy after scaning.";
 	char *help_string15 = "--help or -h";
 	char *help_string16 = "Show help and options.";
-	char *help_string17 = "--content-file=[FILE] or -c";
-	char *help_string18 = "Write the content of both directories to a file before copying.";
-	char *help_string19 = "--just-content-file=[FILE] or -C";
-	char *help_string20 = "Just write the content of both directories to a file and exit the program.";
+	//char *help_string17 = "";
+	//char *help_string18 = "";
+	//char *help_string19 = "";
+	//char *help_string20 = "";
 	char *help_string21 = "--copy-content-file=[FILE] or -k";
 	char *help_string22 = "Write the files and directories to copy into a file.";
 	char *help_string23 = "--just-copy-content-file=[FILE] or -K";
@@ -253,8 +253,6 @@ int main(int argc, char *argv[])
 			{"dont-list-data-to-copy", no_argument, 0, 'g' },
 			{"less-detailed", no_argument, 0, 'D' },
 			{"help", no_argument, 0, 'h' },
-			//{"content-file", required_argument, 0, 'c' },
-			//{"just-content-file", required_argument, 0, 'C' },
 			{"copy-content-list", required_argument, 0, 'k' },
 			{"just-copy-content-list", required_argument, 0, 'K' },
 			{"dont-list-stats", no_argument, 0, 'G' },
@@ -330,14 +328,6 @@ int main(int argc, char *argv[])
 			case 'h':
 				options.help = 1;
 				break;
-			/*case 'c':
-				options.write_content_file = 1;
-				strcpy(file_loc1,optarg);
-				break;*/
-			/*case 'C':
-				options.just_write_content_file = 1;
-				strcpy(file_loc1,optarg);
-				break;*/
 			case 'k':
 				options.write_copy_content_file = 1;
 				strcpy(file_loc2,optarg);
@@ -440,8 +430,6 @@ int main(int argc, char *argv[])
 		printf("%-37s  %s\n", help_string11, help_string12);
 		printf("%-37s  %s\n", help_string13, help_string14);
 		printf("%-37s  %s\n", help_string15, help_string16);
-		printf("%-37s  %s\n", help_string17, help_string18);
-		printf("%-37s  %s\n", help_string19, help_string20);
 		printf("%-37s  %s\n", help_string21, help_string22);
 		printf("%-37s  %s\n", help_string23, help_string24);
 		printf("%-37s  %s\n", help_string25, help_string26);
@@ -525,10 +513,6 @@ int main(int argc, char *argv[])
 		printf("Error: Conflicting options: --overwrite-with-smaller and --overwrite-with-larger. Specify either one or the other.\n");
 		exit(1);
 	}
-	/*if (options.write_content_file == 1 && options.just_write_content_file == 1) {
-		printf("Error: Conflicting options: --write-content-file and --just-write-content-file. Specify either one or the other.\n");
-		exit(1);
-	}*/
 
 	// optind is the first non-option argument, so it should be a pathname for the first directory. 
 	// then increment it to point to a second directory if there are more arguments, or exit with an error if there aren't any
@@ -722,28 +706,6 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	// if option is set: create the file with the complete file tree listed
-	/*if (options.write_content_file == 1) {
-		write_contents_to_file(thread_data_a->file_tree_top_dir,0,0);
-		write_contents_to_file(thread_data_b->file_tree_top_dir,0,0);
-	}*/
-	/*else if (options.just_write_content_file == 1) {
-		write_contents_to_file(thread_data_a->file_tree_top_dir,0,0);
-		write_contents_to_file(thread_data_b->file_tree_top_dir,0,0);
-		clean_tree(thread_data_a->file_tree_top_dir,0);
-		clean_tree(thread_data_b->file_tree_top_dir,0);
-		free(pathname1);
-		free(pathname2);
-		if (thread_data_a->id != NULL)
-			free(thread_data_a->id);
-		if (thread_data_b->id != NULL)
-			free(thread_data_b->id);
-		free(thread_data_a);
-		free(thread_data_b);
-		destroy_data_structs();
-
-		return 0;
-	}*/
 	// copy entire source directory to the destination because it's empty
 	if (full_dir_write == 1) {
 		if (options.no_questions == 0) {
@@ -1108,24 +1070,20 @@ int main(int argc, char *argv[])
 		copy_symlinks == 1 || symlinks_extraneous == 1 ||  ow_symlinks_main_smaller == 1 || ow_symlinks_main_larger == 1 || ow_symlinks_main_newer == 1 || ow_symlinks_main_older == 1) {
 		if (options.write_copy_content_file == 1 || options.just_write_copy_content_file == 1) {
 			errno = 0;
-			copyfile = open(file_loc2, O_CREAT | O_RDWR | O_APPEND, S_IRWXU);
+			copyfile = open(file_loc2, O_CREAT | O_RDWR | O_APPEND, S_IRUSR | S_IWUSR);
 			if (copyfile == -1) {
 				perror("open");
 				printf("Error opening the copy content file: %s\n",file_loc2);
+				// dodaj da ignorira error ili pita dal zelim prekinut il ne....
+				// vidi jel permission error il sta vec...
 				exit(1);
 			}
 			else {
 				if (copy_files == 1 && options.just_copy_extraneous_back != 1 && options.just_delete_extraneous != 1) {
-					write(copyfile, string1, strlen(string1));
-					for (file_list_element = file_list->head; file_list_element != NULL; file_list_element = file_list_element->next) {
-						strcpy(file_location,file_list_element->dir_location);
-						strcat(file_location,"\n");
-						write(copyfile, file_location, strlen(file_location));
-					}
-				}
-				if (options.ignore_symlinks != 1) {
-					if (copy_symlinks == 1 && options.just_copy_extraneous_back != 1 && options.just_delete_extraneous != 1) {
-						write(copyfile, string1_1, strlen(string1_1));
+					if (options.less_detailed != 1)
+						detailed_output(file_list,TO_FILE,string1,copyfile);
+					else if (options.less_detailed == 1) {
+						write(copyfile, string1, strlen(string1));
 						for (file_list_element = file_list->head; file_list_element != NULL; file_list_element = file_list_element->next) {
 							strcpy(file_location,file_list_element->dir_location);
 							strcat(file_location,"\n");
@@ -1133,57 +1091,49 @@ int main(int argc, char *argv[])
 						}
 					}
 				}
+				if (options.ignore_symlinks != 1) {
+					if (copy_symlinks == 1 && options.just_copy_extraneous_back != 1 && options.just_delete_extraneous != 1) {
+						if (options.less_detailed != 1)
+							detailed_output(symlinks_list,TO_FILE,string1_1,copyfile);
+						else if (options.less_detailed == 1) {
+							write(copyfile, string1_1, strlen(string1_1));
+							for (file_list_element = symlinks_list->head; file_list_element != NULL; file_list_element = file_list_element->next) {
+								strcpy(file_location,file_list_element->dir_location);
+								strcat(file_location,"\n");
+								write(copyfile, file_location, strlen(file_location));
+							}
+						}
+					}
+				}
 				if (copy_dirs == 1 && options.just_copy_extraneous_back != 1 && options.just_delete_extraneous != 1) {
-					write(copyfile, string2, strlen(string2));
-					for (dir_list_element = dir_list->head; dir_list_element != NULL; dir_list_element = dir_list_element->next) {
-						strcpy(file_location,dir_list_element->dir_location);
-						strcat(file_location,"\n");
-						write(copyfile, file_location, strlen(file_location));
+					if (options.less_detailed != 1)
+						detailed_output(dir_list,TO_FILE,string2,copyfile);
+					else if (options.less_detailed == 1) {
+						write(copyfile, string2, strlen(string2));
+						for (dir_list_element = dir_list->head; dir_list_element != NULL; dir_list_element = dir_list_element->next) {
+							strcpy(file_location,dir_list_element->dir_location);
+							strcat(file_location,"\n");
+							write(copyfile, file_location, strlen(file_location));
+						}
 					}
 				}
 				if (options.ow_main_larger == 1 && options.just_copy_extraneous_back != 1 && options.just_delete_extraneous != 1) {
-					write(copyfile, string3, strlen(string3));
-					for (file_list_element = file_ml_list->head; file_list_element != NULL; file_list_element = file_list_element->next) {
-						strcpy(file_location,file_list_element->dir_location);
-						strcat(file_location,"\n");
-						write(copyfile, file_location, strlen(file_location));
-					}
-				}
-				else if (options.ow_main_smaller == 1 && options.just_copy_extraneous_back != 1 && options.just_delete_extraneous != 1) {
-					write(copyfile, string4, strlen(string4));
-					for (file_list_element = file_ms_list->head; file_list_element != NULL; file_list_element = file_list_element->next) {
-						strcpy(file_location,file_list_element->dir_location);
-						strcat(file_location,"\n");
-						write(copyfile, file_location, strlen(file_location));
-					}
-				}
-				if (options.ow_main_newer == 1 && options.just_copy_extraneous_back != 1 && options.just_delete_extraneous != 1) {
-					write(copyfile, string9, strlen(string9));
-					for (file_list_element = file_mn_list->head; file_list_element != NULL; file_list_element = file_list_element->next) {
-						strcpy(file_location,file_list_element->dir_location);
-						strcat(file_location,"\n");
-						write(copyfile, file_location, strlen(file_location));
-					}
-				}
-				else if (options.ow_main_older == 1 && options.just_copy_extraneous_back != 1 && options.just_delete_extraneous != 1) {
-					write(copyfile, string10, strlen(string10));
-					for (file_list_element = file_mo_list->head; file_list_element != NULL; file_list_element = file_list_element->next) {
-						strcpy(file_location,file_list_element->dir_location);
-						strcat(file_location,"\n");
-						write(copyfile, file_location, strlen(file_location));
-					}
-				}
-				if (options.ignore_symlinks != 1) {
-					if (options.ow_main_larger == 1 && options.just_copy_extraneous_back != 1 && options.just_delete_extraneous != 1) {
-						write(copyfile, string12, strlen(string12));
+					if (options.less_detailed != 1)
+						detailed_output(file_ml_list,TO_FILE,string3,copyfile);
+					else if (options.less_detailed == 1) {
+						write(copyfile, string3, strlen(string3));
 						for (file_list_element = file_ml_list->head; file_list_element != NULL; file_list_element = file_list_element->next) {
 							strcpy(file_location,file_list_element->dir_location);
 							strcat(file_location,"\n");
 							write(copyfile, file_location, strlen(file_location));
 						}
 					}
-					else if (options.ow_main_smaller == 1 && options.just_copy_extraneous_back != 1 && options.just_delete_extraneous != 1) {
-						write(copyfile, string11, strlen(string11));
+				}
+				else if (options.ow_main_smaller == 1 && options.just_copy_extraneous_back != 1 && options.just_delete_extraneous != 1) {
+					if (options.less_detailed != 1)
+						detailed_output(file_ms_list,TO_FILE,string4,copyfile);
+					else if (options.less_detailed == 1) {
+						write(copyfile, string4, strlen(string4));
 						for (file_list_element = file_ms_list->head; file_list_element != NULL; file_list_element = file_list_element->next) {
 							strcpy(file_location,file_list_element->dir_location);
 							strcat(file_location,"\n");
@@ -1191,17 +1141,23 @@ int main(int argc, char *argv[])
 						}
 					}
 				}
-				if (options.ignore_symlinks != 1) {
-					if (options.ow_main_newer == 1 && options.just_copy_extraneous_back != 1 && options.just_delete_extraneous != 1) {
-						write(copyfile, string13, strlen(string13));
+				if (options.ow_main_newer == 1 && options.just_copy_extraneous_back != 1 && options.just_delete_extraneous != 1) {
+					if (options.less_detailed != 1)
+						detailed_output(file_mn_list,TO_FILE,string9,copyfile);
+					else if (options.less_detailed == 1) {
+						write(copyfile, string9, strlen(string9));
 						for (file_list_element = file_mn_list->head; file_list_element != NULL; file_list_element = file_list_element->next) {
 							strcpy(file_location,file_list_element->dir_location);
 							strcat(file_location,"\n");
 							write(copyfile, file_location, strlen(file_location));
 						}
 					}
-					else if (options.ow_main_older == 1 && options.just_copy_extraneous_back != 1 && options.just_delete_extraneous != 1) {
-						write(copyfile, string14, strlen(string14));
+				}
+				else if (options.ow_main_older == 1 && options.just_copy_extraneous_back != 1 && options.just_delete_extraneous != 1) {
+					if (options.less_detailed != 1)
+						detailed_output(file_mo_list,TO_FILE,string10,copyfile);
+					else if (options.less_detailed == 1) {
+						write(copyfile, string10, strlen(string10));
 						for (file_list_element = file_mo_list->head; file_list_element != NULL; file_list_element = file_list_element->next) {
 							strcpy(file_location,file_list_element->dir_location);
 							strcat(file_location,"\n");
@@ -1209,18 +1165,64 @@ int main(int argc, char *argv[])
 						}
 					}
 				}
-				if (options.copy_extraneous_back == 1 || options.just_copy_extraneous_back == 1) {
-					if (files_extraneous == 1) {
-						write(copyfile, string5, strlen(string5));
-						for (file_list_element = file_surp_list->head; file_list_element != NULL; file_list_element = file_list_element->next) {
-							strcpy(file_location,file_list_element->dir_location);
-							strcat(file_location,"\n");
-							write(copyfile, file_location, strlen(file_location));
+				if (options.ignore_symlinks != 1) {
+					if (options.ow_main_larger == 1 && options.just_copy_extraneous_back != 1 && options.just_delete_extraneous != 1) {
+						if (options.less_detailed != 1)
+							detailed_output(symlinks_ml_list,TO_FILE,string12,copyfile);
+						else if (options.less_detailed == 1) {
+							write(copyfile, string12, strlen(string12));
+							for (file_list_element = symlinks_ml_list->head; file_list_element != NULL; file_list_element = file_list_element->next) {
+								strcpy(file_location,file_list_element->dir_location);
+								strcat(file_location,"\n");
+								write(copyfile, file_location, strlen(file_location));
+							}
 						}
 					}
-					if (options.ignore_symlinks != 1) {
-						if (symlinks_extraneous == 1) {
-							write(copyfile, string5_1, strlen(string5_1));
+					else if (options.ow_main_smaller == 1 && options.just_copy_extraneous_back != 1 && options.just_delete_extraneous != 1) {
+						if (options.less_detailed != 1)
+							detailed_output(symlinks_ms_list,TO_FILE,string11,copyfile);
+						else if (options.less_detailed == 1) {
+							write(copyfile, string11, strlen(string11));
+							for (file_list_element = symlinks_ms_list->head; file_list_element != NULL; file_list_element = file_list_element->next) {
+								strcpy(file_location,file_list_element->dir_location);
+								strcat(file_location,"\n");
+								write(copyfile, file_location, strlen(file_location));
+							}
+						}
+					}
+				}
+				if (options.ignore_symlinks != 1) {
+					if (options.ow_main_newer == 1 && options.just_copy_extraneous_back != 1 && options.just_delete_extraneous != 1) {
+						if (options.less_detailed != 1)
+							detailed_output(symlinks_mn_list,TO_FILE,string13,copyfile);
+						else if (options.less_detailed == 1) {
+							write(copyfile, string13, strlen(string13));
+							for (file_list_element = symlinks_mn_list->head; file_list_element != NULL; file_list_element = file_list_element->next) {
+								strcpy(file_location,file_list_element->dir_location);
+								strcat(file_location,"\n");
+								write(copyfile, file_location, strlen(file_location));
+							}
+						}
+					}
+					else if (options.ow_main_older == 1 && options.just_copy_extraneous_back != 1 && options.just_delete_extraneous != 1) {
+						if (options.less_detailed != 1)
+							detailed_output(symlinks_mo_list,TO_FILE,string14,copyfile);
+						else if (options.less_detailed == 1) {
+							write(copyfile, string14, strlen(string14));
+							for (file_list_element = symlinks_mo_list->head; file_list_element != NULL; file_list_element = file_list_element->next) {
+								strcpy(file_location,file_list_element->dir_location);
+								strcat(file_location,"\n");
+								write(copyfile, file_location, strlen(file_location));
+							}
+						}
+					}
+				}
+				if (options.copy_extraneous_back == 1 || options.just_copy_extraneous_back == 1) {
+					if (options.less_detailed != 1)
+						detailed_output(file_surp_list,TO_FILE,string5,copyfile);
+					else if (options.less_detailed == 1) {
+						if (files_extraneous == 1) {
+							write(copyfile, string5, strlen(string5));
 							for (file_list_element = file_surp_list->head; file_list_element != NULL; file_list_element = file_list_element->next) {
 								strcpy(file_location,file_list_element->dir_location);
 								strcat(file_location,"\n");
@@ -1228,27 +1230,39 @@ int main(int argc, char *argv[])
 							}
 						}
 					}
+					if (options.ignore_symlinks != 1) {
+						if (options.less_detailed != 1)
+							detailed_output(symlinks_surp_list,TO_FILE,string5_1,copyfile);
+						else if (options.less_detailed == 1) {
+							if (symlinks_extraneous == 1) {
+								write(copyfile, string5_1, strlen(string5_1));
+								for (file_list_element = symlinks_surp_list->head; file_list_element != NULL; file_list_element = file_list_element->next) {
+									strcpy(file_location,file_list_element->dir_location);
+									strcat(file_location,"\n");
+									write(copyfile, file_location, strlen(file_location));
+								}
+							}
+						}
+					}
 					if (dirs_extraneous == 1) {
-						write(copyfile, string6, strlen(string6));
-						for (dir_list_element = dir_surp_list->head; dir_list_element != NULL; dir_list_element = dir_list_element->next) {
-							strcpy(file_location,dir_list_element->dir_location);
-							strcat(file_location,"\n");
-							write(copyfile, file_location, strlen(file_location));
+						if (options.less_detailed != 1)
+							detailed_output(dir_surp_list,TO_FILE,string6,copyfile);
+						else if (options.less_detailed == 1) {
+							write(copyfile, string6, strlen(string6));
+							for (dir_list_element = dir_surp_list->head; dir_list_element != NULL; dir_list_element = dir_list_element->next) {
+								strcpy(file_location,dir_list_element->dir_location);
+								strcat(file_location,"\n");
+								write(copyfile, file_location, strlen(file_location));
+							}
 						}
 					}
 				}
 				else if (options.delete_extraneous == 1 || options.just_delete_extraneous == 1) {
-					if (files_extraneous == 1) {
-						write(copyfile, string7, strlen(string7));
-						for (file_list_element = file_surp_list->head; file_list_element != NULL; file_list_element = file_list_element->next) {
-							strcpy(file_location,file_list_element->dir_location);
-							strcat(file_location,"\n");
-							write(copyfile, file_location, strlen(file_location));
-						}
-					}
-					if (options.ignore_symlinks != 1) {
-						if (symlinks_extraneous == 1) {
-							write(copyfile, string7_1, strlen(string7_1));
+					if (options.less_detailed != 1)
+						detailed_output(file_surp_list,TO_FILE,string7,copyfile);
+					else if (options.less_detailed == 1) {
+						if (files_extraneous == 1) {
+							write(copyfile, string7, strlen(string7));
 							for (file_list_element = file_surp_list->head; file_list_element != NULL; file_list_element = file_list_element->next) {
 								strcpy(file_location,file_list_element->dir_location);
 								strcat(file_location,"\n");
@@ -1256,12 +1270,30 @@ int main(int argc, char *argv[])
 							}
 						}
 					}
+					if (options.ignore_symlinks != 1) {
+						if (options.less_detailed != 1)
+							detailed_output(symlinks_surp_list,TO_FILE,string7_1,copyfile);
+						else if (options.less_detailed == 1) {
+							if (symlinks_extraneous == 1) {
+								write(copyfile, string7_1, strlen(string7_1));
+								for (file_list_element = symlinks_surp_list->head; file_list_element != NULL; file_list_element = file_list_element->next) {
+									strcpy(file_location,file_list_element->dir_location);
+									strcat(file_location,"\n");
+									write(copyfile, file_location, strlen(file_location));
+								}
+							}
+						}
+					}
 					if (dirs_extraneous == 1) {
-						write(copyfile, string8, strlen(string8));
-						for (dir_list_element = dir_surp_list->head; dir_list_element != NULL; dir_list_element = dir_list_element->next) {
-							strcpy(file_location,dir_list_element->dir_location);
-							strcat(file_location,"\n");
-							write(copyfile, file_location, strlen(file_location));
+						if (options.less_detailed != 1)
+							detailed_output(dir_surp_list,TO_FILE,string8,copyfile);
+						else if (options.less_detailed == 1) {
+							write(copyfile, string8, strlen(string8));
+							for (dir_list_element = dir_surp_list->head; dir_list_element != NULL; dir_list_element = dir_list_element->next) {
+								strcpy(file_location,dir_list_element->dir_location);
+								strcat(file_location,"\n");
+								write(copyfile, file_location, strlen(file_location));
+							}
 						}
 					}
 				}
