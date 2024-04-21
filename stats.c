@@ -63,7 +63,7 @@ char *list_stats(int after_c, struct copied_or_not)
 		printf("Number of directories (excluding the top directory): %ld\n", data_copy_info.global_dir_num_a);
 		printf("Size of directory in bytes: %ld\n", data_copy_info.global_files_size_a + data_copy_info.global_symlink_size_a);
 		// calc_size(): size of files/directories in the more appropriate or user specified unit
-		calc_size(data_copy_info.global_files_size_a,options.other_unit,0,0);
+		calc_size(data_copy_info.global_files_size_a,options.other_unit,NORMAL,0);
 		printf("\n");
 		printf("\n");
 		printf("DESTINATION DIRECTORY\n");
@@ -72,40 +72,46 @@ char *list_stats(int after_c, struct copied_or_not)
 		printf("Number of symbolic links: %ld\n", data_copy_info.global_symlink_num_b);
 		printf("Number of directories (excluding the top directory): %ld\n", data_copy_info.global_dir_num_b);
 		printf("Size of directory in bytes: %ld\n", data_copy_info.global_files_size_b + data_copy_info.global_symlink_size_a);
-		calc_size(data_copy_info.global_files_size_b,options.other_unit,0,0);
+		calc_size(data_copy_info.global_files_size_b,options.other_unit,NORMAL,0);
 		printf("\n");
 		printf("\n");
-		printf("Number of individual files to copy: %ld\n", data_copy_info.global_files_to_copy_num);
-		printf("Size of individual files to copy in bytes: %ld\n", data_copy_info.global_files_to_copy_size);
-		calc_size(data_copy_info.global_files_to_copy_size,options.other_unit,0,0);
+
+		// to copy stats
+		if (options.ignore_symlinks != 1) {
+			size_to_copy = data_copy_info.global_files_to_copy_size + data_copy_info.global_dirs_to_copy_size + data_copy_info.global_symlinks_to_copy_size;
+			printf("Files and directories to copy ");
+			calc_size(size_to_copy,options.other_unit,NORMAL,0);
+			printf("  %ld bytes\n", size_to_copy);
+		}
+		if (options.ignore_symlinks == 1) {
+			size_to_copy = data_copy_info.global_files_to_copy_size + data_copy_info.global_dirs_to_copy_size;
+			printf("Files and directories to copy ");
+			calc_size(size_to_copy,options.other_unit,NORMAL,0);
+			printf("  %ld bytes\n", size_to_copy);
+		}
+		printf("Number of individual files to copy: %ld  ", data_copy_info.global_files_to_copy_num);
+		calc_size(data_copy_info.global_files_to_copy_size,options.other_unit,NORMAL,0);
+		printf("  bytes: %ld\n", data_copy_info.global_files_to_copy_size);
 		if (options.ignore_symlinks != 1) {
 			printf("Number of individual symbolic links to copy: %ld\n", data_copy_info.global_symlinks_to_copy_num);
 			printf("Size of symbolic links to copy: %ld\n", data_copy_info.global_symlinks_to_copy_size);
 		}
-		printf("Number of directories to copy: %ld\n", data_copy_info.global_dirs_to_copy_num);
-		printf("Size of directories to copy in bytes: %ld\n", data_copy_info.global_dirs_to_copy_size);
-		calc_size(data_copy_info.global_dirs_to_copy_size,options.other_unit,0,0);
-		if (options.ignore_symlinks != 1) {
-			size_to_copy = data_copy_info.global_files_to_copy_size + data_copy_info.global_dirs_to_copy_size + data_copy_info.global_symlinks_to_copy_size;
-			printf("Files and directories to copy: ");
-			calc_size(size_to_copy,options.other_unit,0,0);
-		}
-		if (options.ignore_symlinks == 1) {
-			size_to_copy = data_copy_info.global_files_to_copy_size + data_copy_info.global_dirs_to_copy_size;
-			printf("Files and directories to copy: ");
-			calc_size(size_to_copy,options.other_unit,0,0);
-		}
-		printf("Number of extraneous files: %ld\n", data_copy_info.global_files_extraneous_num);
+		printf("Number of directories to copy: %ld  ", data_copy_info.global_dirs_to_copy_num);
+		calc_size(data_copy_info.global_dirs_to_copy_size,options.other_unit,NORMAL,0);
+		printf("  bytes: %ld\n", data_copy_info.global_dirs_to_copy_size);
+		printf("Number of files within directories to copy: %ld\n", data_copy_info.global_files_within_dirs_to_copy_num);
+		printf("Number of individual extraneous files: %ld\n", data_copy_info.global_files_extraneous_num);
 		printf("Size of extraneous files in bytes: %ld\n", data_copy_info.global_files_extraneous_size);
-		calc_size(data_copy_info.global_files_extraneous_size,options.other_unit,0,0);
+		calc_size(data_copy_info.global_files_extraneous_size,options.other_unit,NORMAL,0);
 		if (options.ignore_symlinks != 1) {
 			printf("Number of extraneous symbolic links: %ld\n", data_copy_info.global_symlinks_extraneous_num);
 			printf("Size of extraneous symbolic links in bytes: %ld\n", data_copy_info.global_symlinks_extraneous_size);
-			calc_size(data_copy_info.global_symlinks_extraneous_size,options.other_unit,0,0);
+			calc_size(data_copy_info.global_symlinks_extraneous_size,options.other_unit,NORMAL,0);
 		}
 		printf("Number of extraneous directories: %ld\n", data_copy_info.global_dirs_extraneous_num);
+		printf("Number of files within extraneous directories: %ld\n", data_copy_info.global_files_within_dirs_extraneous_num);
 		printf("Size of extraneous directories in bytes: %ld\n", data_copy_info.global_dirs_extraneous_size);
-		calc_size(data_copy_info.global_dirs_extraneous_size,options.other_unit,0,0);
+		calc_size(data_copy_info.global_dirs_extraneous_size,options.other_unit,NORMAL,0);
 		if (options.time_based == 1) {
 			printf("Same files with different modification time (main location newer): %ld\n", data_copy_info.global_diff_time_mn_num);
 			printf("Same files with different modification time (main location older): %ld\n", data_copy_info.global_diff_time_mo_num);
@@ -147,6 +153,9 @@ char *list_stats(int after_c, struct copied_or_not)
 					after_copying_symlinks_num += data_copy_info.global_symlinks_extraneous_num;
 					printf("Number of symbolic links: %ld\n", after_copying_symlinks_num);
 				}
+				else if (options.ignore_symlinks == 1) {
+					printf("Number of symbolic links: %ld\n", data_copy_info.global_symlink_num_a);
+				}
 			}
 			else if (copied.copied_extraneous == 0) {
 				printf("Aborted copying the extraneous data back to the source.\n");
@@ -179,25 +188,25 @@ char *list_stats(int after_c, struct copied_or_not)
 					after_copying_size_surp = data_copy_info.global_files_size_a + data_copy_info.global_files_extraneous_size 
 					+ data_copy_info.global_symlinks_extraneous_size + data_copy_info.global_dirs_extraneous_size;
 					printf("Size of directory in bytes after copying: %ld\n", after_copying_size_surp);
-					calc_size(after_copying_size_surp,options.other_unit,0,0);
+					calc_size(after_copying_size_surp,options.other_unit,NORMAL,0);
 				}
 				else if (options.ignore_symlinks == 1) {
 					after_copying_size_surp = data_copy_info.global_files_size_a + data_copy_info.global_files_extraneous_size + data_copy_info.global_dirs_extraneous_size;
 					printf("Size of directory in bytes after copying: %ld\n", after_copying_size_surp);
-					calc_size(after_copying_size_surp,options.other_unit,0,0);
+					calc_size(after_copying_size_surp,options.other_unit,NORMAL,0);
 				}
 			}
 			else if (copied.copied_extraneous == 0) {
 				printf("Aborted copying the extraneous data back to the source: ");
 				printf("Size of directory in bytes: %ld\n", data_copy_info.global_files_size_a);
 				// calc_size(): size of files/directories in the more appropriate or user specified unit
-				calc_size(data_copy_info.global_files_size_a,options.other_unit,0,0);
+				calc_size(data_copy_info.global_files_size_a,options.other_unit,NORMAL,0);
 			}
 		}
 		else {
 			printf("Size of directory in bytes: %ld\n", data_copy_info.global_files_size_a);
 			// calc_size(): size of files/directories in the more appropriate or user specified unit
-			calc_size(data_copy_info.global_files_size_a,options.other_unit,0,0);
+			calc_size(data_copy_info.global_files_size_a,options.other_unit,NORMAL,0);
 		}
 		printf("\n");
 		printf("\n");
@@ -218,6 +227,25 @@ char *list_stats(int after_c, struct copied_or_not)
 			}
 			else
 				printf("Number of files: %ld\n", after_copying_file_num);
+			if (options.ignore_symlinks != 1) {
+				after_copying_symlinks_num = 0;
+				after_copying_symlinks_num += data_copy_info.global_symlink_num_a + data_copy_info.global_symlinks_to_copy_num;
+				if (options.delete_extraneous == 1) {
+					if (copied.deleted_extraneous == 1) {
+						after_copying_symlinks_num -= data_copy_info.global_symlinks_extraneous_num;
+						printf("Number of symbolic links: %ld\n", after_copying_symlinks_num);
+					}
+					else if (copied.deleted_extraneous == 0) {
+						printf("Aborted deleting extraneous data.\n");
+						printf("Number of symbolic links: %ld\n", after_copying_symlinks_num);
+					}
+				}
+				else
+					printf("Number of symbolic links: %ld\n", after_copying_symlinks_num);
+			}
+			else if (options.ignore_symlinks == 1) {
+				printf("Number of symbolic links: %ld\n", data_copy_info.global_symlink_num_b);
+			}
 			after_copying_dir_num = 0;
 			after_copying_dir_num = data_copy_info.global_dir_num_b + data_copy_info.global_dirs_to_copy_num;
 			if (options.delete_extraneous == 1) {
@@ -234,6 +262,7 @@ char *list_stats(int after_c, struct copied_or_not)
 				printf("Number of directories (excluding the top directory): %ld\n", after_copying_dir_num);
 			after_copying_size = 0;
 			after_copying_size = data_copy_info.global_files_size_b + data_copy_info.global_files_to_copy_size + data_copy_info.global_dirs_to_copy_size;
+			// - errors.file_read_write_errors_size;
 			if (options.ow_main_larger == 1) {
 				if (copied.ow_larger == 1) {
 					after_copying_size -= data_copy_info.global_diff_size_ml_orig_size;
@@ -275,21 +304,21 @@ char *list_stats(int after_c, struct copied_or_not)
 					after_copying_size -= data_copy_info.global_files_extraneous_size;
 					after_copying_size -= data_copy_info.global_dirs_extraneous_size;
 					printf("Size of directory in bytes after copying: %ld\n", after_copying_size);
-					calc_size(after_copying_size,options.other_unit,0,0);
+					calc_size(after_copying_size,options.other_unit,NORMAL,0);
 					printf("\n");
 					printf("\n");
 				}
 				else if (copied.deleted_extraneous == 0) {
 					printf("Aborted deleting extraneous data.\n");
 					printf("Size of directory in bytes after copying: %ld\n", after_copying_size);
-					calc_size(after_copying_size,options.other_unit,0,0);
+					calc_size(after_copying_size,options.other_unit,NORMAL,0);
 					printf("\n");
 					printf("\n");
 				}
 			}
 			else {
 				printf("Size of directory in bytes after copying: %ld\n", after_copying_size);
-				calc_size(after_copying_size,options.other_unit,0,0);
+				calc_size(after_copying_size,options.other_unit,NORMAL,0);
 				printf("\n");
 				printf("\n");
 			}
@@ -345,7 +374,7 @@ char *list_stats(int after_c, struct copied_or_not)
 					after_copying_size -= data_copy_info.global_files_extraneous_size;
 					after_copying_size -= data_copy_info.global_dirs_extraneous_size;
 					printf("Size of directory in bytes after copying: %ld\n", after_copying_size);
-					calc_size(after_copying_size,options.other_unit,0,0);
+					calc_size(after_copying_size,options.other_unit,NORMAL,0);
 					printf("\n");
 					printf("\n");
 				}
@@ -354,7 +383,7 @@ char *list_stats(int after_c, struct copied_or_not)
 					printf("Number of files: %ld\n", after_copying_file_num);
 					printf("Number of directories (excluding the top directory): %ld\n", after_copying_dir_num);
 					printf("Size of directory in bytes after copying: %ld\n", after_copying_size);
-					calc_size(after_copying_size,options.other_unit,0,0);
+					calc_size(after_copying_size,options.other_unit,NORMAL,0);
 					printf("\n");
 					printf("\n");
 				}
@@ -363,7 +392,7 @@ char *list_stats(int after_c, struct copied_or_not)
 				printf("Number of files: %ld\n", after_copying_file_num);
 				printf("Number of directories (excluding the top directory): %ld\n", after_copying_dir_num);
 				printf("Size of directory in bytes after copying: %ld\n", after_copying_size);
-				calc_size(after_copying_size,options.other_unit,0,0);
+				calc_size(after_copying_size,options.other_unit,NORMAL,0);
 				printf("\n");
 				printf("\n");
 			}
@@ -381,7 +410,7 @@ char *list_stats(int after_c, struct copied_or_not)
 					after_copying_size -= data_copy_info.global_files_extraneous_size;
 					after_copying_size -= data_copy_info.global_dirs_extraneous_size;
 					printf("Size of directory in bytes after copying: %ld\n", after_copying_size);
-					calc_size(after_copying_size,options.other_unit,0,0);
+					calc_size(after_copying_size,options.other_unit,NORMAL,0);
 					printf("\n");
 					printf("\n");
 				}
@@ -390,7 +419,7 @@ char *list_stats(int after_c, struct copied_or_not)
 					printf("Number of files: %ld\n", after_copying_file_num);
 					printf("Number of directories (excluding the top directory): %ld\n", after_copying_dir_num);
 					printf("Size of directory in bytes after copying: %ld\n", after_copying_size);
-					calc_size(after_copying_size,options.other_unit,0,0);
+					calc_size(after_copying_size,options.other_unit,NORMAL,0);
 					printf("\n");
 					printf("\n");
 				}
@@ -399,7 +428,7 @@ char *list_stats(int after_c, struct copied_or_not)
 				printf("Number of files: %ld\n", after_copying_file_num);
 				printf("Number of directories (excluding the top directory): %ld\n", after_copying_dir_num);
 				printf("Size of directory in bytes after copying: %ld\n", after_copying_size);
-				calc_size(after_copying_size,options.other_unit,0,0);
+				calc_size(after_copying_size,options.other_unit,NORMAL,0);
 				printf("\n");
 				printf("\n");
 			}
@@ -419,7 +448,7 @@ char *list_stats(int after_c, struct copied_or_not)
 			printf("Number of directories (excluding the top directory): %ld\n", data_copy_info.global_dir_num_a);
 			printf("Size of directory in bytes: %ld\n", data_copy_info.global_files_size_a);
 			// calc_size(): size of files/directories in the more appropriate or user specified unit
-			calc_size(data_copy_info.global_files_size_a,options.other_unit,0,0);
+			calc_size(data_copy_info.global_files_size_a,options.other_unit,NORMAL,0);
 			printf("\n");
 			printf("\n");
 			printf("DESTINATION DIRECTORY\n");
@@ -428,7 +457,7 @@ char *list_stats(int after_c, struct copied_or_not)
 			printf("Number of directories (excluding the top directory): %ld\n", data_copy_info.global_dir_num_a);
 			printf("Size of directory in bytes: %ld\n", data_copy_info.global_files_size_a);
 			// calc_size(): size of files/directories in the more appropriate or user specified unit
-			calc_size(data_copy_info.global_files_size_a,options.other_unit,0,0);
+			calc_size(data_copy_info.global_files_size_a,options.other_unit,NORMAL,0);
 		}
 		else if (copied.full_dir1_copied == 0 && copied.full_dir2_copied == 0) {
 			printf("\n");
@@ -442,7 +471,7 @@ char *list_stats(int after_c, struct copied_or_not)
 			printf("Number of directories (excluding the top directory): %ld\n", data_copy_info.global_dir_num_a);
 			printf("Size of directory in bytes: %ld\n", data_copy_info.global_files_size_a);
 			// calc_size(): size of files/directories in the more appropriate or user specified unit
-			calc_size(data_copy_info.global_files_size_a,options.other_unit,0,0);
+			calc_size(data_copy_info.global_files_size_a,options.other_unit,NORMAL,0);
 			printf("\n");
 			printf("\n");
 			printf("DESTINATION DIRECTORY\n");
@@ -451,7 +480,7 @@ char *list_stats(int after_c, struct copied_or_not)
 			printf("Number of directories (excluding the top directory): %ld\n", data_copy_info.global_dir_num_a);
 			printf("Size of directory in bytes: %ld\n", data_copy_info.global_files_size_a);
 			// calc_size(): size of files/directories in the more appropriate or user specified unit
-			calc_size(data_copy_info.global_files_size_a,options.other_unit,0,0);
+			calc_size(data_copy_info.global_files_size_a,options.other_unit,NORMAL,0);
 		}
 		if (copied.full_dir2_copied == 1) {
 			printf("\n");
@@ -465,7 +494,7 @@ char *list_stats(int after_c, struct copied_or_not)
 			printf("Number of directories (excluding the top directory): %ld\n", data_copy_info.global_dir_num_b);
 			printf("Size of directory in bytes: %ld\n", data_copy_info.global_files_size_b);
 			// calc_size(): size of files/directories in the more appropriate or user specified unit
-			calc_size(data_copy_info.global_files_size_b,options.other_unit,0,0);
+			calc_size(data_copy_info.global_files_size_b,options.other_unit,NORMAL,0);
 			printf("\n");
 			printf("\n");
 			printf("DESTINATION DIRECTORY\n");
@@ -474,7 +503,7 @@ char *list_stats(int after_c, struct copied_or_not)
 			printf("Number of directories (excluding the top directory): %ld\n", data_copy_info.global_dir_num_b);
 			printf("Size of directory in bytes: %ld\n", data_copy_info.global_files_size_b);
 			// calc_size(): size of files/directories in the more appropriate or user specified unit
-			calc_size(data_copy_info.global_files_size_b,options.other_unit,0,0);
+			calc_size(data_copy_info.global_files_size_b,options.other_unit,NORMAL,0);
 		}
 		else if (copied.full_dir1_copied == 0 && copied.full_dir2_copied == 0) {
 			printf("\n");
@@ -488,7 +517,7 @@ char *list_stats(int after_c, struct copied_or_not)
 			printf("Number of directories (excluding the top directory): %ld\n", data_copy_info.global_dir_num_a);
 			printf("Size of directory in bytes: %ld\n", data_copy_info.global_files_size_a);
 			// calc_size(): size of files/directories in the more appropriate or user specified unit
-			calc_size(data_copy_info.global_files_size_a,options.other_unit,0,0);
+			calc_size(data_copy_info.global_files_size_a,options.other_unit,NORMAL,0);
 			printf("\n");
 			printf("\n");
 			printf("DESTINATION DIRECTORY\n");
@@ -497,7 +526,7 @@ char *list_stats(int after_c, struct copied_or_not)
 			printf("Number of directories (excluding the top directory): %ld\n", data_copy_info.global_dir_num_b);
 			printf("Size of directory in bytes: %ld\n", data_copy_info.global_files_size_b);
 			// calc_size(): size of files/directories in the more appropriate or user specified unit
-			calc_size(data_copy_info.global_files_size_b,options.other_unit,0,0);
+			calc_size(data_copy_info.global_files_size_b,options.other_unit,NORMAL,0);
 		}
 	}
 }
@@ -528,22 +557,22 @@ char *calc_size(unsigned long data_size, int other_unit, int output, int fd)
 			if (data_size != 0) {
 				if (data_size >= power4) {
 					unit = (long double) data_size / power4;
-					printf("Size: %.2Lf TB\n", unit);
+					printf("size: %.2Lf TB", unit);
 				}
 				else if (data_size >= power3) {
 					unit = (long double) data_size / power3;
-					printf("Size: %.2Lf GB\n", unit);
+					printf("size: %.2Lf GB", unit);
 				}
 				else if (data_size >= power2) {
 					unit = (long double) data_size / power2;
-					printf("Size: %.2Lf MB\n", unit);
+					printf("size: %.2Lf MB", unit);
 				}
 				else if (data_size >= power1) {
 					unit = (long double) data_size / power1;
-					printf("Size: %.2Lf KB\n", unit);
+					printf("size: %.2Lf KB", unit);
 				}
 				else if (data_size < power1) {
-					printf("Size: %ld bytes\n", data_size);
+					printf("size: %ld bytes", data_size);
 				}
 			}
 		}
@@ -551,26 +580,26 @@ char *calc_size(unsigned long data_size, int other_unit, int output, int fd)
 			if (data_size != 0) {
 				if (data_size >= power4) {
 					unit = (long double) data_size / power4;
-					sprintf(return_val, "Size: %.2Lf TB", unit);
+					sprintf(return_val, "size: %.2Lf TB", unit);
 					return return_val;
 				}
 				else if (data_size >= power3) {
 					unit = (long double) data_size / power3;
-					sprintf(return_val, "Size: %.2Lf GB", unit);
+					sprintf(return_val, "size: %.2Lf GB", unit);
 					return return_val;
 				}
 				else if (data_size >= power2) {
 					unit = (long double) data_size / power2;
-					sprintf(return_val, "Size: %.2Lf MB", unit);
+					sprintf(return_val, "size: %.2Lf MB", unit);
 					return return_val;
 				}
 				else if (data_size >= power1) {
 					unit = (long double) data_size / power1;
-					sprintf(return_val, "Size: %.2Lf KB", unit);
+					sprintf(return_val, "size: %.2Lf KB", unit);
 					return return_val;
 				}
 				else if (data_size < power1) {
-					sprintf(return_val, "Size: %ld bytes\n", data_size);
+					sprintf(return_val, "size: %ld bytes\n", data_size);
 					return return_val;
 				}
 			}
@@ -581,22 +610,22 @@ char *calc_size(unsigned long data_size, int other_unit, int output, int fd)
 			if (data_size != 0) {
 				if (strcmp(options.unit,"TB") == 0) {
 					unit = (long double) data_size / power4;
-					printf("Size: %.2Lf TB\n", unit);
+					printf("size: %.2Lf TB", unit);
 				}
 				else if (strcmp(options.unit,"GB") == 0) {
 					unit = (long double) data_size / power3;
-					printf("Size: %.2Lf GB\n", unit);
+					printf("size: %.2Lf GB", unit);
 				}
 				else if (strcmp(options.unit,"MB") == 0) {
 					unit = (long double) data_size / power2;
-					printf("Size: %.2Lf MB\n", unit);
+					printf("size: %.2Lf MB", unit);
 					}
 				else if (strcmp(options.unit,"KB") == 0) {
 					unit = (long double) data_size / power1;
-					printf("Size: %.2Lf KB\n", unit);
+					printf("size: %.2Lf KB", unit);
 				}
 				else if (data_size < power1) {
-					printf("Size: %ld bytes\n", data_size);
+					printf("size: %ld bytes", data_size);
 				}
 			}
 		}
@@ -604,42 +633,41 @@ char *calc_size(unsigned long data_size, int other_unit, int output, int fd)
 			if (data_size != 0) {
 				if (strcmp(options.unit,"TB") == 0) {
 					unit = (long double) data_size / power4;
-					sprintf(return_val, "Size: %.2Lf TB", unit);
+					sprintf(return_val, "size: %.2Lf TB", unit);
 					return return_val;
 				}
 				else if (strcmp(options.unit,"GB") == 0) {
 					unit = (long double) data_size / power3;
-					sprintf(return_val, "Size: %.2Lf GB", unit);
+					sprintf(return_val, "size: %.2Lf GB", unit);
 					return return_val;
 				}
 				else if (strcmp(options.unit,"MB") == 0) {
 					unit = (long double) data_size / power2;
-					sprintf(return_val, "Size: %.2Lf MB", unit);
+					sprintf(return_val, "size: %.2Lf MB", unit);
 					return return_val;
 					}
 				else if (strcmp(options.unit,"KB") == 0) {
 					unit = (long double) data_size / power1;
-					sprintf(return_val, "Size: %.2Lf KB", unit);
+					sprintf(return_val, "size: %.2Lf KB", unit);
 					return return_val;
 				}
 				else if (data_size < power1) {
-					sprintf(return_val, "Size: %ld bytes\n", data_size);
+					sprintf(return_val, "size: %ld bytes\n", data_size);
 					return return_val;
 				}
 			}
 		}
 	}
 }
-// dodaj u main provjeru da dont-list-stats i detailed-output -D nisu u konfliktu!!!!!!!!!!!!!!!!!!!!!
+
 char *detailed_output(DList *to_copy_list, int output, char *what_is_copied, int fd)
 {
 	struct options_menu options;				// data structure used to set options
 	extern struct Data_Copy_Info data_copy_info;
 	struct copied_or_not copied;
-
-	// -D=1 -D=2 -D=3 different levels of detailed output, možda bolje da dodatni argumenti smanjuju detalje, samo -D maksimalni detaljni. -D=5 minimalni
-	// buffers: dir_location buf_size=calc_size(size) perms=show_perms(perms) 
-	// directory -> new_location
+	char *bytes = "bytes";
+	char *location = "location";
+	char *new_location = "new_location";
 
 #define FP_SPECIAL 1
 
@@ -656,11 +684,23 @@ char *detailed_output(DList *to_copy_list, int output, char *what_is_copied, int
 					(((to_copy->st_mode & S_ISVTX) && (to_copy->st_mode & FP_SPECIAL)) ? 't' : 'x') : (((to_copy->st_mode & S_ISVTX) && (to_copy->st_mode & FP_SPECIAL)) ? 'T' : '-'));
 										// provjeri dali za delete extraneous npr. to_copy->new_location nije NULL i da ga ruši.
 			printf("%s:     %s     %ld bytes \nlocation: %s     new location: %s\n\n", 
-				to_copy->name, calc_size(to_copy->size,options.other_unit,AS_RETURN_VAL,0), to_copy->size, to_copy->dir_location, to_copy->new_location);
+				to_copy->name, calc_size(to_copy->size, options.other_unit, AS_RETURN_VAL, 0), to_copy->size, to_copy->dir_location, to_copy->new_location);
 		}
 	}
-	else if (output == TO_FILE)
-		;
-	else if (output == BOTH)
-		;
+	else if (output == TO_FILE) {
+		dprintf(fd, "\n%s\n", what_is_copied);
+		for (to_copy = to_copy_list->head; to_copy != NULL; to_copy = to_copy->next) {
+			dprintf(fd, "%c%c%c%c%c%c%c%c%c     ", (to_copy->st_mode & S_IRUSR) ? 'r' : '-', (to_copy->st_mode & S_IWUSR) ? 'w' : '-', (to_copy->st_mode & S_IXUSR) ?
+					(((to_copy->st_mode & S_ISUID) && (to_copy->st_mode & FP_SPECIAL)) ? 's' : 'x') : (((to_copy->st_mode & S_ISUID) && (to_copy->st_mode & FP_SPECIAL)) ? 'S' : '-'),
+					(to_copy->st_mode & S_IRGRP) ? 'r' : '-', (to_copy->st_mode & S_IWGRP) ? 'w' : '-', (to_copy->st_mode & S_IXGRP) ?
+					(((to_copy->st_mode & S_ISGID) && (to_copy->st_mode & FP_SPECIAL)) ? 's' : 'x') : (((to_copy->st_mode & S_ISGID) && (to_copy->st_mode & FP_SPECIAL)) ? 'S' : '-'),
+					(to_copy->st_mode & S_IROTH) ? 'r' : '-', (to_copy->st_mode & S_IWOTH) ? 'w' : '-', (to_copy->st_mode & S_IXOTH) ?
+					(((to_copy->st_mode & S_ISVTX) && (to_copy->st_mode & FP_SPECIAL)) ? 't' : 'x') : (((to_copy->st_mode & S_ISVTX) && (to_copy->st_mode & FP_SPECIAL)) ? 'T' : '-'));
+										// provjeri dali za delete extraneous npr. to_copy->new_location nije NULL i da ga ruši.
+			dprintf(fd, "%s:     %s     %ld bytes \nlocation: %s     new location: %s\n\n", 
+				to_copy->name, calc_size(to_copy->size, options.other_unit, AS_RETURN_VAL, 0), to_copy->size, to_copy->dir_location, to_copy->new_location);
+		}
+	}
+	//else if (output == BOTH)
+	//	;
 }
