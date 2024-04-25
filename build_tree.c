@@ -165,8 +165,8 @@ void build_tree(struct thread_struct *thread_data)
 		file_tree_element->sym_links = sym_links;
 		file_tree_element->directories = NULL;
 		file_tree_element->sym_links_size += sym_links->files_size;
-		file_tree_element->file_num += sym_links->num;
-		file_tree_element->complete_file_num += sym_links->num;
+		file_tree_element->sym_links_num += sym_links->num;
+		file_tree_element->complete_sym_links_num += sym_links->num;
 		file_tree_element->complete_dir_size += sym_links->files_size;
 		*p_global_sym_links_num += sym_links->num;
 		*p_global_sym_links_size += sym_links->files_size;
@@ -199,8 +199,8 @@ void build_tree(struct thread_struct *thread_data)
 		*p_global_files_size += files->files_size;
 		file_tree_element->sym_links = sym_links;
 		file_tree_element->sym_links_size += sym_links->files_size;
-		file_tree_element->file_num += sym_links->num;
-		file_tree_element->complete_file_num += sym_links->num;
+		file_tree_element->sym_links_num += sym_links->num;
+		file_tree_element->complete_sym_links_num += sym_links->num;
 		file_tree_element->complete_dir_size += sym_links->files_size;
 		*p_global_sym_links_num += sym_links->num;
 		*p_global_sym_links_size += sym_links->files_size;
