@@ -24,6 +24,7 @@ void init_to_zero(DList_of_lists *file_tree_element)
 	file_tree_element->file_num = 0;
 	file_tree_element->subdir_file_num = 0;
 	file_tree_element->sym_links_num = 0;
+	file_tree_element->subdir_sym_links_num = 0;
 	file_tree_element->complete_file_num = 0;
 	file_tree_element->complete_sym_links_num = 0;
 	file_tree_element->files_size = 0;
