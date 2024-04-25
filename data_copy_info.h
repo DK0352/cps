@@ -39,6 +39,8 @@ struct Data_Copy_Info {
         unsigned long	global_files_to_copy_size;      // size of files to copy in bytes
 	unsigned long	global_files_within_dirs_to_copy_num;	// number of files within directories to copy 
 	unsigned long	global_files_within_dirs_extraneous_num;	// number of files within directories to copy back
+	unsigned long	global_symlinks_within_dirs_to_copy_num;	// number of symlinks within directories to copy 
+	unsigned long	global_symlinks_within_dirs_extraneous_num;	// number of symlinks within directories to copy back
         unsigned long   global_symlinks_to_copy_num;       // number of symbolic links to copy
         unsigned long	global_symlinks_to_copy_size;      // size of symbolic links to copy in bytes
         unsigned long	global_dirs_to_copy_num;        // number of directories to copy
