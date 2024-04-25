@@ -37,7 +37,6 @@ int compare_trees(struct thread_struct *thread_data_a, struct thread_struct *thr
 int read_write_data(DList *, int choose, char *source, char *destination);				// read and write files and directories that should be copied, or delete them if specified
 int clean_tree(DList_of_lists *, short);								// free the dynamically allocated file tree
 int write_contents_to_file(DList_of_lists *directory, short opened, int f_descriptor);			// write the file trees to a file
-//char *list_stats(int after_c, struct copied_or_not copied, int output, int fd);
 char *list_stats(int after_c, struct copied_or_not copied);
 char *calc_size(unsigned long data_size, int other_unit, int output, int fd);
 char *detailed_output(DList *to_copy_list, int output, char *what_is_copied, int fd);
@@ -75,7 +74,6 @@ int main(int argc, char *argv[])
 	int use_threads = 0;						// in case source and destination directories are on different disk, use threads is set to 1
 	int open_linearly = 0;
 	int len;
-	//char *pathname1, *pathname2;					// pathnames for directory1 and directory2
 	char file_loc2[PATH_MAX];					// location of the text file with the data to copy content file location
 	char file_location[PATH_MAX];					// copy/content file location + the newline char to avoid using write() sys call just for '\n'
 	const char *src = "source";
