@@ -33,11 +33,11 @@
 int clean_tree(DList_of_lists *, short);								// free the dynamically allocated file tree
 int write_contents_to_file(DList_of_lists *directory, short opened, int f_descriptor);			// write the file trees to a file
 //char *list_stats(int after_c, struct copied_or_not copied, int output, int fd);
-char *list_stats(int after_c, struct copied_or_not copied);
+char *list_stats(int after_c);
 char *calc_size(unsigned long data_size, int other_unit, int output, int fd);
 
 //char *list_stats(int after_c, struct copied_or_not copied, int output, int fd)
-char *list_stats(int after_c, struct copied_or_not)
+char *list_stats(int after_c)
 {
 	extern struct options_menu options;				// data structure used to set options
 	extern struct Data_Copy_Info data_copy_info;
@@ -49,6 +49,11 @@ char *list_stats(int after_c, struct copied_or_not)
 	unsigned long after_copying_file_num;
 	unsigned long after_copying_symlinks_num;
 	unsigned long after_copying_dir_num;
+	static int called = 1;
+
+	printf("called %d times.\n", called);
+	called++;
+	printf("copied_data = %d\n", copied.copied_data);
 
 	size_to_copy = 0;
 
@@ -153,7 +158,7 @@ char *list_stats(int after_c, struct copied_or_not)
 		printf("\n");
 		printf("\n");
 		printf("Before copying:\n");
-		list_stats(0,copied);
+		list_stats(0);
 		printf("After copying:\n");
 		printf("\n");
 		printf("\n");
@@ -268,7 +273,9 @@ char *list_stats(int after_c, struct copied_or_not)
 				printf("Number of files and symbolic links: %ld\n", after_copying_file_num + after_copying_symlinks_num);
 			else if (options.ignore_symlinks == 1)
 				printf("Number of files and symbolic links: %ld\n", after_copying_file_num + data_copy_info.global_symlink_num_b);
+
 			printf("Number of files: %ld\n", after_copying_file_num);
+
 			if (options.ignore_symlinks != 1)
 				printf("Number of symbolic links: %ld\n", after_copying_symlinks_num);
 			else if (options.ignore_symlinks == 1)
@@ -362,6 +369,7 @@ char *list_stats(int after_c, struct copied_or_not)
 				calc_size(after_copying_size,options.other_unit,NORMAL,0);
 				printf("\n");
 				printf("\n");
+				printf("it goes here?\n");
 			}
 		} // if (copied.copied_data == 1)
 		else if (copied.copied_data == 0 && options.just_delete_extraneous != 1) {
@@ -468,6 +476,8 @@ char *list_stats(int after_c, struct copied_or_not)
 				printf("Number of directories (excluding the top directory): %ld\n", after_copying_dir_num);
 				printf("Size of directory in bytes after copying: %ld\n", after_copying_size);
 				printf("Size:");
+				printf("How is this possible??\n");
+				printf("copied.copied_data = %d\n", copied.copied_data);
 				calc_size(after_copying_size,options.other_unit,NORMAL,0);
 				printf("\n");
 				printf("\n");
