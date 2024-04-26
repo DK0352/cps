@@ -429,22 +429,22 @@ int main(int argc, char *argv[])
 		printf("%-37s  %s\n", help_string55, help_string56); // --overwrite-with-older
 		printf("%-37s  %s\n", help_string45, help_string46); // follow-sym-links
 		printf("%-37s  %s\n", help_string69, help_string70); // ignore-symlinks
-		printf("%-37s  %s\n", help_string13, help_string14); // --dont-list-data-to-copy
-		printf("%-37s  %s\n", help_string15, help_string16); // --help
-		printf("%-37s  %s\n", help_string21, help_string22); // --copy-content-file
-		printf("%-37s  %s\n", help_string23, help_string24); // --just-copy-content-file
 		printf("%-37s  %s\n", help_string25, help_string26); // --dont-list-stats
+		printf("%-37s  %s\n", help_string13, help_string14); // --dont-list-data-to-copy
+		printf("%-37s  %s\n", help_string39, help_string40); // --dont-show-read-process
+		printf("%-37s  %s\n", help_string41, help_string42); // --dont-show-write-process
 		printf("%-37s  %s\n", help_string27, help_string28); // --dont-quit-read-errors
 		printf("%-37s  %s\n", help_string29, help_string30); // --dont-quit-write-errors
 		printf("%-37s  %s\n", help_string31, help_string32); // --dont-quit-delete-errors
+		printf("%-37s  %s\n", help_string15, help_string16); // --help
+		printf("%-37s  %s\n", help_string21, help_string22); // --copy-content-file
+		printf("%-37s  %s\n", help_string23, help_string24); // --just-copy-content-file
 		printf("%-37s  %s\n", help_string33, help_string34); // --no-questions
-		printf("%-37s  %s\n", help_string39, help_string40); // --dont-show-read-process
-		printf("%-37s  %s\n", help_string41, help_string42); // --dont-show-write-process
 		printf("%-37s  %s\n", help_string47, help_string48); // --no-access-time
 		printf("%-37s  %s\n", help_string49, help_string50); // --preserve-atime
 		printf("%-37s  %s\n", help_string51, help_string52); // --preserve-mtime
-		printf("%-37s  %s\n", help_string59, help_string60); // --size-mode
 		printf("%-37s  %s\n", help_string63, help_string64); // --preserve-perms
+		printf("%-37s  %s\n", help_string59, help_string60); // --size-mode
 		printf("%-37s  %s\n", help_string65, help_string66); // --acls
 		printf("%-37s  %s\n", help_string67, help_string68); // --xattrs
 		printf("%-37s  %s\n", help_string35, help_string36); // --unit=OPTION
