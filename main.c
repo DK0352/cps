@@ -137,7 +137,7 @@ int main(int argc, char *argv[])
 	char *help_string8 = "If two files with the same name are found, overwrite the smaller file in the secondary location with the larger file from the main location.";
 	char *help_string9 = "--list-conflicting or -L";
 	char *help_string10 = "List files with the same name, but different size or modification time.";
-	char *help_string11 = "--list-extraneous or -f";
+	char *help_string11 = "--list-extraneous or -e";
 	char *help_string12 = "Just list extraneous files and directories, but dont copy them.";
 	char *help_string13 = "--dont-list-data-to-copy or -g";
 	char *help_string14 = "Don't list the files and directories to copy after scaning.";
@@ -250,7 +250,7 @@ int main(int argc, char *argv[])
 			{"just-delete-extraneous", no_argument, 0, 'X' },
 			{"overwrite-with-smaller", no_argument, 0, 's' },
 			{"overwrite-with-larger", no_argument, 0, 'l' },
-			{"list-extraneous", no_argument, 0, 'f' },
+			{"list-extraneous", no_argument, 0, 'e' },
 			{"dont-list-data-to-copy", no_argument, 0, 'g' },
 			{"less-detailed", no_argument, 0, 'D' },
 			{"help", no_argument, 0, 'h' },
@@ -280,7 +280,7 @@ int main(int argc, char *argv[])
 			{0, 0, 0, 0}
 		};
 
-		c = getopt_long(argc, argv, "abdfghik:lopqrstuvwxyzABDFG:K:LMNOPSX", long_options, &option_index);
+		c = getopt_long(argc, argv, "abdeghik:lopqrstuvwxyzABDFG:K:LMNOPSX", long_options, &option_index);
 		if (c == -1)
 			break;
 		switch (c) {
@@ -320,7 +320,7 @@ int main(int argc, char *argv[])
 			case 'l':
 				options.ow_main_larger = 1;
 				break;
-			case 'f':
+			case 'e':
 				options.list_extraneous = 1;
 				break;
 			case 'g':
