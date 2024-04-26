@@ -84,7 +84,7 @@ char *list_stats(int after_c)
 		// to copy stats
 		if (options.ignore_symlinks != 1) {
 			size_to_copy = data_copy_info.global_files_to_copy_size + data_copy_info.global_dirs_to_copy_size + data_copy_info.global_symlinks_to_copy_size;
-			printf("Files and directories to copy: ");
+			printf("Size of files and directories to copy: ");
 			if (size_to_copy == 0)
 				printf("0  ");
 			calc_size(size_to_copy,options.other_unit,NORMAL,0);
@@ -120,15 +120,14 @@ char *list_stats(int after_c)
 		printf("Number of individual extraneous files: %ld  ", data_copy_info.global_files_extraneous_num);
 		calc_size(data_copy_info.global_files_extraneous_size,options.other_unit,NORMAL,0);
 		printf("  %ld bytes\n", data_copy_info.global_files_extraneous_size);
-		if (options.ignore_symlinks != 1) {
-			printf("Number of extraneous symbolic links: %ld  ", data_copy_info.global_symlinks_extraneous_num);
-			calc_size(data_copy_info.global_symlinks_extraneous_size,options.other_unit,NORMAL,0);
-			printf("  %ld bytes\n", data_copy_info.global_symlinks_extraneous_size);
-		}
+		printf("Number of individual extraneous symbolic links: %ld  ", data_copy_info.global_symlinks_extraneous_num);
+		calc_size(data_copy_info.global_symlinks_extraneous_size,options.other_unit,NORMAL,0);
+		printf("  %ld bytes\n", data_copy_info.global_symlinks_extraneous_size);
 		printf("Number of extraneous directories: %ld  ", data_copy_info.global_dirs_extraneous_num);
 		calc_size(data_copy_info.global_dirs_extraneous_size,options.other_unit,NORMAL,0);
 		printf("  %ld bytes\n", data_copy_info.global_dirs_extraneous_size);
 		printf("Number of files within extraneous directories: %ld\n", data_copy_info.global_files_within_dirs_extraneous_num);
+		printf("Number of symbolic links within extraneous directories: %ld\n", data_copy_info.global_symlinks_within_dirs_extraneous_num);
 		if (options.time_based == 1) {
 			printf("Same files with different modification time (main location newer): %ld\n", data_copy_info.global_diff_time_mn_num);
 			printf("Same files with different modification time (main location older): %ld\n", data_copy_info.global_diff_time_mo_num);
@@ -598,7 +597,7 @@ char *calc_size(unsigned long data_size, int other_unit, int output, int fd)
 					return return_val;
 				}
 				else if (data_size < power1) {
-					sprintf(return_val, " %ld bytes\n", data_size);
+					sprintf(return_val, " %ld bytes", data_size);
 					return return_val;
 				}
 			}
@@ -655,7 +654,7 @@ char *calc_size(unsigned long data_size, int other_unit, int output, int fd)
 					return return_val;
 				}
 				else if (data_size < power1) {
-					sprintf(return_val, " %ld bytes\n", data_size);
+					sprintf(return_val, " %ld bytes", data_size);
 					return return_val;
 				}
 			}
@@ -687,7 +686,6 @@ char *detailed_output(DList *to_copy_list, int output, char *what_is_copied, int
 					(((to_copy->st_mode & S_ISGID) && (to_copy->st_mode & FP_SPECIAL)) ? 's' : 'x') : (((to_copy->st_mode & S_ISGID) && (to_copy->st_mode & FP_SPECIAL)) ? 'S' : '-'),
 					(to_copy->st_mode & S_IROTH) ? 'r' : '-', (to_copy->st_mode & S_IWOTH) ? 'w' : '-', (to_copy->st_mode & S_IXOTH) ?
 					(((to_copy->st_mode & S_ISVTX) && (to_copy->st_mode & FP_SPECIAL)) ? 't' : 'x') : (((to_copy->st_mode & S_ISVTX) && (to_copy->st_mode & FP_SPECIAL)) ? 'T' : '-'));
-										// provjeri dali za delete extraneous npr. to_copy->new_location nije NULL i da ga ruši.
 			printf("%s:     %s     %ld bytes \nlocation: %s     new location: %s\n\n", 
 				to_copy->name, to_copy->size ? calc_size(to_copy->size, options.other_unit, AS_RETURN_VAL, 0) : " ", to_copy->size, to_copy->dir_location, to_copy->new_location);
 		}
@@ -701,7 +699,6 @@ char *detailed_output(DList *to_copy_list, int output, char *what_is_copied, int
 					(((to_copy->st_mode & S_ISGID) && (to_copy->st_mode & FP_SPECIAL)) ? 's' : 'x') : (((to_copy->st_mode & S_ISGID) && (to_copy->st_mode & FP_SPECIAL)) ? 'S' : '-'),
 					(to_copy->st_mode & S_IROTH) ? 'r' : '-', (to_copy->st_mode & S_IWOTH) ? 'w' : '-', (to_copy->st_mode & S_IXOTH) ?
 					(((to_copy->st_mode & S_ISVTX) && (to_copy->st_mode & FP_SPECIAL)) ? 't' : 'x') : (((to_copy->st_mode & S_ISVTX) && (to_copy->st_mode & FP_SPECIAL)) ? 'T' : '-'));
-										// provjeri dali za delete extraneous npr. to_copy->new_location nije NULL i da ga ruši.
 			dprintf(fd, "%s:     %s     %ld bytes \nlocation: %s     new location: %s\n\n", 
 				to_copy->name, to_copy->size ? calc_size(to_copy->size, options.other_unit, AS_RETURN_VAL, 0) : " ", to_copy->size, to_copy->dir_location, to_copy->new_location);
 		}
