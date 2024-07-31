@@ -18,9 +18,23 @@
 */
 
 struct errors_data {
-	short	file_read_error_count;
-	short 	file_write_error_count;
-	short	dir_read_error_count;
-	short	dir_write_error_count;
+	unsigned long	file_open_error_count;
+	unsigned long	file_create_error_count;
+	unsigned long 	file_close_error_count;
+	unsigned long 	file_delete_error_count;
+	unsigned long	dir_open_error_count;
+	unsigned long	dir_close_error_count;
+	unsigned long	dir_delete_error_count;
+	unsigned long	file_read_error_count;
+	unsigned long 	file_write_error_count;
+	unsigned long 	file_overwrite_error_count;
+	unsigned long	dir_read_error_count;
+	unsigned long	dir_create_error_count;
+	unsigned long	file_attr_error_count;
+	unsigned long	dir_attr_error_count;
+	unsigned long	symlink_read_error_count;
+	unsigned long	symlink_write_error_count;
+	unsigned long	symlink_overwrite_error_count;
+	unsigned long
 	DList *file_read_error, *file_write_error, *dir_read_error, *dir_write_error;
 };
