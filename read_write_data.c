@@ -63,6 +63,9 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 	ssize_t		buflen, keylen, vallen;
 	int		setxattr_status;
 
+	int		some_errors = 0;
+	int		read_write_data_res = 0;
+
 	file_t_init = 0;
 	direntry_init = 0;
 
@@ -212,13 +215,19 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 						printf("%s\n", read_file_list->new_location);
 					for (link_del = 0; link_del < link_len; link_del++)
 						linkpath[link_del] = '\0';
+					read_open_count++;
 					continue;
 				}
 				else {
 					perror("open");
-					printf("read_write_data() 1: %s\n", read_file_list->dir_location);
+					fprintf(stderr, "read_write_data() 1: %s\n", read_file_list->dir_location);
+					errors.file_open_error_count++;
 					if (options.quit_read_errors == 1)
-						exit(1);
+						return -1;
+					else if (options.quit_read_errors == 0) {
+						some_errors++;
+						continue;
+					}
 				}
 			}
 			errno = 0;
@@ -227,21 +236,33 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 			write_descriptor = open(read_file_list->new_location, O_WRONLY | O_CREAT | O_EXCL, file_perms);	
 			if (write_descriptor == -1) {
 				perror("open");
-				printf("read_write_data() 1: %s\n", read_file_list->new_location);
-				if (options.quit_write_errors == 1)	
-					exit(1);
+				fprintf(stderr, "read_write_data() 1: %s\n", read_file_list->new_location);
+				errors.file_write_error_count++;	
+				if (options.quit_write_errors == 1)
+					return -1;
+				else if (options.quit_write_errors == 0)
+					some_errors++;
 			}
 			else {
+				write_open_count++;
 				errno = 0;
 				while ((num_read = read(read_descriptor,buf,BUF_SIZE)) > 0) {
 					if (write(write_descriptor, buf, num_read) != num_read) {
 						printf("read_write_data() 1: coudn't write the whole buffer.\n");
+						errors.file_write_error_count++;
+						if (options.quit_write_errors == 1)
+							return -1;
+						else if (options.quit_write_errors == 0)
+							break;
 					}
 				}
 				if (num_read == -1) {
 					perror("read");
-					printf("read_write_data() 1: error reading the data.\n");
-					exit(1);
+					fprintf(stderr, "read_write_data() 1: error reading the data.\n");
+					if (options.quit_read_errors == 1)
+						return -1;
+					else if (options.quit_read_errors == 0)
+						break;
 				}
 			}
 			if (options.time_mods == 1) {
@@ -379,16 +400,22 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 			if (options.show_write_proc != 0)
 				printf("%s\n", read_file_list->new_location);
 			if (close(read_descriptor) == -1) {
-				printf("read_write_data() 1: error closing the read descriptor.\n");
-				if (options.quit_read_errors == 1)
-					exit(1);
+				fprintf(stderr, "read_write_data() 1: error closing the read descriptor.\n");
+				if (options.quit_read_errors == 1) {
+					errors.file_close_error_count++;
+					return -1;
+				}
 			}
 			if (close(write_descriptor) == -1) {
-				printf("read_write_data: error closing the write descriptor.\n");
-				if (options.quit_write_errors == 1)
-					exit(1);
+				fprintf(stderr, "read_write_data: error closing the write descriptor.\n");
+				if (options.quit_write_errors == 1) {
+					errors.file_close_error_count++;
+					return -1;
+				}
 			}
 		} // for (read_file_list = file_list->head...
+		if (some_errors > 0)
+			return 1;
 		return 0;
 	} // if (choose == 1) {
 
@@ -401,9 +428,13 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 			errno = 0;
 			if (mkdir(read_dir_list->new_location,dir_perms) != 0) {
 				perror("mkdir");
-				printf("read_write_data() 2: %s\n", read_dir_list->new_location);
-				if (options.quit_write_errors == 1)
-					exit(1);
+				fprintf(stderr, "read_write_data() 2: %s\n", read_dir_list->new_location);
+				if (options.quit_write_errors == 1) {
+					return -1;
+				else if (options.quit_write_errors == 0) {
+					some_errors++;
+					continue;
+				}
 			}
 			if (options.time_mods == 1) {
 				if (options.preserve_a_time == 1) {
@@ -538,8 +569,20 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 				printf("Directory: %s\n", read_dir_list->new_location);
 
 			// read and copy directories and files and paste them to the destination
-			read_write_data(NULL,3,read_dir_list->dir_location,read_dir_list->new_location);
-		}
+			read_write_data_res = read_write_data(NULL,3,read_dir_list->dir_location,read_dir_list->new_location);
+			if (read_write_data_res == -1) {
+				// mozda da ovo postane jedna opcija?
+				if (options.quit_read_errors == 1 || options.quit_write_errors == 1)
+					return -1;
+			}
+			else if (read_write_data_res == 1) {
+				if (options.quit_read_errors == 0 || options.quit_write_errors == 0)
+					some_errors++;
+			}
+
+		} // for ()
+		if (some_errors > 0)
+			return 1;
 		return 0;
 	}
 
@@ -551,10 +594,13 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 		else {
 			if (errno != 0) {
 				perror("opendir");
-				printf("read_write_data() 3: %s\n", source);
+				fprintf(stderr, "read_write_data() 3: %s\n", source);
 			}
+			errors.dir_open_error_count++;
 			if (options.quit_read_errors == 1)
-				exit(1);
+				return -1;
+			else if (options.quit_read_errors == 0) 
+				return 1;
 		}
 		strcpy(source_path,source);
 		strcpy(destination_path,destination);
@@ -562,8 +608,8 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 			if (direntry_init != 1) {
 				direntry = malloc(sizeof(struct dirent));
 				if (direntry == NULL) {
-					printf("read_write_data() 3 malloc_error: direntry\n");
-					exit(1);
+					fprintf(stderr, "read_write_data() 3 malloc_error: direntry\n");
+						return -1; // ili nesto drugo posto je malloc, vidi kasnije
 				}
 				direntry_init = 1;
 			}
@@ -572,28 +618,32 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 			if (direntry == NULL) {
 				if (errno != 0) {
 					perror("readdir");
-					printf("read_write_data() 3.\n");
+					fprintf(stderr, "read_write_data() 3: %s\n", source);
 					if (options.quit_read_errors == 1)
-						exit(1);
+						return -1;
+					else if (options.quit_read_errors == 0) {
+						some_errors++;
+						return 1;
+					}
 				}
 				else
-					break;
+					return -1;
 			}
 			if (strcmp(direntry->d_name, ".") == 0 || strcmp(direntry->d_name, "..") == 0)
 				continue;
 			if (file_t_init != 1) {
 				file_t = malloc(sizeof(struct stat));
 				if (file_t == NULL) {
-					printf("read_write_data() 3: malloc_error: file_t_init\n");
-					exit(1);
+					fprintf(stderr, "read_write_data() 3: malloc_error: file_t_init\n");
+					return -1;
 				}
 				file_t_init = 1;
 			}
 			len1 = strlen(test) + 1;
 			len2 = strlen(direntry->d_name) + 1;
 			if ((len1 + len2) > PATH_MAX) {
-				printf("read_write_data() 3: pathname exceeds PATH_MAX. exiting.\n");
-				exit(1);
+				fprintf(stderr, "read_write_data() 3: pathname exceeds PATH_MAX.\n");
+				return -1;
 			}
 			strcpy(test,source_path);
 			strcat(test,"/");
@@ -604,6 +654,12 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 					perror("stat");
 				else if (options.follow_sym_links == 0)
 					perror("lstat");
+				if (options.quit_read_errors == 1)
+					return -1;
+				else if (options.quit_read_errors == 0) {
+					some_errors++;
+					return 1;
+				}
 			}
 			if (S_ISDIR(file_t->st_mode)) {
 				strcpy(new_source,source_path);
@@ -620,7 +676,11 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 					perror("mkdir");
 					printf("read_write_data() 3: %s\n", new_destination);
 					if (options.quit_write_errors == 1)
-						exit(1);
+						return -1;
+					else if (options.quit_write_errors == 0) {
+						errors.dir_create_error_count++;
+						return 1;
+					}
 				}
 				if (options.show_write_proc != 0)
 					printf("Directory: %s\n", new_destination);
@@ -767,9 +827,14 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 				read_descriptor = open(new_source, O_RDONLY | options.open_flags);
 				if (read_descriptor == -1) {	
 					perror("open");
-					printf("read_write_data() 3: %s\n", source_path);
+					fprintf(stderr, "read_write_data() 3: %s\n", source_path);
 					if (options.quit_read_errors == 1)
-						exit(1);
+						return -1;
+					else if (options.quit_read_errors == 0) {
+						options.file_open_error_count++;
+						some_errors++;
+						continue;
+					}
 				}
 				file_perms = 0;
 				file_perms |= file_t->st_mode;
@@ -777,21 +842,38 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 				write_descriptor = open(new_destination, O_WRONLY | O_CREAT | O_EXCL, file_perms);
 				if (write_descriptor == -1) {
 					perror("open");
-					printf("read_write_data() 3: %s\n", destination_path);
+					fprintf(stderr, "read_write_data() 3: %s\n", destination_path);
+					options.file_create_error_count++;
 					if (options.quit_write_errors == 1)
-						exit(1);
+						return -1;
+					else if (options.quit_write_errors == 0) {
+						some_errors++;
+						continue;
+					}
 				}
 				else {
 					errno = 0;
 					while ((num_read = read(read_descriptor,buf,BUF_SIZE)) > 0)
 						if (write(write_descriptor, buf, num_read) != num_read) {
-							printf("read_write_data: coudn't write the whole buffer.\n");
+							fprintf(stderr, "read_write_data: coudn't write the whole buffer.\n");
+							errors.file_write_error_count++;
+							if (options.quit_write_errors == 1) 
+								return -1;
+							else if (options.quit_write_errors == 0) {
+								some_errors++;
+								continue;
+							}
 						}
 					if (num_read == -1) {
 						perror("read");
-						printf("read_write_data() 3.\n");
+						fprintf(stderr, "read_write_data() 3: %s\n", source_path);
+						errors.file_read_error_count++;
 						if (options.quit_read_errors == 1)
-							exit(1);
+							return -1;
+						else if (options.quit_read_errors == 0) {
+							some_errors++;
+							continue;
+						}
 					}
 				}
 				if (options.time_mods == 1) {
@@ -926,14 +1008,16 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 				if (options.show_write_proc != 0)
 					printf("%s\n", new_destination);
 				if (close(read_descriptor) == -1) {
-					printf("read_write_data: error closing the read descriptor.\n");
+					fprintf(stderr, "read_write_data: error closing the read descriptor.\n");
 					if (options.quit_read_errors == 1)
-						exit(1);
+						return -1;
+					else if (options.quit_read_errors == 0) {
+						some_errors++:
 				}
 				if (close(write_descriptor) == -1) {
 					printf("read_write_data: error closing the write descriptor.\n");
 					if (options.quit_write_errors == 1)
-						exit(1);
+						return -1;
 				}
 			}
 			else if (S_ISLNK(file_t->st_mode)) {
@@ -950,16 +1034,26 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 				}
 				else {
 					perror("readlink");
-					printf("read_write_data() 3: %s\n", new_source);
+					fprintf(stderr, "read_write_data() 3: %s\n", new_source);
+					errors.symlink_read_error_count++;
 					if (options.quit_read_errors == 1)
-						exit(1);
+						return -1;
+					else if (options.quit_read_errors == 0) {
+						some_errors++;
+						continue;
+					}
 				}
 				errno = 0;
 				if (symlink(linkpath,new_destination) != 0) {
 					perror("symlink");
-					printf("read_write_data 3: %s\n", new_destination);
+					fprintf(stderr, "read_write_data 3: %s\n", new_destination);
+					errors.symlink_write_error_count++;
 					if (options.quit_write_errors == 1)
-						exit(1);
+						return -1;
+					if (options.quit_write_errors == 0) {
+						some_errors++;
+						continue;
+					}
 				}
 				if (options.time_mods == 1) {
 					if (options.preserve_a_time == 1) {
@@ -1086,8 +1180,11 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 		errno = 0;
 		if (closedir(dir) != 0) {
 			perror("closedir");
+			errors.dir_close_error_count++;
 			if (options.quit_read_errors == 1)
-				exit(1);
+				return -1;
+			else if (options.quit_read_errors == 0)
+				some_errors++;
 		}
 		if (file_t_init != 0) {
 			free(file_t);
@@ -1097,6 +1194,8 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 			free(direntry);
 			direntry_init = 0;
 		}
+		if (some_errors > 0)
+			return 1;
 		return 0;
 	}
 
@@ -1109,29 +1208,45 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 			if (read_descriptor == -1) {
 				if (errno == ELOOP) {
 					errno = 0;
+					// PATH_MAX umjesto 1024
 					if (readlink(read_file_list->dir_location,linkpath,1024) != -1) {
 						link_len = strlen(linkpath)+1;
 						linkpath[link_len] = '\0';
 					}
 					else {
 						perror("readlink");
-						printf("read_write_data() 4: %s\n", read_file_list->dir_location);
+						fprintf(stderr, "read_write_data() 4: %s\n", read_file_list->dir_location);
+						errors.symlink_read_error_count++;
 						if (options.quit_read_errors == 1)
-							exit(1);
+							return -1;
+						else if (options.quit_read_errors == 0) {
+							some_errors++;
+							continue;
+						}
 					}
 					errno = 0;
 					if (unlink(read_file_list->new_location) != 0) {
 						perror("unlink");
-						printf("read_write_data() 4: %s\n", read_file_list->new_location);
-						if (options.quit_delete_errors == 1)
-							exit(1);
+						fprintf(stderr, "read_write_data() 4: %s\n", read_file_list->new_location);
+						errors.symlink_overwrite_error_count++;
+						if (options.quit_write_errors == 1)
+							return -1;
+						else if (options.quit_write_errors == 0) {
+							some_errors++;
+							continue;
+						}
 					}
 					errno = 0;
 					if (symlink(linkpath,read_file_list->new_location) != 0) {
 						perror("symlink");
-						printf("read_write_data() 4: %s\n", read_file_list->dir_location);
+						fprintf(stderr, "read_write_data() 4: %s\n", read_file_list->dir_location);
+						errors.symlink_overwrite_error_count++;
 						if (options.quit_write_errors == 1)
-							exit(1);
+							return -1;
+						else if (options.quit_write_errors == 0) {
+							some_errors++;
+							continue;
+						}
 					}
 					if (options.time_mods == 1) {
 						if (options.preserve_a_time == 1) {
@@ -1171,8 +1286,8 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 							if (xbuf != NULL)
 								key = xbuf;
 							else {
-								printf("read_write_data(): choose = %d xattr_len malloc() error.\n",  choose);
-								exit(1);
+								fprintf(stderr, "read_write_data(): choose = %d xattr_len malloc() error.\n",  choose);
+								return -1;
 							}
 							buflen = options.listxattr_func(read_file_list->dir_location, xbuf, buflen);
 							if (buflen == -1) {
@@ -1253,13 +1368,17 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 						printf("Overwriting: %s\n", read_file_list->new_location);
 					for (link_del = 0; link_del < link_len; link_del++)
 						linkpath[link_del] = '\0';
-					continue;
+					//continue;
 				} // if (ELOOP)
 				else {	
 					perror("open");
-					printf("read_write_data() 4: %s\n", read_file_list->dir_location);
+					fprintf(stderr, "read_write_data() 4: %s\n", read_file_list->dir_location);
 					if (options.quit_read_errors == 1)
-						exit(1);
+						return -1;
+					else if (options.quit_read_errors == 0) {
+						some_errors++;
+						continue;
+					}
 				}
 			}
 			file_perms = 0;
@@ -1268,22 +1387,40 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 			write_descriptor = open(read_file_list->new_location, O_WRONLY | O_EXCL | O_TRUNC, file_perms);
 			if (write_descriptor == -1) {
 				perror("open");
-				printf("read_write_data() 4: %s\n", read_file_list->new_location);
+				fprintf(stderr, "read_write_data() 4: %s\n", read_file_list->new_location);
+				errors.file_open_error_count++;
 				if (options.quit_write_errors == 1)
-					exit(1);
+					return -1;
+				else if (options.quit_write_errors == 0) {
+					some_errors++;
+					continue;
+				}
+
 			}
 			else {
 				errno = 0;
 				while ((num_read = read(read_descriptor,buf,BUF_SIZE)) > 0) {
 					if (write(write_descriptor, buf, num_read) != num_read) {
-						printf("read_write_data: coudn't write the whole buffer.\n");
+						fprintf(stderr, "read_write_data: coudn't write the whole buffer: %s\n", read_file_list->new_location);
+						errors.file_write_error_count++;
+						if (options.quit_write_errors == 1)
+							return -1;
+						else if (options.quit_write_errors == 0) {
+							some_errors++;
+							break;
+						}
+
 					}
 				}
 				if (num_read == -1) {
 					perror("read");
-					printf("read_write_data() 4: error reading the data.\n");
+					fprintf(stderr, "read_write_data() 4: error reading the data: %s\n", read_file_list->dir_location);
 					if (options.quit_read_errors == 1)
-						exit(1);
+						return -1;
+					else if (options.quit_read_errors == 0) {
+						some_errors++;
+						continue;
+					}
 				}
 			}
 			if (options.time_mods == 1) {
@@ -1338,7 +1475,7 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 						key = xbuf;
 					else {
 						printf("read_write_data(): choose = %d xattr_len malloc() error.\n",  choose);
-						exit(1);
+						return -1;
 					}
 					buflen = options.listxattr_func(read_file_list->dir_location, xbuf, buflen);
 					if (buflen == -1) {
@@ -1417,17 +1554,31 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 			}
 			if (options.show_write_proc != 0)
 				printf("Overwriting: %s\n", read_file_list->new_location);
+			errno = 0;
 			if (close(read_descriptor) == -1) {
-				printf("read_write_data: error closing the read descriptor.\n");
+				perror("close");
+				printf("read_write_data() 4: error closing the read descriptor.\n");
 				if (options.quit_read_errors == 1)
-					exit(1);
+					return -1;
+				else if (options.quit_read_errors == 0) {
+					some_errors++;
+					continue;
+				}
 			}
+			errno = 0;
 			if (close(write_descriptor) == -1) {
-				printf("read_write_data: error closing the write descriptor.\n");
+				perror("close");
+				printf("read_write_data() 4: error closing the write descriptor.\n");
 				if (options.quit_write_errors == 1)
-					exit(1);
+					return -1;
+				else if (options.quit_write_errors == 0) {
+					some_errors++;
+					continue;
+				}
 			}
 		} // for (read_file_list = file_list->head...
+		if (some_errors > 0)
+			return 1;
 		return 0;
 	} // choose 4
 
@@ -1439,12 +1590,19 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 			if (unlink(read_file_list->dir_location) != 0) {
 				perror("unlink");
 				printf("read_write_data() 5: %s\n", read_file_list->dir_location);
+				errors.file_delete_error_count++;
 				if (options.quit_delete_errors == 1)
-					exit(1);
+					return -1;
+				else if (options.quit_delete_errors == 0) {
+					some_errors++;
+					continue;
+				}
 			}
 			if (options.show_write_proc != 0)
 				printf("Deleting: %s\n", read_file_list->dir_location);
 		}
+		if (some_errors > 0)
+			return 1;
 		return 0;
 	}
 
@@ -1452,34 +1610,53 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 	else if (choose == 6) {
 		dir_list = data;
 		for (read_dir_list = dir_list->head; read_dir_list != NULL; read_dir_list = read_dir_list->next) {
-			read_write_data(NULL,7,read_dir_list->dir_location,NULL);
+			read_write_data_res = read_write_data(NULL,7,read_dir_list->dir_location,NULL);
+			if (read_write_data_res == -1)
+				return -1;
+			else if (read_write_data_res == 1) {
+				if (options.quit_write_errors == 0) {
+					some_errors++;
+					continue;
+				}
+			}
 			errno = 0;
 			if (rmdir(read_dir_list->dir_location) != 0) {
 				perror("rmdir");
 				printf("read_write_data() 6: %s\n", read_dir_list->dir_location);
+				errors.dir_delete_errors_count++;
 				if (options.quit_delete_errors == 1)
-					exit(1);
+					return -1;
+				else if (options.quit_delete_errors == 0) {
+					some_errors++;
+					continue;
+				}
 			}
 			if (options.show_write_proc != 0)
 				printf("Deleting: %s\n", read_dir_list->dir_location);
 		}
+		if (some_errors > 0)
+			return 1;
 		return 0;
 	}
 
-	/* open directories and delete all files from them, and after they are empty, delete these directories */
+	/* open directories and delete all files from them, and when they are empty, delete these directories */
 	else if (choose == 7) {
 		errno = 0;
 		dir = opendir(source);
 		if (dir == NULL) {
 			perror("opendir");
 			printf("read_write_data(): error 7. %s\n", source);
+			if (options.quit_read_errors == 1)
+				return -1;
+			else if (options.quit_read_errors == 0)
+				return 1;
 		}
 		for (;;) {
 			if (direntry_init != 1) {
 				direntry = malloc(sizeof(struct dirent));
 				if (direntry == NULL) {
 					printf("malloc(), read_write_data() 7: direntry.\n");
-					exit(1);
+					return -1;
 				}
 				direntry_init = 1;
 			}
@@ -1489,9 +1666,13 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 				if (errno != 0) {
 					perror("readdir");
 					if (options.quit_read_errors == 1)
-						exit(1);
+						return -1;
+					else if (options.quit_read_errors == 0) {
+						some_errors++;
+						continue;
+					}
 				}
-				else
+				else ///////////////////////////////////////////////////////////////////////////////// vidi ovo jos
 					break;
 			}
 			if (strcmp(direntry->d_name, ".") == 0 || strcmp(direntry->d_name, "..") == 0)
@@ -1500,7 +1681,7 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 				file_t = malloc(sizeof(struct stat));
 				if (file_t == NULL) {
 					printf("malloc() read_write_data() 7: file_t_init\n");
-					exit(1);
+					return -1;
 				}
 				file_t_init = 1;
 			}
@@ -1509,7 +1690,7 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 			len2 = strlen(direntry->d_name) + 1;
 			if ((len1 + len2) > PATH_MAX) {
 				printf("read_write_data() 7: pathname exeeded PATH_MAX limit. exiting.\n");
-				exit(1);
+				return -1;
 			}
 			strcpy(test,source);
 			strcat(test,"/");
@@ -1527,29 +1708,39 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 				len2 = strlen(direntry->d_name) + 1;
 				if ((len1 + len2) > PATH_MAX) {
 					printf("read_write_data() 7: pathname exeeded PATH_MAX limit. exiting.\n");
-					exit(1);
+					return -1;
 				}
 				strcpy(deeper,source);
 				strcat(deeper,"/");
 				strcat(deeper,direntry->d_name);
-				read_write_data(NULL,7,deeper,NULL);
+				read_write_data_res = read_write_data(NULL,7,deeper,NULL);
 				errno = 0;
 				if (rmdir(deeper) != 0) {
 					perror("rmdir");
+					printf("read_write_data() 8: %s\n", deeper);
+					errors.dir_delete_error_count++;
 					if (options.quit_delete_errors == 1)
-						exit(1);
+						return -1;
+					else if (options.quit_delete_errors == 0) {
+						some_errors++;
+						continue;
+					}
 				}
 				if (options.show_write_proc != 0)
 					printf("Deleting: %s\n", deeper);
-
 			}
 			if (S_ISREG(file_t->st_mode)) {
 				errno = 0;
 				if (unlink(test) != 0) {
 					perror("unlink");
 					printf("read_write_data() 7: %s\n", test);
+					errors.file_delete_error_count++;
 					if (options.quit_delete_errors == 1)
-						exit(1);
+						return -1;
+					if (options.quit_delete_errors == 0) {
+						some_errors++;
+						continue;
+					}
 				}
 				if (options.show_write_proc != 0)
 					printf("Deleting: %s\n", test);
@@ -1559,13 +1750,20 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 				if (unlink(test) != 0) {
 					perror("unlink");
 					printf("read_write_data() 7: %s\n", test);
+					errors.symlink_delete_error_count++;
 					if (options.quit_delete_errors == 1)
-						exit(1);
+						return -1;
+					else if (options.quit_delete_errors == 0) {
+						some_errors++;
+						continue;
+					}
 				}
 				if (options.show_write_proc != 0)
 					printf("Deleting: %s\n", test);
 			}
 		}
+		if (some_errors > 0)
+			return 1;
 		return 0;
 	} // choose 7
 	// write symbolic links
@@ -1580,15 +1778,25 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 			else {
 				perror("readlink");
 				printf("read_write_data() 8: %s\n", read_file_list->dir_location);
+				errors.symlink_read_error_count++;
 				if (options.quit_read_errors == 1)
-					exit(1);
+					return -1;
+				else if (options.quit_read_errors == 0) {
+					some_errors++;
+					continue;
+				}
 			}
 			errno = 0;
 			if (symlink(linkpath,read_file_list->new_location) != 0) {
 				perror("symlink");
 				printf("read_write_data() 8: %s\n", read_file_list->new_location);
+				errors.symlink_write_error_count++;
 				if (options.quit_write_errors == 1)
-					exit(1);
+					return -1;
+				else if (options.quit_write_errors == 0) {
+					some_errors++;
+					continue;
+				}
 			}
 			if (options.time_mods == 1) {
 				if (options.preserve_a_time == 1) {
@@ -1615,6 +1823,8 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 			for (link_del = 0; link_del < link_len; link_del++)
 				linkpath[link_del] = '\0';
 		}
+		if (some_errors > 0)
+			return 1;
 		return 0;
 	}
 	// overwrite symbolic links
@@ -1630,22 +1840,37 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 			else {
 				perror("readlink");
 				printf("read_write_data() 9: %s\n", read_file_list->dir_location);
+				errors.symlink_read_error_count++;
 				if (options.quit_read_errors == 1)
-					exit(1);
+					return -1;
+				else if (options.quit_read_errors == 0) {
+					some_errors++;
+					continue;
+				}
 			}
 			errno = 0;
 			if (unlink(read_file_list->new_location) != 0) {
 				perror("unlink");
 				printf("read_write_data() 9: %s\n", read_file_list->new_location);
-				if (options.quit_delete_errors == 1)
-					exit(1);
+				errors.symlink_overwrite_error_count++;
+				if (options.quit_write_errors == 1)
+					return -1;
+				else if (options.quit_write_errors == 0) {
+					some_errors++;
+					continue;
+				}
 			}
 			errno = 0;
 			if (symlink(linkpath,read_file_list->new_location) != 0) {
 				perror("symlink");
 				printf("read_write_data() 9: %s\n", read_file_list->new_location);
+				errors.symlink_overwrite_error_count++;
 				if (options.quit_write_errors == 1)
-					exit(1);
+					return -1;
+				else if (options.quit_write_errors == 0) {
+					some_errors++;
+					continue;
+				}
 			}
 			if (options.time_mods == 1) {
 				if (options.preserve_a_time == 1) {
@@ -1672,6 +1897,8 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 			for (link_del = 0; link_del < link_len; link_del++)
 				linkpath[link_del] = '\0';
 		}
+		if (some_errors > 0)
+			return 1;
 		return 0;
 	}
 }
