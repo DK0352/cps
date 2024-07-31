@@ -157,25 +157,25 @@ int loop_dirs(DList_of_lists *file_tree_element_a, DList_of_lists *file_tree_ele
 					file_tree_element_a = file_tree_element_a->next;
 			}
 		} // if (dirlist_size_a > same_dir_num && dirlist_size_b == same_dir_num) {
-		// More directories in the destination directory than just those equal with the source directory. Add them to the surplus list.
+		// More directories in the destination directory than just those equal with the source directory. Add them to the extraneous list.
 		else if (dirlist_size_a == same_dir_num && dirlist_size_b > same_dir_num) {
 			while (file_tree_element_b != NULL) {
 				if (file_tree_element_b->found_dir_match != 1) {
-					if (data_copy_info.dirs_surplus_list == NULL) {
-						data_copy_info.dirs_surplus_list = malloc(sizeof(DList));
-						if (data_copy_info.dirs_surplus_list != NULL) 
-							dlist_init(data_copy_info.dirs_surplus_list);
+					if (data_copy_info.dirs_extraneous_list == NULL) {
+						data_copy_info.dirs_extraneous_list = malloc(sizeof(DList));
+						if (data_copy_info.dirs_extraneous_list != NULL) 
+							dlist_init(data_copy_info.dirs_extraneous_list);
 						else {
 							printf("loop_dirs() malloc() error 1-2.\n");
 							exit(1);
 						}
 					}
-					new_dir_location(file_tree_element_b,upper_a,data_copy_info.dirs_surplus_list);
+					new_dir_location(file_tree_element_b,upper_a,data_copy_info.dirs_extraneous_list);
 
-					data_copy_info.global_dirs_surplus_num++;
-					data_copy_info.global_dirs_surplus_num += file_tree_element_b->complete_dir_num;
-					data_copy_info.global_files_surplus_num += file_tree_element_b->complete_file_num;
-					data_copy_info.global_dirs_surplus_size += file_tree_element_b->complete_dir_size;
+					data_copy_info.global_dirs_extraneous_num++;
+					data_copy_info.global_dirs_extraneous_num += file_tree_element_b->complete_dir_num;
+					data_copy_info.global_files_extraneous_num += file_tree_element_b->complete_file_num;
+					data_copy_info.global_dirs_extraneous_size += file_tree_element_b->complete_dir_size;
 
 					file_tree_element_b->found_dir_match = 1;
 					file_tree_element_b = file_tree_element_b->next;
@@ -213,21 +213,21 @@ int loop_dirs(DList_of_lists *file_tree_element_a, DList_of_lists *file_tree_ele
 			file_tree_element_a = start_a;
 			while (file_tree_element_b != NULL) {
 				if (file_tree_element_b->found_dir_match != 1) {
-					if (data_copy_info.dirs_surplus_list == NULL) {
-						data_copy_info.dirs_surplus_list = malloc(sizeof(DList));	
-						if (data_copy_info.dirs_surplus_list != NULL)
-							dlist_init(data_copy_info.dirs_surplus_list);
+					if (data_copy_info.dirs_extraneous_list == NULL) {
+						data_copy_info.dirs_extraneous_list = malloc(sizeof(DList));	
+						if (data_copy_info.dirs_extraneous_list != NULL)
+							dlist_init(data_copy_info.dirs_extraneous_list);
 						else {
 							printf("loop_dirs() malloc() error 1-4.\n");
 							exit(1);
 						}
 					}
-					new_dir_location(file_tree_element_b,upper_a,data_copy_info.dirs_surplus_list);
+					new_dir_location(file_tree_element_b,upper_a,data_copy_info.dirs_extraneous_list);
 
-					data_copy_info.global_dirs_surplus_num++;
-					data_copy_info.global_dirs_surplus_num += file_tree_element_b->complete_dir_num;
-					data_copy_info.global_files_surplus_num += file_tree_element_b->complete_file_num;
-					data_copy_info.global_dirs_surplus_size += file_tree_element_b->complete_dir_size;
+					data_copy_info.global_dirs_extraneous_num++;
+					data_copy_info.global_dirs_extraneous_num += file_tree_element_b->complete_dir_num;
+					data_copy_info.global_files_extraneous_num += file_tree_element_b->complete_file_num;
+					data_copy_info.global_dirs_extraneous_size += file_tree_element_b->complete_dir_size;
 
 					file_tree_element_b->found_dir_match = 1;
 					file_tree_element_b = file_tree_element_b->next;
@@ -270,21 +270,21 @@ int loop_dirs(DList_of_lists *file_tree_element_a, DList_of_lists *file_tree_ele
 	else if (dirlist_size_a == 0 && dirlist_size_b > 0) {
 		while (file_tree_element_b != NULL) {
 			if (file_tree_element_b->found_dir_match != 1) {
-				if (data_copy_info.dirs_surplus_list == NULL) {
-					data_copy_info.dirs_surplus_list = malloc(sizeof(DList));	
-					if (data_copy_info.dirs_surplus_list != NULL)
-						dlist_init(data_copy_info.dirs_surplus_list);
+				if (data_copy_info.dirs_extraneous_list == NULL) {
+					data_copy_info.dirs_extraneous_list = malloc(sizeof(DList));	
+					if (data_copy_info.dirs_extraneous_list != NULL)
+						dlist_init(data_copy_info.dirs_extraneous_list);
 					else {
 						printf("loop_dirs() malloc() error 2-2.\n");
 						exit(1);
 					}
 				}
-				new_dir_location(file_tree_element_b,upper_a,data_copy_info.dirs_surplus_list);
+				new_dir_location(file_tree_element_b,upper_a,data_copy_info.dirs_extraneous_list);
 
-				data_copy_info.global_dirs_surplus_num++;
-				data_copy_info.global_dirs_surplus_num += file_tree_element_b->complete_dir_num;
-				data_copy_info.global_files_surplus_num += file_tree_element_b->complete_file_num;
-				data_copy_info.global_dirs_surplus_size += file_tree_element_b->complete_dir_size;
+				data_copy_info.global_dirs_extraneous_num++;
+				data_copy_info.global_dirs_extraneous_num += file_tree_element_b->complete_dir_num;
+				data_copy_info.global_files_extraneous_num += file_tree_element_b->complete_file_num;
+				data_copy_info.global_dirs_extraneous_size += file_tree_element_b->complete_dir_size;
 
 				file_tree_element_b->found_dir_match = 1;
 				file_tree_element_b = file_tree_element_b->next;
