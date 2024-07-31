@@ -76,14 +76,20 @@ int open_dirs(struct thread_struct *thread_data)
 		printf("open_dirs(): malloc error 1\n");
 		exit(1);
 	}
+	thread_data->sym_links = malloc(sizeof(DList));
+	if (thread_data->sym_links == NULL) {
+		printf("open_dirs(): malloc error 2\n");
+		exit(1);
+	}
 	thread_data->directories = malloc(sizeof(DList));
 	if (thread_data->directories == NULL) {
-		printf("open_dirs(): malloc error 2\n");
+		printf("open_dirs(): malloc error 3\n");
 		exit(1);
 	}
 
 	dlist_init(thread_data->files);
 	dlist_init(thread_data->directories);
+	dlist_init(thread_data->sym_links);
 
 	path_len = strlen(thread_data->directory);
 
@@ -113,7 +119,7 @@ int open_dirs(struct thread_struct *thread_data)
 			exit(1);
 		}
 		strcpy(name,dir_entry->d_name);
-		// complete_size (or complete len to be more correct) which is pathname + name of the file or directory
+		// complete_size (or complete length to be more correct) which is pathname + name of the file or directory
 		complete_size = path_len + name_len + 1; // +1 za '/'
 		location = malloc(complete_size);
 		if (location == NULL) {
@@ -150,7 +156,7 @@ int open_dirs(struct thread_struct *thread_data)
 			dlist_ins_next(thread_data->files, thread_data->files->tail, name, file_t->st_mode, file_t->st_size, location, 0, NULL, file_t->st_atime, file_t->st_mtime,NULL);
 		}
 		else if (S_ISLNK(file_t->st_mode)) {
-			dlist_ins_next(thread_data->files, thread_data->files->tail, name, file_t->st_mode, file_t->st_size, location, data5_val, NULL, file_t->st_atime, file_t->st_mtime,NULL);
+			dlist_ins_next(thread_data->sym_links, thread_data->sym_links->tail, name, file_t->st_mode, file_t->st_size, location, data5_val, NULL, file_t->st_atime, file_t->st_mtime,NULL);
 		}
 	} // for (;;)
 
@@ -165,6 +171,10 @@ int open_dirs(struct thread_struct *thread_data)
 	if (thread_data->files->num == 0) {
 		free(thread_data->files);
 		thread_data->files = NULL;
+	}
+	if (thread_data->sym_links->num == 0) {
+		free(thread_data->sym_links);
+		thread_data->sym_links = NULL;
 	}
 	if (thread_data->directories->num == 0) {
 		free(thread_data->directories);
