@@ -23,8 +23,8 @@ struct Data_Copy_Info {
         struct DList_of_lists_  *file_tree_top_dir_b;
         DList		*files_to_copy_list;	// linked list of files to copy
         DList		*dirs_to_copy_list;	// linked list of directories to copy
-        DList		*files_surplus_list;	// linked list of surplus files
-        DList		*dirs_surplus_list;	// linked list of surplus directories
+        DList		*files_extraneous_list;	// linked list of extraneous files
+        DList		*dirs_extraneous_list;	// linked list of extraneous directories
         DList		*diff_size_ms_list;	// linked list of files with different size, one in the main (source directory) location smaller
         DList		*diff_size_ml_list;	// linked list of files with different size, ine in the main (source directory) location larger
 	DList		*diff_time_mn_list;	// linked list of files with newer modification time from the main (source) directory
@@ -33,10 +33,10 @@ struct Data_Copy_Info {
         unsigned long	global_files_to_copy_size;      // size of files to copy in bytes
         unsigned long	global_dirs_to_copy_num;        // number of directories to copy
         unsigned long	global_dirs_to_copy_size;       // size of directories to copy in bytes
-        unsigned long	global_files_surplus_num;       // number of surplus files 
-        unsigned long	global_files_surplus_size;      // size of surplus files in bytes
-        unsigned long	global_dirs_surplus_num;        // number of surplus directories
-        unsigned long	global_dirs_surplus_size;       // size of all surplus directories in bytes
+        unsigned long	global_files_extraneous_num;       // number of extraneous files 
+        unsigned long	global_files_extraneous_size;      // size of extraneous files in bytes
+        unsigned long	global_dirs_extraneous_num;        // number of extraneous directories
+        unsigned long	global_dirs_extraneous_size;       // size of all extraneous directories in bytes
         unsigned long 	global_diff_size_ms_num;        // number of files with the same name, but different size, source location smaller
         unsigned long	global_diff_size_ms_size;       // size of files with the same name, but different size, source location smaller
 	unsigned long	global_diff_size_ms_orig_size;	// size of files with the same name, but different size, source location smaller, but this one is for the original file
