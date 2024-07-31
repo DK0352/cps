@@ -24,9 +24,13 @@ typedef struct DList_ DList;
 typedef struct DList_of_lists_ {
 	unsigned long			file_num;		// number of files
 	unsigned long			subdir_file_num;	// number of files in all subdirectories
-	unsigned long			complete_file_num;	// complete file number for a directory including subdirectories
-	unsigned long 			files_size;		// size of all files in the current directory 
+	unsigned long			sym_links_num;		// number of symbolic links
+	unsigned long			complete_file_num;	// complete file number of a directory including the subdirectories
+	unsigned long			complete_sym_links_num;	// complete number of a symbolic links of a directory including the subdirectories
+	unsigned long 			files_size;		// size of all files in the current directory
+	unsigned long			sym_links_size;		// size of all symbolic links in the current directory
 	unsigned long 			complete_files_size;	// size of all files in all subdirectories
+	unsigned long			complete_sym_links_size; // size of all symbolic links in all subdirectories
 	unsigned long			dir_num;		// number of directories in the current directory 
 	unsigned long			subdir_num;		// number of all subdirectories in the current directory
 	unsigned long			complete_dir_num;	// dir_num + subdir_num
@@ -45,6 +49,7 @@ typedef struct DList_of_lists_ {
 	char				*dir_location;		// directory location
 	DList				*files;			// linked list of files
 	DList				*directories;		// linked list of directories
+	DList				*sym_links;		// linked list of symbolic links
 	struct DList_of_lists_		*file_tree_top_dir;	// top directory
 	struct DList_of_lists_		*one_of_the_top_dirs;	// points to the top subdirectory of the file tree
 	struct DList_of_lists_		*first_dir_in_chain;	// first directory in a list of directories in a file tree
@@ -83,7 +88,7 @@ struct thread_struct {
 	char			*directory;	/* location */
 	DList			*files;		/* list of files */
 	DList			*directories;	/* list of directories */
-	DList			*sym_links;
+	DList			*sym_links;	/* list of symbolic links */
 	int			(*file_function)(void *data1, void *data2); /* stat or lstat function depending on option*/
 	DList_of_lists		*file_tree, *file_tree_top_dir;	/* file tree elements used in build_tree() and compare_trees() functions */
 	struct thread_struct 	*other_thread_data;
