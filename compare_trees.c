@@ -75,20 +75,33 @@ int compare_trees(struct thread_struct *thread_data_a, struct thread_struct *thr
 		dirlist_size_b = 0;
 
 	if (options.naive_mode == 0) {
-		if (top_location_a->file_num != 0 && top_location_b->file_num != 0 || 
-			top_location_a->files_size != top_location_b->files_size) {
+		if (options.ignore_symlinks != 1) {
+			if ((top_location_a->file_num != 0 && top_location_b->file_num != 0 || top_location_a->files_size != top_location_b->files_size) ||
+			top_location_a->sym_links_num != 0 && top_location_b->sym_links_num != 0 || top_location_a->sym_links_size != top_location_b->sym_links_size ) {
+				loop_files(top_location_a, top_location_b);
+			}
+		}
+		else if (options.ignore_symlinks == 1) {
+			if (top_location_a->file_num != 0 && top_location_b->file_num != 0 || top_location_a->files_size != top_location_b->files_size)
 				loop_files(top_location_a, top_location_b);
 		}
 	}
 	else if (options.naive_mode == 1) {
-		if (top_location_a->file_num != top_location_b->file_num || 
-			top_location_a->files_size != top_location_b->files_size) {
+		if (options.ignore_symlinks != 1) {
+			if ((top_location_a->file_num != top_location_b->file_num || top_location_a->files_size != top_location_b->files_size) ||
+			top_location_a->sym_links_num != top_location_b->sym_links_num || top_location_a->sym_links_size != top_location_b->sym_links_size ) {
 				loop_files(top_location_a, top_location_b);
+			}
+		}
+		else if (options.ignore_symlinks == 1) {
+			if (top_location_a->file_num != top_location_b->file_num || top_location_a->files_size != top_location_b->files_size) {
+				loop_files(top_location_a, top_location_b);
+			}
 		}
 	}
 	/* This for loop compares just the top directories, and if there are differences in size, it calls loop_files() for difference in file size/number or modification time, and loop_dirs for 
 	 * differences in subdirectory size/number. It increments sam_dir_num variable for each directory with the same name, and if it matches the number of directories in each directory, the function
-	returns. If not, function does additional comparsion and determines which directories are missing in the destination, or which directories are surplus. */
+	returns. If not, function does additional comparsion and determines which directories are missing in the destination, or which directories are extraneous. */
 	if (no_dirs_a != 1 && no_dirs_b != 1) {
 		for (file_tree_element_a = top_location_a->first_dir_in_chain; file_tree_element_a != NULL; file_tree_element_a = file_tree_element_a->next) {
 			for (file_tree_element_b = top_location_b->first_dir_in_chain; file_tree_element_b != NULL; file_tree_element_b = file_tree_element_b->next) {
@@ -97,14 +110,31 @@ int compare_trees(struct thread_struct *thread_data_a, struct thread_struct *thr
 					file_tree_element_a->found_dir_match = 1;
 					file_tree_element_b->found_dir_match = 1;
 					if (options.naive_mode == 0) {
-						if (file_tree_element_a->file_num != 0 || file_tree_element_b->file_num != 0)
-							loop_files(file_tree_element_a, file_tree_element_b);
+						if (options.ignore_symlinks != 1) {
+							if ((file_tree_element_a->file_num != 0 || file_tree_element_b->file_num != 0) || 
+							(file_tree_element_a->sym_links_num != 0 || file_tree_element_a->sym_links_num != 0))
+								loop_files(file_tree_element_a, file_tree_element_b);
+						}
+						else if (options.ignore_symlinks == 1) {
+							if (file_tree_element_a->file_num != 0 || file_tree_element_b->file_num != 0)
+								loop_files(file_tree_element_a, file_tree_element_b);
+						}
 						loop_dirs(file_tree_element_a, file_tree_element_b);
 					}
 					else if (options.naive_mode == 1) {
-						if (file_tree_element_a->files_size != file_tree_element_b->files_size ||
+						if (options.ignore_symlinks != 1) {
+							if ((file_tree_element_a->files_size != file_tree_element_b->files_size ||
+							file_tree_element_a->file_num != file_tree_element_b->file_num) || 
+							(file_tree_element_a->sym_links_num != file_tree_element_b->sym_links_num ||
+							file_tree_element_a->sym_links_size != file_tree_element_b->sym_links_size)) {
+								loop_files(file_tree_element_a, file_tree_element_b);
+							}
+						}
+						else if (options.ignore_symlinks == 1) {
+							if (file_tree_element_a->files_size != file_tree_element_b->files_size ||
 							file_tree_element_a->file_num != file_tree_element_b->file_num) {
-							loop_files(file_tree_element_a, file_tree_element_b);
+								loop_files(file_tree_element_a, file_tree_element_b);
+							}
 						}
 						if (file_tree_element_a->subdirs_size != file_tree_element_b->subdirs_size ||
 							file_tree_element_a->subdir_num != file_tree_element_b->subdir_num ||
@@ -115,7 +145,7 @@ int compare_trees(struct thread_struct *thread_data_a, struct thread_struct *thr
 			} // for loop b
 		} // for loop a
 	
-		/* determine missing or surplus directories within the top directory */
+		/* determine missing or extraneous directories within the top directory */
 	
 		if (top_location_a->first_dir_in_chain != NULL)
 			file_tree_element_a = top_location_a->first_dir_in_chain;
@@ -157,21 +187,21 @@ int compare_trees(struct thread_struct *thread_data_a, struct thread_struct *thr
 		else if (dirlist_size_a == same_dir_num && dirlist_size_b > same_dir_num) {
 			while (file_tree_element_b != NULL) {
 				if (file_tree_element_b->found_dir_match != 1) {
-					if (data_copy_info.dirs_surplus_list == NULL) {
-						data_copy_info.dirs_surplus_list = malloc(sizeof(DList));
-						if (data_copy_info.dirs_surplus_list != NULL)
-							dlist_init(data_copy_info.dirs_surplus_list);
+					if (data_copy_info.dirs_extraneous_list == NULL) {
+						data_copy_info.dirs_extraneous_list = malloc(sizeof(DList));
+						if (data_copy_info.dirs_extraneous_list != NULL)
+							dlist_init(data_copy_info.dirs_extraneous_list);
 						else {
 							printf("compare_trees(): malloc() error 2-2.\n");
 							exit(1);
 						}
 					}
-					new_dir_location(file_tree_element_b,top_location_a,data_copy_info.dirs_surplus_list);
+					new_dir_location(file_tree_element_b,top_location_a,data_copy_info.dirs_extraneous_list);
 	
-					data_copy_info.global_dirs_surplus_num++;
-					data_copy_info.global_dirs_surplus_num += file_tree_element_b->complete_dir_num;
-					data_copy_info.global_files_surplus_num += file_tree_element_b->complete_file_num;
-					data_copy_info.global_dirs_surplus_size += file_tree_element_b->complete_dir_size;
+					data_copy_info.global_dirs_extraneous_num++;
+					data_copy_info.global_dirs_extraneous_num += file_tree_element_b->complete_dir_num;
+					data_copy_info.global_files_extraneous_num += file_tree_element_b->complete_file_num;
+					data_copy_info.global_dirs_extraneous_size += file_tree_element_b->complete_dir_size;
 	
 					file_tree_element_b->found_dir_match = 1;
 					file_tree_element_b = file_tree_element_b->next;
@@ -209,21 +239,21 @@ int compare_trees(struct thread_struct *thread_data_a, struct thread_struct *thr
 			file_tree_element_a = top_location_a;
 			while (file_tree_element_b != NULL) {
 				if (file_tree_element_b->found_dir_match != 1) {
-					if (data_copy_info.dirs_surplus_list == NULL) {
-						data_copy_info.dirs_surplus_list = malloc(sizeof(DList));
-						if (data_copy_info.dirs_surplus_list != NULL)
-							dlist_init(data_copy_info.dirs_surplus_list);
+					if (data_copy_info.dirs_extraneous_list == NULL) {
+						data_copy_info.dirs_extraneous_list = malloc(sizeof(DList));
+						if (data_copy_info.dirs_extraneous_list != NULL)
+							dlist_init(data_copy_info.dirs_extraneous_list);
 						else {
 							printf("compare_trees(): malloc() error 2-4.\n");
 							exit(1);
 						}
 					}
-					new_dir_location(file_tree_element_b,top_location_a,data_copy_info.dirs_surplus_list);
+					new_dir_location(file_tree_element_b,top_location_a,data_copy_info.dirs_extraneous_list);
 	
-					data_copy_info.global_dirs_surplus_num++;
-					data_copy_info.global_dirs_surplus_num += file_tree_element_b->complete_dir_num;
-					data_copy_info.global_files_surplus_num += file_tree_element_b->complete_file_num;
-					data_copy_info.global_dirs_surplus_size += file_tree_element_b->complete_dir_size;
+					data_copy_info.global_dirs_extraneous_num++;
+					data_copy_info.global_dirs_extraneous_num += file_tree_element_b->complete_dir_num;
+					data_copy_info.global_files_extraneous_num += file_tree_element_b->complete_file_num;
+					data_copy_info.global_dirs_extraneous_size += file_tree_element_b->complete_dir_size;
 	
 					file_tree_element_b->found_dir_match = 1;
 					file_tree_element_b = file_tree_element_b->next;
@@ -260,21 +290,21 @@ int compare_trees(struct thread_struct *thread_data_a, struct thread_struct *thr
 	}
 	else if (no_dirs_a == 1 && no_dirs_b == 0) {
 		while (file_tree_element_b != NULL) {
-			if (data_copy_info.dirs_surplus_list == NULL) {
-				data_copy_info.dirs_surplus_list = malloc(sizeof(DList));
-				if (data_copy_info.dirs_surplus_list != NULL)
-					dlist_init(data_copy_info.dirs_surplus_list);
+			if (data_copy_info.dirs_extraneous_list == NULL) {
+				data_copy_info.dirs_extraneous_list = malloc(sizeof(DList));
+				if (data_copy_info.dirs_extraneous_list != NULL)
+					dlist_init(data_copy_info.dirs_extraneous_list);
 				else {
 					printf("compare_trees(): malloc() error 2-2.\n");
 					exit(1);
 				}
 			}
-			new_dir_location(file_tree_element_b,top_location_a,data_copy_info.dirs_surplus_list);
+			new_dir_location(file_tree_element_b,top_location_a,data_copy_info.dirs_extraneous_list);
 
-			data_copy_info.global_dirs_surplus_num++;
-			data_copy_info.global_dirs_surplus_num += file_tree_element_b->complete_dir_num;
-			data_copy_info.global_files_surplus_num += file_tree_element_b->complete_file_num;
-			data_copy_info.global_dirs_surplus_size += file_tree_element_b->complete_dir_size;
+			data_copy_info.global_dirs_extraneous_num++;
+			data_copy_info.global_dirs_extraneous_num += file_tree_element_b->complete_dir_num;
+			data_copy_info.global_files_extraneous_num += file_tree_element_b->complete_file_num;
+			data_copy_info.global_dirs_extraneous_size += file_tree_element_b->complete_dir_size;
 
 			file_tree_element_b = file_tree_element_b->next;
 		}
