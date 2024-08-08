@@ -1163,9 +1163,9 @@ int main(int argc, char *argv[])
 						if (copy_files == 1) {
 							read_write_data_res = read_write_data(data_copy_info.files_to_copy_list,1,NULL,NULL);
 							if (read_write_data_res == 0)
-								printf("\nFiles written successfully.\n");
+								printf("\nFiles were written successfully.\n");
 							else if (read_write_data_res == 1)
-								printf("\nSome files written successfully, but there were some errors. Attempting the other data.\n");
+								printf("\nSome files written successfully, but there were some errors.\n");
 							else if (read_write_data_res == -1) {
 								printf("\nError writing the files. Exiting.\n");
 								list_stats(1,copied);
@@ -1179,9 +1179,9 @@ int main(int argc, char *argv[])
 						if (copy_dirs == 1) {
 							read_write_data_res = read_write_data(data_copy_info.dirs_to_copy_list,2,NULL,NULL);
 							if (read_write_data_res == 0)
-								printf("\nDirectories written succesfully.\n");
+								printf("\nDirectories were written succesfully.\n");
 							else if (read_write_data_res == 1)
-								printf("\nSome directories written successfully, but there were some errors. Attempting the other data.\n");
+								printf("\nSome directories written successfully, but there were some errors.\n");
 							else if (read_write_data_res == -1) {
 								printf("\nError writing the directories. Exiting.\n");
 								list_stats(1,copied);
@@ -1189,6 +1189,7 @@ int main(int argc, char *argv[])
 								clean_tree(thread_data_b->file_tree_top_dir,0);
 								clean_up_1();
 								destroy_data_structs();
+								exit(1);
 							}
 						}
 						copied.copied_data = 1;
@@ -1212,16 +1213,36 @@ int main(int argc, char *argv[])
 						line[length-1] = '\0';
 						if (strcmp(line,"yes") == 0) {
 							if (files_extraneous == 1) {
-								if (read_write_data(file_surp_list,1,NULL,NULL) == 0)
-									printf("\nExtraneous files written successfully.\n");
-								else
-									printf("\nError writing the extraneous files.\n");
+								read_write_data_res = read_write_data(file_surp_list,1,NULL,NULL);
+								if (read_write_data_res == 0)
+									printf("\nExtraneous files were written successfully.\n");
+								else if (read_write_data_res == 1)
+									printf("\nSome extraneous files were written successfully, but there were also some errors.\n");
+								else if (read_write_data_res == -1) {
+									printf("\nError writing the extraneous files. Exiting.\n");
+									list_stats(1,copeid);
+									clean_tree(thread_data_a->file_tree_top_dir,0);
+									clean_tree(thread_data_b->file_tree_top_dir,0);
+									clean_up_1();
+									destroy_data_structs();
+									exit(1);
+								}
 							}
 							if (dirs_extraneous == 1) {
-								if (read_write_data(dir_surp_list,2,NULL,NULL) == 0)
-									printf("\nExtraneous directories written successfully.\n");
-								else
-									printf("\nError writing the extraneous directories\n");
+								read_write_data_res = read_write_data(dir_surp_list,2,NULL,NULL);
+								if (read_write_data_res == 0)
+									printf("\nExtraneous directories were written successfully.\n");
+								else if (read_write_data_res == 1)
+									printf("\nSome extraneous directories were written successfully, but there were also some errors.\n");
+								else if (read_write_data_res == -1) {
+									printf("\nError writing the extraneous directories. Exiting\n");
+									list_stats(1,copeid);
+									clean_tree(thread_data_a->file_tree_top_dir,0);
+									clean_tree(thread_data_b->file_tree_top_dir,0);
+									clean_up_1();
+									destroy_data_structs();
+									exit(1);
+								}
 							}
 							copied.copied_extraneous = 1;
 							printf("\n");
@@ -1244,17 +1265,38 @@ int main(int argc, char *argv[])
 						line[length-1] = '\0';
 						if (strcmp(line,"yes") == 0) {
 							if (files_extraneous == 1) {
-								if (read_write_data(file_surp_list,5,NULL,NULL) == 0)
-									printf("\nDeleting the extraneous files successful.\n");
-								else
-									printf("\nError deleting the extraneous files.\n");
+								read_write_data_res = read_write_data(file_surp_list,5,NULL,NULL);
+								if (read_write_data_res == 0)
+									printf("\nDeleting the extraneous files was successful.\n");
+								else if (read_write_data_res == 1) 
+									printf("\nDeleting some extraneous files was successful, but there were also some errors.\n");
+								else if (read_write_data_res == -1) {
+									printf("\nError deleting the extraneous files. Exiting.\n");
+									list_stats(1,copeid);
+									clean_tree(thread_data_a->file_tree_top_dir,0);
+									clean_tree(thread_data_b->file_tree_top_dir,0);
+									clean_up_1();
+									destroy_data_structs();
+									exit(1);
+								}
 							}
 							if (dirs_extraneous == 1) {
-								if (read_write_data(dir_surp_list,6,NULL,NULL) == 0)
-									printf("\nDeleting the extraneous directories successful.\n");
-								else 
-									printf("\nError deleting the extraneous directories.\n");
+								read_write_data_res = read_write_data(dir_surp_list,6,NULL,NULL);
+								if (read_write_data_res == 0)
+									printf("\nDeleting the extraneous directories was successful.\n");
+								else if (read_write_data_res == 1)
+									printf("\nDeleting some extraneous directories was successfull, but there were also some errors.\n");
+								else if (read_write_data_res == -1) {
+									printf("\nError deleting the extraneous directories. Exiting.\n");
+									list_stats(1,copied);
+									clean_tree(thread_data_a->file_tree_top_dir,0);
+									clean_tree(thread_data_b->file_tree_top_dir,0);
+									clean_up_1();
+									destroy_data_structs();
+									exit(1);
+								}
 							}
+
 							copied.deleted_extraneous = 1;
 							printf("\n");
 							break;
@@ -1276,10 +1318,20 @@ int main(int argc, char *argv[])
 					length = strlen(line);
 					line[length-1] = '\0';
 					if (strcmp(line,"yes") == 0) {
-						if (read_write_data(data_copy_info.diff_size_ms_list,4,NULL,NULL) == 0)
+						read_write_data_res = read_write_data(data_copy_info.diff_size_ms_list,4,NULL,NULL);
+						if (read_write_data_res == 0)
 							printf("Larger files overwritten successfully.\n");
-						else
-							printf("Error overwriting the larger files.\n");
+						else if (read_write_data_res == 1)
+							printf("There were some errors while overwriting the larger files.\n");
+						else if (read_write_data_res == -1) {
+							printf("There were some errors while overwriting the larger files. Exiting.\n");
+								list_stats(1,copied);
+								clean_tree(thread_data_a->file_tree_top_dir,0);
+								clean_tree(thread_data_b->file_tree_top_dir,0);
+								clean_up_1();
+								destroy_data_structs();
+								exit(1);
+						}
 						copied.ow_smaller = 1;
 						printf("\n");
 						break;
@@ -1299,10 +1351,20 @@ int main(int argc, char *argv[])
 					length = strlen(line);
 					line[length-1] = '\0';
 					if (strcmp(line,"yes") == 0) {
-						if (read_write_data(data_copy_info.diff_size_ml_list,4,NULL,NULL) == 0)
-							printf("Smaller files overwritten successfully\n");
-						else
-							printf("Error overwriting the smaller files.\n");
+						read_write_data_res = read_write_data(data_copy_info.diff_size_ml_list,4,NULL,NULL);
+						if (read_write_data_res == 0)
+							printf("Smaller files were overwritten successfully\n");
+						else if (read_write_data_res == 1)
+							printf("There were some errors overwriting the smaller files.\n");
+						else if (read_write_data_res == -1) {
+							printf("There were some errors while overwriting the smaller files. Exiting.\n");
+							list_stats(1,copied);
+							clean_tree(thread_data_a->file_tree_top_dir,0);
+							clean_tree(thread_data_b->file_tree_top_dir,0);
+							clean_up_1();
+							destroy_data_structs();
+							exit(1);
+						}
 						copied.ow_larger = 1;
 						printf("\n");
 						break;
@@ -1322,10 +1384,20 @@ int main(int argc, char *argv[])
 					length = strlen(line);
 					line[length-1] = '\0';
 					if (strcmp(line,"yes") == 0) {
-						if (read_write_data(data_copy_info.diff_time_mn_list,4,NULL,NULL) == 0)
-							printf("Older files overwritten successfully.\n");
-						else
-							printf("Error overwriting the older files.\n");
+						read_write_data_res = read_write_data(data_copy_info.diff_time_mn_list,4,NULL,NULL);
+						if (read_write_data_res == 0)
+							printf("Older files were overwritten successfully.\n");
+						else if (read_write_data_res == 1)
+							printf("There were some errors overwriting the older files.\n");
+						else if (read_write_data_res == -1) {
+							printf("There were some errors while overwriting the older files. Exiting.\n");
+							list_stats(1,copied);
+							clean_tree(thread_data_a->file_tree_top_dir,0);
+							clean_tree(thread_data_b->file_tree_top_dir,0);
+							clean_up_1();
+							destroy_data_structs();
+							exit(1);
+						}
 						copied.ow_newer = 1;
 						printf("\n");
 						break;
@@ -1345,10 +1417,20 @@ int main(int argc, char *argv[])
 					length = strlen(line);
 					line[length-1] = '\0';
 					if (strcmp(line,"yes") == 0) {
-						if (read_write_data(data_copy_info.diff_time_mo_list,4,NULL,NULL) == 0)
-							printf("Newer files overwritten successfully.\n");
-						else
-							printf("Error overwriting the newer files.\n");
+						read_write_data_res = read_write_data(data_copy_info.diff_time_mo_list,4,NULL,NULL);
+						if (read_write_data_res == 0)
+							printf("Newer files were overwritten successfully.\n");
+						else if (read_write_data_res == 1)
+							printf("There were some errors while overwriting the newer files.\n");
+						else if (read_write_data_res == -1) {
+							printf("There were some errors while overwriting the newer files. Exiting.\n");
+							list_stats(1,copied);
+							clean_tree(thread_data_a->file_tree_top_dir,0);
+							clean_tree(thread_data_b->file_tree_top_dir,0);
+							clean_up_1();
+							destroy_data_structs();
+							exit(1);
+						}
 						copied.ow_older = 1;
 						printf("\n");
 						break;
@@ -1368,55 +1450,245 @@ int main(int argc, char *argv[])
 		} // if (options.no_questions == 0) {
 		else if (options.no_questions == 1) {
 			if (copy_files == 1 && options.just_copy_extraneous_back != 1 && options.just_delete_extraneous != 1) {
-				read_write_data(data_copy_info.files_to_copy_list,1,NULL,NULL);
+				read_write_data_res = read_write_data(data_copy_info.files_to_copy_list,1,NULL,NULL);
+				if (read_write_data_res == 0)
+					printf("\nFiles were written successfully.\n");
+				else if (read_write_data_res == 1)
+					printf("\nSome files written successfully, but there were some errors.\n");
+				else if (read_write_data_res == -1) {
+					printf("\nError writing the files. Exiting.\n");
+					list_stats(1,copied);
+					clean_tree(thread_data_a->file_tree_top_dir,0);
+					clean_tree(thread_data_b->file_tree_top_dir,0);
+					clean_up_1();
+					destroy_data_structs();
+					exit(1);
+				}
 				copied.copied_data = 1;
 			}
 			if (copy_dirs == 1 && options.just_copy_extraneous_back != 1 && options.just_delete_extraneous != 1) {
-				read_write_data(data_copy_info.dirs_to_copy_list,2,NULL,NULL);
+				read_write_data_res = read_write_data(data_copy_info.dirs_to_copy_list,2,NULL,NULL);
+				if (read_write_data_res == 0)
+					printf("\nDirectories were written succesfully.\n");
+				else if (read_write_data_res == 1)
+					printf("\nSome directories written successfully, but there were some errors.\n");
+				else if (read_write_data_res == -1) {
+					printf("\nError writing the directories. Exiting.\n");
+					list_stats(1,copied);
+					clean_tree(thread_data_a->file_tree_top_dir,0);
+					clean_tree(thread_data_b->file_tree_top_dir,0);
+					clean_up_1();
+					destroy_data_structs();
+					exit(1);
+				}
 				copied.copied_data = 1;
 			}
 			if (options.copy_extraneous_back == 1) {
-				if (files_extraneous == 1)
-					read_write_data(data_copy_info.files_extraneous_list,1,NULL,NULL);
-				if (dirs_extraneous == 1)
-					read_write_data(data_copy_info.dirs_extraneous_list,2,NULL,NULL);
+				if (files_extraneous == 1) {
+					read_write_data_res = read_write_data(data_copy_info.files_extraneous_list,1,NULL,NULL);
+					if (read_write_data_res == 0)
+						printf("\nExtraneous files were written successfully.\n");
+					else if (read_write_data_res == 1)
+						printf("\nSome extraneous files were written successfully, but there were also some errors.\n");
+					else if (read_write_data_res == -1) {
+						printf("\nError writing the extraneous files. Exiting.\n");
+						list_stats(1,copeid);
+						clean_tree(thread_data_a->file_tree_top_dir,0);
+						clean_tree(thread_data_b->file_tree_top_dir,0);
+						clean_up_1();
+						destroy_data_structs();
+						exit(1);
+					}
+				}
+				if (dirs_extraneous == 1) {
+					read_write_data_res = read_write_data(data_copy_info.dirs_extraneous_list,2,NULL,NULL);
+					if (read_write_data_res == 0)
+						printf("\nExtraneous directories were written successfully.\n");
+					else if (read_write_data_res == 1)
+						printf("\nSome extraneous directories were written successfully, but there were also some errors.\n");
+					else if (read_write_data_res == -1) {
+						printf("\nError writing the extraneous directories. Exiting\n");
+						list_stats(1,copeid);
+						clean_tree(thread_data_a->file_tree_top_dir,0);
+						clean_tree(thread_data_b->file_tree_top_dir,0);
+						clean_up_1();
+						destroy_data_structs();
+						exit(1);
+					}
+				}
 				copied.copied_extraneous = 1;
 			}
 			else if (options.delete_extraneous == 1) {
-				if (files_extraneous == 1)
-					read_write_data(data_copy_info.files_extraneous_list,5,NULL,NULL);
-				if (dirs_extraneous == 1)
-					read_write_data(data_copy_info.dirs_extraneous_list,6,NULL,NULL);
+				if (files_extraneous == 1) {
+					read_write_data_res = read_write_data(data_copy_info.files_extraneous_list,5,NULL,NULL);
+					if (read_write_data_res == 0)
+						printf("\nDeleting the extraneous files was successful.\n");
+					else if (read_write_data_res == 1) 
+						printf("\nDeleting some extraneous files was successful, but there were also some errors.\n");
+					else if (read_write_data_res == -1) {
+						printf("\nError deleting the extraneous files. Exiting.\n");
+						list_stats(1,copeid);
+						clean_tree(thread_data_a->file_tree_top_dir,0);
+						clean_tree(thread_data_b->file_tree_top_dir,0);
+						clean_up_1();
+						destroy_data_structs();
+						exit(1);
+					}
+				}
+				if (dirs_extraneous == 1) {
+					read_write_data_res = read_write_data(data_copy_info.dirs_extraneous_list,6,NULL,NULL);
+					if (read_write_data_res == 0)
+						printf("\nDeleting the extraneous directories was successful.\n");
+					else if (read_write_data_res == 1)
+						printf("\nDeleting some extraneous directories was successfull, but there were also some errors.\n");
+					else if (read_write_data_res == -1) {
+						printf("\nError deleting the extraneous directories. Exiting.\n");
+						list_stats(1,copied);
+						clean_tree(thread_data_a->file_tree_top_dir,0);
+						clean_tree(thread_data_b->file_tree_top_dir,0);
+						clean_up_1();
+						destroy_data_structs();
+						exit(1);
+					}
+				}
 				copied.deleted_extraneous = 1;
 			}
 			if (options.just_copy_extraneous_back == 1) {
-				if (files_extraneous == 1)
-					read_write_data(data_copy_info.files_extraneous_list,1,NULL,NULL);
-				if (dirs_extraneous == 1)
+				if (files_extraneous == 1) {
+					read_write_data_res = read_write_data(data_copy_info.files_extraneous_list,1,NULL,NULL);
+					if (read_write_data_res == 0)
+						printf("\nExtraneous files were written successfully.\n");
+					else if (read_write_data_res == 1)
+						printf("\nSome extraneous files were written successfully, but there were also some errors.\n");
+					else if (read_write_data_res == -1) {
+						printf("\nError writing the extraneous files. Exiting.\n");
+						list_stats(1,copeid);
+						clean_tree(thread_data_a->file_tree_top_dir,0);
+						clean_tree(thread_data_b->file_tree_top_dir,0);
+						clean_up_1();
+						destroy_data_structs();
+						exit(1);
+					}
+				}
+				if (dirs_extraneous == 1) {
 					read_write_data(data_copy_info.dirs_extraneous_list,2,NULL,NULL);
+					if (read_write_data_res == 0)
+						printf("\nExtraneous directories were written successfully.\n");
+					else if (read_write_data_res == 1)
+						printf("\nSome extraneous directories were written successfully, but there were also some errors.\n");
+					else if (read_write_data_res == -1) {
+						printf("\nError writing the extraneous directories. Exiting\n");
+						list_stats(1,copeid);
+						clean_tree(thread_data_a->file_tree_top_dir,0);
+						clean_tree(thread_data_b->file_tree_top_dir,0);
+						clean_up_1();
+						destroy_data_structs();
+						exit(1);
+					}
+				}
 				copied.copied_extraneous = 1;
 			}
 			else if (options.just_delete_extraneous == 1) {
-				if (files_extraneous == 1)
-					read_write_data(data_copy_info.files_extraneous_list,5,NULL,NULL);
-				if (dirs_extraneous == 1)
-					read_write_data(data_copy_info.dirs_extraneous_list,6,NULL,NULL);
-				copied.deleted_extraneous = 1;
+				if (files_extraneous == 1) {
+					read_write_data_res = read_write_data(data_copy_info.files_extraneous_list,5,NULL,NULL);
+					if (read_write_data_res == 0)
+						printf("\nDeleting the extraneous files was successful.\n");
+					else if (read_write_data_res == 1) 
+						printf("\nDeleting some extraneous files was successful, but there were also some errors.\n");
+					else if (read_write_data_res == -1) {
+						printf("\nError deleting the extraneous files. Exiting.\n");
+						list_stats(1,copeid);
+						clean_tree(thread_data_a->file_tree_top_dir,0);
+						clean_tree(thread_data_b->file_tree_top_dir,0);
+						clean_up_1();
+						destroy_data_structs();
+						exit(1);
+					}
+				}
+				if (dirs_extraneous == 1) {
+					read_write_data_res = read_write_data(data_copy_info.dirs_extraneous_list,6,NULL,NULL);
+					if (read_write_data_res == 0)
+						printf("\nDeleting the extraneous directories was successful.\n");
+					else if (read_write_data_res == 1)
+						printf("\nDeleting some extraneous directories was successfull, but there were also some errors.\n");
+					else if (read_write_data_res == -1) {
+						printf("\nError deleting the extraneous directories. Exiting.\n");
+						list_stats(1,copied);
+						clean_tree(thread_data_a->file_tree_top_dir,0);
+						clean_tree(thread_data_b->file_tree_top_dir,0);
+						clean_up_1();
+						destroy_data_structs();
+						exit(1);
+					}
+				}
+				copied.deleted_extraneous = 1
 			}
 			if (options.ow_main_smaller == 1 && options.just_copy_extraneous_back != 1 && options.just_delete_extraneous != 1) {
-				read_write_data(data_copy_info.diff_size_ms_list,4,NULL,NULL);
+				read_write_data_res = read_write_data(data_copy_info.diff_size_ms_list,4,NULL,NULL);
+				if (read_write_data_res == 0)
+					printf("Larger files overwritten successfully.\n");
+				else if (read_write_data_res == 1)
+					printf("There were some errors while overwriting the larger files.\n");
+				else if (read_write_data_res == -1) {
+					printf("There were some errors while overwriting the larger files. Exiting.\n");
+						list_stats(1,copied);
+						clean_tree(thread_data_a->file_tree_top_dir,0);
+						clean_tree(thread_data_b->file_tree_top_dir,0);
+						clean_up_1();
+						destroy_data_structs();
+						exit(1);
+				}
 				copied.ow_smaller = 1;
 			}
 			if (options.ow_main_larger == 1 && options.just_copy_extraneous_back != 1 && options.just_delete_extraneous != 1) {
-				read_write_data(data_copy_info.diff_size_ml_list,4,NULL,NULL);
+				read_write_data_res = read_write_data(data_copy_info.diff_size_ml_list,4,NULL,NULL);
+				if (read_write_data_res == 0)
+					printf("Smaller files were overwritten successfully\n");
+				else if (read_write_data_res == 1)
+					printf("There were some errors overwriting the smaller files.\n");
+				else if (read_write_data_res == -1) {
+					printf("There were some errors while overwriting the smaller files. Exiting.\n");
+					list_stats(1,copied);
+					clean_tree(thread_data_a->file_tree_top_dir,0);
+					clean_tree(thread_data_b->file_tree_top_dir,0);
+					clean_up_1();
+					destroy_data_structs();
+					exit(1);
+				}
 				copied.ow_larger = 1;
 			}
 			if (options.ow_main_newer == 1 && options.just_copy_extraneous_back != 1 && options.just_delete_extraneous != 1) {
-				read_write_data(data_copy_info.diff_time_mn_list,4,NULL,NULL);
+				read_write_data_res = read_write_data(data_copy_info.diff_time_mn_list,4,NULL,NULL);
+				if (read_write_data_res == 0)
+					printf("Older files were overwritten successfully.\n");
+				else if (read_write_data_res == 1)
+					printf("There were some errors overwriting the older files.\n");
+				else if (read_write_data_res == -1) {
+					printf("There were some errors while overwriting the older files. Exiting.\n");
+					list_stats(1,copied);
+					clean_tree(thread_data_a->file_tree_top_dir,0);
+					clean_tree(thread_data_b->file_tree_top_dir,0);
+					clean_up_1();
+					destroy_data_structs();
+					exit(1);
+				}
 				copied.ow_newer = 1;
 			}
 			if (options.ow_main_older == 1 && options.just_copy_extraneous_back != 1 && options.just_delete_extraneous != 1) {
-				read_write_data(data_copy_info.diff_time_mo_list,4,NULL,NULL);
+				read_write_data_res = read_write_data(data_copy_info.diff_time_mo_list,4,NULL,NULL);
+				if (read_write_data_res == 0)
+					printf("Newer files were overwritten successfully.\n");
+				else if (read_write_data_res == 1)
+					printf("There were some errors while overwriting the newer files.\n");
+				else if (read_write_data_res == -1) {
+					printf("There were some errors while overwriting the newer files. Exiting.\n");
+					list_stats(1,copied);
+					clean_tree(thread_data_a->file_tree_top_dir,0);
+					clean_tree(thread_data_b->file_tree_top_dir,0);
+					clean_up_1();
+					destroy_data_structs();
+					exit(1);
+				}
 				copied.ow_older = 1;
 			}
 			if (copied.copied_data == 1 || copied.copied_extraneous == 1 || copied.deleted_extraneous == 1 || copied.ow_smaller == 1 
@@ -1436,7 +1708,7 @@ int main(int argc, char *argv[])
 	clean_tree(thread_data_a->file_tree_top_dir,0);
 	clean_tree(thread_data_b->file_tree_top_dir,0);
 
-	free(pathname1);
+	/*free(pathname1);
 	free(pathname2);
 	if (thread_data_a->id != NULL)
 		free(thread_data_a->id);
@@ -1444,485 +1716,11 @@ int main(int argc, char *argv[])
 		free(thread_data_b->id);
 	free(thread_data_a);
 	free(thread_data_b);
+	*/
+	clean_up_1();
 	destroy_data_structs();
 
 	exit(0);
-}
-void list_stats(int after_c, struct copied_or_not copied)
-{
-	void calc_size(unsigned long data_size, int other_unit);
-	extern struct Data_Copy_Info data_copy_info;
-	unsigned long size_to_copy;
-	unsigned long after_copying_size;
-	unsigned long after_copying_size_surp;
-	unsigned long after_copying_file_num;
-	unsigned long after_copying_dir_num;
-
-	size_to_copy = 0;
-
-	// before copying
-	if (after_c == 0) {
-		printf("\n");
-		printf("\n");
-		printf("SOURCE DIRECTORY\n");
-		printf("\n");
-		printf("Number of files: %ld\n", data_copy_info.global_file_num_a);
-		printf("Number of symbolic links: %ld\n", data_copy_info.global_symlink_num_a);
-		printf("Number of directories (excluding the top directory): %ld\n", data_copy_info.global_dir_num_a);
-		printf("Size of directory in bytes: %ld\n", data_copy_info.global_files_size_a);
-		// calc_size(): size of files/directories in the more appropriate or user specified unit
-		calc_size(data_copy_info.global_files_size_a,options.other_unit);
-		printf("\n");
-		printf("\n");
-		printf("DESTINATION DIRECTORY\n");
-		printf("\n");
-		printf("Number of files: %ld\n", data_copy_info.global_file_num_b);
-		printf("Number of symbolic links: %ld\n", data_copy_info.global_symlink_num_a);
-		printf("Number of directories (excluding the top directory): %ld\n", data_copy_info.global_dir_num_b);
-		printf("Size of directory in bytes: %ld\n", data_copy_info.global_files_size_b);
-		calc_size(data_copy_info.global_files_size_b,options.other_unit);
-		printf("\n");
-		printf("\n");
-		printf("Number of individual files to copy: %ld\n", data_copy_info.global_files_to_copy_num);
-		printf("Size of individual files to copy in bytes: %ld\n", data_copy_info.global_files_to_copy_size);
-		calc_size(data_copy_info.global_files_to_copy_size,options.other_unit);
-		printf("Number of directories to copy: %ld\n", data_copy_info.global_dirs_to_copy_num);
-		printf("Size of directories to copy in bytes: %ld\n", data_copy_info.global_dirs_to_copy_size);
-		calc_size(data_copy_info.global_dirs_to_copy_size,options.other_unit);
-		size_to_copy = data_copy_info.global_files_to_copy_size + data_copy_info.global_dirs_to_copy_size;
-		printf("Files and directories to copy: ");
-		calc_size(size_to_copy,options.other_unit);
-		printf("Number of extraneous files: %ld\n", data_copy_info.global_files_extraneous_num);
-		printf("Size of extraneous files in bytes: %ld\n", data_copy_info.global_files_extraneous_size);
-		calc_size(data_copy_info.global_files_extraneous_size,options.other_unit);
-		printf("Number of extraneous directories: %ld\n", data_copy_info.global_dirs_extraneous_num);
-		printf("Size of extraneous directories in bytes: %ld\n", data_copy_info.global_dirs_extraneous_size);
-		calc_size(data_copy_info.global_dirs_extraneous_size,options.other_unit);
-		printf("Same files with different size (main location smaller): %ld\n", data_copy_info.global_diff_size_ms_num);
-		printf("Same files with different size (main location larger): %ld\n", data_copy_info.global_diff_size_ml_num);
-		printf("Same files with different modification time (main location newer): %ld\n", data_copy_info.global_diff_time_mn_num);
-		printf("Same files with different modification time (main location older): %ld\n", data_copy_info.global_diff_time_mo_num);
-		printf("\n");
-		printf("\n");
-	}
-	// after copying
-	else if (after_c == 1) {
-		printf("\n");
-		printf("\n");
-		printf("Before copying:\n");
-		list_stats(0,copied);
-		printf("After copying:\n");
-		printf("\n");
-		printf("\n");
-		printf("SOURCE DIRECTORY\n");
-		printf("\n");
-		if (options.copy_extraneous_back == 1 || options.just_copy_extraneous_back == 1) {
-			if (copied.copied_extraneous == 1) {
-				after_copying_file_num = 0;
-				after_copying_file_num = data_copy_info.global_file_num_a + data_copy_info.global_files_extraneous_num;
-				printf("Number of files: %ld\n", after_copying_file_num);
-			}
-			else if (copied.copied_extraneous == 0) {
-				printf("Aborted copying extraneous data back.\n");
-				printf("Number of files: %ld\n", data_copy_info.global_file_num_a);
-			}
-		}
-		else
-			printf("Number of files: %ld\n", data_copy_info.global_file_num_a);
-		if (options.copy_extraneous_back == 1 || options.just_copy_extraneous_back == 1) {
-			if (copied.copied_extraneous == 1) {
-				after_copying_dir_num = 0;
-				after_copying_dir_num = data_copy_info.global_dir_num_a + data_copy_info.global_dirs_extraneous_num;
-				printf("Number of directories (excluding the top directory): %ld\n", after_copying_dir_num);
-			}
-			else if (copied.copied_extraneous == 0) {
-				printf("Aborted copying extraneous data back.\n");
-				printf("Number of directories (excluding the top directory): %ld\n", data_copy_info.global_dir_num_a);
-			}
-		}
-		else
-			printf("Number of directories (excluding the top directory): %ld\n", data_copy_info.global_dir_num_a);
-		if (options.copy_extraneous_back == 1 || options.just_copy_extraneous_back == 1) {
-			if (copied.copied_extraneous == 1) {
-				after_copying_size_surp = 0;
-				after_copying_size_surp = data_copy_info.global_files_size_a + data_copy_info.global_files_extraneous_size + data_copy_info.global_dirs_extraneous_size;
-				printf("Size of directory in bytes after copying: %ld\n", after_copying_size_surp);
-				// calc_size(): size of files/directories in the more appropriate or user specified unit
-				calc_size(after_copying_size_surp,options.other_unit);
-			}
-			else if (copied.copied_extraneous == 0) {
-				printf("Aborted copying extraneous data back: ");
-				printf("Size of directory in bytes: %ld\n", data_copy_info.global_files_size_a);
-				// calc_size(): size of files/directories in the more appropriate or user specified unit
-				calc_size(data_copy_info.global_files_size_a,options.other_unit);
-			}
-		}
-		else {
-			printf("Size of directory in bytes: %ld\n", data_copy_info.global_files_size_a);
-			// calc_size(): size of files/directories in the more appropriate or user specified unit
-			calc_size(data_copy_info.global_files_size_a,options.other_unit);
-		}
-		printf("\n");
-		printf("\n");
-		printf("DESTINATION DIRECTORY\n");
-		printf("\n");
-		if (copied.copied_data == 1) {
-			after_copying_file_num = 0;
-			after_copying_file_num = data_copy_info.global_file_num_b + data_copy_info.global_files_to_copy_num;
-			if (options.delete_extraneous == 1) {
-				if (copied.deleted_extraneous == 1) {
-					after_copying_file_num -= data_copy_info.global_files_extraneous_num;
-					printf("Number of files: %ld\n", after_copying_file_num);
-				}
-				else if (copied.deleted_extraneous == 0) {
-					printf("Aborted deleting extraneous data.\n");
-					printf("Number of files: %ld\n", after_copying_file_num);
-				}
-			}
-			else
-				printf("Number of files: %ld\n", after_copying_file_num);
-			after_copying_dir_num = 0;
-			after_copying_dir_num = data_copy_info.global_dir_num_b + data_copy_info.global_dirs_to_copy_num;
-			if (options.delete_extraneous == 1) {
-				if (copied.deleted_extraneous == 1) {
-					after_copying_dir_num -= data_copy_info.global_dirs_extraneous_num;
-					printf("Number of directories (excluding the top directory): %ld\n", after_copying_dir_num);
-				}
-				else if (copied.deleted_extraneous == 0) {
-					printf("Aborted deleting extraneous data.\n");
-					printf("Number of directories (excluding the top directory): %ld\n", after_copying_dir_num);
-				}
-			}
-			else
-				printf("Number of directories (excluding the top directory): %ld\n", after_copying_dir_num);
-			after_copying_size = 0;
-			after_copying_size = data_copy_info.global_files_size_b + data_copy_info.global_files_to_copy_size + data_copy_info.global_dirs_to_copy_size;
-			if (options.ow_main_larger == 1) {
-				if (copied.ow_larger == 1) {
-					after_copying_size -= data_copy_info.global_diff_size_ml_orig_size;
-					after_copying_size += data_copy_info.global_diff_size_ml_size;
-				}
-				else if (copied.ow_larger == 0) {
-					printf("Aborted overwriting the same files with different sizes.\n");
-				}
-			}
-			else if (options.ow_main_smaller == 1) {
-				if (copied.ow_smaller == 1) {
-					after_copying_size -= data_copy_info.global_diff_size_ms_orig_size;
-					after_copying_size += data_copy_info.global_diff_size_ms_size;
-				}
-				else if (copied.ow_smaller == 0) {
-					printf("Aborted overwriting the same files with different sizes.\n");
-				}
-			}
-			if (options.ow_main_newer == 1) {
-				if (copied.ow_newer == 1) {
-					after_copying_size -= data_copy_info.global_diff_time_mn_orig_size;
-					after_copying_size += data_copy_info.global_diff_time_mn_size;
-				}
-				else if (copied.ow_newer == 0) {
-					printf("Aborted overwriting the same files with different modification time.\n");
-				}
-			}
-			else if (options.ow_main_older == 1) {
-				if (copied.ow_older == 1) {
-					after_copying_size -= data_copy_info.global_diff_time_mo_orig_size;
-					after_copying_size += data_copy_info.global_diff_time_mo_size;
-				}
-				else if (copied.ow_older == 0) {
-					printf("Aborted overwriting the same files with different modification time.\n");
-				}
-			}
-			if (options.delete_extraneous == 1) {
-				if (copied.deleted_extraneous == 1) {
-					after_copying_size -= data_copy_info.global_files_extraneous_size;
-					after_copying_size -= data_copy_info.global_dirs_extraneous_size;
-					printf("Size of directory in bytes after copying: %ld\n", after_copying_size);
-					calc_size(after_copying_size,options.other_unit);
-					printf("\n");
-					printf("\n");
-				}
-				else if (copied.deleted_extraneous == 0) {
-					printf("Aborted deleting extraneous data.\n");
-					printf("Size of directory in bytes after copying: %ld\n", after_copying_size);
-					calc_size(after_copying_size,options.other_unit);
-					printf("\n");
-					printf("\n");
-				}
-			}
-			else {
-				printf("Size of directory in bytes after copying: %ld\n", after_copying_size);
-				calc_size(after_copying_size,options.other_unit);
-				printf("\n");
-				printf("\n");
-			}
-		}
-		else if (copied.copied_data == 0 && options.just_delete_extraneous != 1) {
-			if (copied.aborted_copying == 1)
-				printf("Aborted copying the missing files and directories (from the source to the destination): ");
-			after_copying_file_num = data_copy_info.global_file_num_b;
-			after_copying_dir_num = data_copy_info.global_dir_num_b;
-			after_copying_size = data_copy_info.global_files_size_b;
-			if (options.ow_main_larger == 1) {
-				if (copied.ow_larger == 1) {
-					after_copying_size -= data_copy_info.global_diff_size_ml_orig_size;
-					after_copying_size += data_copy_info.global_diff_size_ml_size;
-				}
-				else if (copied.ow_larger == 0) {
-					printf("Aborted overwriting same files with different sizes.\n");
-				}
-			}
-			else if (options.ow_main_smaller == 1) {
-				if (copied.ow_smaller == 1) {
-					after_copying_size -= data_copy_info.global_diff_size_ms_orig_size;
-					after_copying_size += data_copy_info.global_diff_size_ms_size;
-				}
-				else if (copied.ow_smaller == 0) {
-					printf("Aborted overwriting same files with different sizes.\n");
-				}
-			}
-			if (options.ow_main_newer == 1) {
-				if (copied.ow_newer == 1) {
-					after_copying_size -= data_copy_info.global_diff_time_mn_orig_size;
-					after_copying_size += data_copy_info.global_diff_time_mn_size;
-				}
-				else if (copied.ow_newer == 0) {
-					printf("Aborted overwriting the same files with different modification time.\n");
-				}
-			}
-			else if (options.ow_main_older == 1) {
-				if (copied.ow_older == 1) {
-					after_copying_size -= data_copy_info.global_diff_time_mo_orig_size;
-					after_copying_size += data_copy_info.global_diff_time_mo_size;
-				}
-				else if (copied.ow_older == 0) {
-					printf("Aborted overwriting the same files with different modification time.\n");
-				}
-			}
-			if (options.delete_extraneous == 1) {
-				if (copied.deleted_extraneous == 1) {
-					after_copying_file_num -= data_copy_info.global_files_extraneous_num;
-					printf("Number of files: %ld\n", after_copying_file_num);
-					after_copying_dir_num -= data_copy_info.global_dirs_extraneous_num;
-					printf("Number of directories (excluding the top directory): %ld\n", after_copying_dir_num);
-					after_copying_size -= data_copy_info.global_files_extraneous_size;
-					after_copying_size -= data_copy_info.global_dirs_extraneous_size;
-					printf("Size of directory in bytes after copying: %ld\n", after_copying_size);
-					calc_size(after_copying_size,options.other_unit);
-					printf("\n");
-					printf("\n");
-				}
-				else if (copied.deleted_extraneous == 0) {
-					printf("Aborted deleting extraneous data.\n");
-					printf("Number of files: %ld\n", after_copying_file_num);
-					printf("Number of directories (excluding the top directory): %ld\n", after_copying_dir_num);
-					printf("Size of directory in bytes after copying: %ld\n", after_copying_size);
-					calc_size(after_copying_size,options.other_unit);
-					printf("\n");
-					printf("\n");
-				}
-			}
-			else {
-				printf("Number of files: %ld\n", after_copying_file_num);
-				printf("Number of directories (excluding the top directory): %ld\n", after_copying_dir_num);
-				printf("Size of directory in bytes after copying: %ld\n", after_copying_size);
-				calc_size(after_copying_size,options.other_unit);
-				printf("\n");
-				printf("\n");
-			}
-		}
-		else if (copied.copied_data == 0 && options.just_delete_extraneous == 1) {
-			after_copying_file_num = data_copy_info.global_file_num_b;
-			after_copying_dir_num = data_copy_info.global_dir_num_b;
-			after_copying_size = data_copy_info.global_files_size_b;
-			if (options.just_delete_extraneous == 1) {
-				if (copied.deleted_extraneous == 1) {
-					after_copying_file_num -= data_copy_info.global_files_extraneous_num;
-					printf("Number of files: %ld\n", after_copying_file_num);
-					after_copying_dir_num -= data_copy_info.global_dirs_extraneous_num;
-					printf("Number of directories (excluding the top directory): %ld\n", after_copying_dir_num);
-					after_copying_size -= data_copy_info.global_files_extraneous_size;
-					after_copying_size -= data_copy_info.global_dirs_extraneous_size;
-					printf("Size of directory in bytes after copying: %ld\n", after_copying_size);
-					calc_size(after_copying_size,options.other_unit);
-					printf("\n");
-					printf("\n");
-				}
-				else if (copied.deleted_extraneous == 0) {
-					printf("Aborted deleting extraneous data.\n");
-					printf("Number of files: %ld\n", after_copying_file_num);
-					printf("Number of directories (excluding the top directory): %ld\n", after_copying_dir_num);
-					printf("Size of directory in bytes after copying: %ld\n", after_copying_size);
-					calc_size(after_copying_size,options.other_unit);
-					printf("\n");
-					printf("\n");
-				}
-			}
-			else {
-				printf("Number of files: %ld\n", after_copying_file_num);
-				printf("Number of directories (excluding the top directory): %ld\n", after_copying_dir_num);
-				printf("Size of directory in bytes after copying: %ld\n", after_copying_size);
-				calc_size(after_copying_size,options.other_unit);
-				printf("\n");
-				printf("\n");
-			}
-		}
-	}
-	// full directory copying
-	else if (after_c == 2) {
-		if (copied.full_dir1_copied == 1) {
-			printf("\n");
-			printf("\n");
-			printf("Full directory copied.\n");
-			printf("\n");
-			printf("\n");
-			printf("SOURCE DIRECTORY\n");
-			printf("\n");
-			printf("Number of files: %ld\n", data_copy_info.global_file_num_a);
-			printf("Number of directories (excluding the top directory): %ld\n", data_copy_info.global_dir_num_a);
-			printf("Size of directory in bytes: %ld\n", data_copy_info.global_files_size_a);
-			// calc_size(): size of files/directories in the more appropriate or user specified unit
-			calc_size(data_copy_info.global_files_size_a,options.other_unit);
-			printf("\n");
-			printf("\n");
-			printf("DESTINATION DIRECTORY\n");
-			printf("\n");
-			printf("Number of files: %ld\n", data_copy_info.global_file_num_a);
-			printf("Number of directories (excluding the top directory): %ld\n", data_copy_info.global_dir_num_a);
-			printf("Size of directory in bytes: %ld\n", data_copy_info.global_files_size_a);
-			// calc_size(): size of files/directories in the more appropriate or user specified unit
-			calc_size(data_copy_info.global_files_size_a,options.other_unit);
-		}
-		else if (copied.full_dir1_copied == 0 && copied.full_dir2_copied == 0) {
-			printf("\n");
-			printf("\n");
-			printf("Aborted copying the missing files and directories (from the source to the destination): ");
-			printf("\n");
-			printf("\n");
-			printf("SOURCE DIRECTORY\n");
-			printf("\n");
-			printf("Number of files: %ld\n", data_copy_info.global_file_num_a);
-			printf("Number of directories (excluding the top directory): %ld\n", data_copy_info.global_dir_num_a);
-			printf("Size of directory in bytes: %ld\n", data_copy_info.global_files_size_a);
-			// calc_size(): size of files/directories in the more appropriate or user specified unit
-			calc_size(data_copy_info.global_files_size_a,options.other_unit);
-			printf("\n");
-			printf("\n");
-			printf("DESTINATION DIRECTORY\n");
-			printf("\n");
-			printf("Number of files: %ld\n", data_copy_info.global_file_num_a);
-			printf("Number of directories (excluding the top directory): %ld\n", data_copy_info.global_dir_num_a);
-			printf("Size of directory in bytes: %ld\n", data_copy_info.global_files_size_a);
-			// calc_size(): size of files/directories in the more appropriate or user specified unit
-			calc_size(data_copy_info.global_files_size_a,options.other_unit);
-		}
-		if (copied.full_dir2_copied == 1) {
-			printf("\n");
-			printf("\n");
-			printf("Full directory copied.\n");
-			printf("\n");
-			printf("\n");
-			printf("SOURCE DIRECTORY\n");
-			printf("\n");
-			printf("Number of files: %ld\n", data_copy_info.global_file_num_b);
-			printf("Number of directories (excluding the top directory): %ld\n", data_copy_info.global_dir_num_b);
-			printf("Size of directory in bytes: %ld\n", data_copy_info.global_files_size_b);
-			// calc_size(): size of files/directories in the more appropriate or user specified unit
-			calc_size(data_copy_info.global_files_size_b,options.other_unit);
-			printf("\n");
-			printf("\n");
-			printf("DESTINATION DIRECTORY\n");
-			printf("\n");
-			printf("Number of files: %ld\n", data_copy_info.global_file_num_b);
-			printf("Number of directories (excluding the top directory): %ld\n", data_copy_info.global_dir_num_b);
-			printf("Size of directory in bytes: %ld\n", data_copy_info.global_files_size_b);
-			// calc_size(): size of files/directories in the more appropriate or user specified unit
-			calc_size(data_copy_info.global_files_size_b,options.other_unit);
-		}
-		else if (copied.full_dir1_copied == 0 && copied.full_dir2_copied == 0) {
-			printf("\n");
-			printf("\n");
-			printf("Aborted copying the missing files and directories (from the destination to the source): ");
-			printf("\n");
-			printf("\n");
-			printf("SOURCE DIRECTORY\n");
-			printf("\n");
-			printf("Number of files: %ld\n", data_copy_info.global_file_num_a);
-			printf("Number of directories (excluding the top directory): %ld\n", data_copy_info.global_dir_num_a);
-			printf("Size of directory in bytes: %ld\n", data_copy_info.global_files_size_a);
-			// calc_size(): size of files/directories in the more appropriate or user specified unit
-			calc_size(data_copy_info.global_files_size_a,options.other_unit);
-			printf("\n");
-			printf("\n");
-			printf("DESTINATION DIRECTORY\n");
-			printf("\n");
-			printf("Number of files: %ld\n", data_copy_info.global_file_num_b);
-			printf("Number of directories (excluding the top directory): %ld\n", data_copy_info.global_dir_num_b);
-			printf("Size of directory in bytes: %ld\n", data_copy_info.global_files_size_b);
-			// calc_size(): size of files/directories in the more appropriate or user specified unit
-			calc_size(data_copy_info.global_files_size_b,options.other_unit);
-		}
-	}
-}
-
-void calc_size(unsigned long data_size, int other_unit)
-{
-	unsigned long power1, power2, power3, power4;
-	long double unit;
-
-	if (options.si_units == 1) {
-		power1 = (unsigned long) 1000;
-		power2 = (unsigned long) 1000*1000;
-		power3 = (unsigned long) 1000*1000*1000;
-		power4 = (unsigned long) 1000*1000*1000*1000;
-	}
-	else {
-		power1 = (unsigned long) 1024;
-		power2 = (unsigned long) 1024*1024;
-		power3 = (unsigned long) 1024*1024*1024;
-		power4 = (unsigned long) 1024*1024*1024*1024;
-	}
-
-	if (options.other_unit != 1) {
-		if (data_size != 0) {
-			if (data_size >= power4) {
-				unit = (long double) data_size / power4;
-				printf("Size in terabytes: %.2Lf TB\n", unit);
-			}
-			else if (data_size >= power3) {
-				unit = (long double) data_size / power3;
-				printf("Size in gigabytes: %.2Lf GB\n", unit);
-			}
-			else if (data_size >= power2) {
-				unit = (long double) data_size / power2;
-				printf("Size in megabytes: %.2Lf MB\n", unit);
-			}
-			else if (data_size >= power1) {
-				unit = (long double) data_size / power1;
-				printf("Size in kilobytes: %.2Lf KB\n", unit);
-			}
-		}
-	}
-	else if (options.other_unit == 1) {
-		if (data_size != 0) {
-			if (strcmp(options.unit,"TB") == 0) {
-				unit = (long double) data_size / power4;
-				printf("Size in terabytes: %.2Lf TB\n", unit);
-			}
-			else if (strcmp(options.unit,"GB") == 0) {
-				unit = (long double) data_size / power3;
-				printf("Size in gigabytes: %.2Lf GB\n", unit);
-			}
-			else if (strcmp(options.unit,"MB") == 0) {
-				unit = (long double) data_size / power2;
-				printf("Size in megabytes: %.2Lf MB\n", unit);
-			}
-			else if (strcmp(options.unit,"KB") == 0) {
-				unit = (long double) data_size / power1;
-				printf("Size in kilobytes: %.2Lf KB\n", unit);
-			}
-		}
-	}
 }
 
 // free the data structures used to hold file lists to copy, delete, overwrite...
