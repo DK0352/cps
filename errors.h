@@ -35,6 +35,9 @@ struct errors_data {
 	unsigned long	symlink_read_error_count;
 	unsigned long	symlink_write_error_count;
 	unsigned long	symlink_overwrite_error_count;
-	unsigned long
+	unsigned long	atimestamp_error_count;
+	unsigned long	mtimestamp_error_count;
+	unsigned long	xattr_error_count;
+	unsigned long	mac_error_count;
 	DList *file_read_error, *file_write_error, *dir_read_error, *dir_write_error;
 };
