@@ -61,3 +61,29 @@ struct Data_Copy_Info {
 	unsigned long 	global_symlink_size_b;	// number of symbolic links in the destination directory
 	unsigned long	dlist_of_lists_num;		// benchmark
 };
+
+struct copied_or_not {
+	int copied_data;		// if 1, add size in stats
+	int copied_files;
+	int copied_symlinks;
+	int copied_directories;
+	int aborted_copying;		// if 1, user aborted copying missing files and dirs
+	int copied_extraneous;		// if 1, add size in stats
+	int copied_files_extraneous;
+	int copied_symlinks_extraneous;
+	int copied_directories_extraneous;
+	int deleted_extraneous;		// if 1, subtract size in stats
+	int deleted_files_extraneous;
+	int deleted_symlinks_extraneous;
+	int deleted_directories_extraneous;
+	int ow_smaller;
+	int ow_larger;
+	int ow_newer;
+	int ow_older;
+	int ow_symlinks_main_smaller;
+	int ow_symlinks_main_larger;
+	int ow_symlinks_main_newer;
+	int ow_symlinks_main_older;
+	int full_dir1_copied;		// if 1, add size in stats
+	int full_dir2_copied;		// if 1, add size in stats
+};
