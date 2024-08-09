@@ -24,15 +24,21 @@
 
 #define BUF_SIZE 4096
 #define XATTR_SIZE 10000
+#define LIST 300	// use linked lists in set_xattrs()
+#define ARRAY 301	// use char array in set_xattrs()
 
-extern struct options_menu options;
+int set_xattrs(DListElmt *, char source[], char destination[], int use);
 
 /* Function that writes data; data argument is linked list or NULL, choose is explained before each if/else, source and destination are used when data argument is NULL, and function dives into directory tree by itself, reading and writing files and directories, or overwriting, deleting, depending on the choose argument number. */
-int read_write_data(DList *data, int choose, char *source, char *destination) // kasnije dodat optionss argument
+int read_write_data(DList *data, int choose, char *source, char *destination)
 {
+	extern struct options_menu options;
+	extern struct errors_data errors;
+
 	DIR		*dir;
 	DListElmt	*read_file_list, *read_dir_list;
 	DList 		*file_list, *dir_list;
+
 	int		read_descriptor, write_descriptor; // file descriptors + flags
 	ssize_t 	num_read;
 	char 		buf[BUF_SIZE];
@@ -51,6 +57,7 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 	int		len1, len2;
 	int		i;
 	mode_t		file_perms, dir_perms;
+
 	acl_t		acl;
 	int		acl_res; // return value for acl function
 				 // ///////////////
@@ -65,7 +72,6 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 
 	int		some_errors = 0;
 	int		read_write_data_res = 0;
-	int		some_errors;
 
 	file_t_init = 0;
 	direntry_init = 0;
@@ -97,7 +103,7 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 					errno = 0;
 					if (symlink(linkpath,read_file_list->new_location) != 0) {
 						perror("symlink");
-						printf(stderr, "read_write_data() 1: %s\n", read_file_list->new_location);
+						fprintf(stderr, "read_write_data() 1: %s\n", read_file_list->new_location);
 						if (options.quit_write_errors == 1)
 							return -1;
 						else if (options.quit_read_errors == 0) {
@@ -111,7 +117,7 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 							errno = 0;
 							if (utimensat(0, read_file_list->new_location, options.times, AT_SYMLINK_NOFOLLOW) == -1) {
 								perror("utimensat");
-								error.atimestamp_error_count++;
+								errors.atimestamp_error_count++;
 								if (options.quit_write_errors == 1)
 									return -1;
 								else if (options.quit_write_errors == 0) {
@@ -125,7 +131,7 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 							errno = 0;
 							if (utimensat(0, read_file_list->new_location, options.times, AT_SYMLINK_NOFOLLOW) == -1) {
 								perror("utimensat");
-								error.mtimestamp_error_count++;
+								errors.mtimestamp_error_count++;
 								if (options.quit_write_errors == 1)
 									return -1;
 								else if (options.quit_write_errors == 0) {
@@ -136,8 +142,8 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 						}
 					}
 					if (options.xattrs == 1) {
-						set_xattrs_res = set_xattrs(read_file_list,0,0,LIST);
-						if (set_xattrs_res != 0)
+						setxattr_res = set_xattrs(read_file_list,0,0,LIST);
+						if (setxattr_res != 0)
 							return -1;
 					}
 					if (options.show_write_proc != 0)
@@ -228,8 +234,8 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 				acl_free(acl);
 			}
 			if (options.xattrs == 1) {
-				set_xattrs_res = set_xattrs(read_file_list,0,0,LIST);
-				if (set_xattrs_res != 0)
+				setxattr_res = set_xattrs(read_file_list,0,0,LIST);
+				if (setxattr_res != 0)
 					return -1;
 			}
 			
@@ -265,7 +271,7 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 			if (mkdir(read_dir_list->new_location,dir_perms) != 0) {
 				perror("mkdir");
 				fprintf(stderr, "read_write_data() 2: %s\n", read_dir_list->new_location);
-				if (options.quit_write_errors == 1) {
+				if (options.quit_write_errors == 1)
 					return -1;
 				else if (options.quit_write_errors == 0) {
 					some_errors++;
@@ -306,8 +312,8 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 				acl_free(acl);
 			}
 			if (options.xattrs == 1) {
-				set_xattrs_res = set_xattrs(read_dir_list,0,0,LIST);
-				if (set_xattrs_res != 0)
+				setxattr_res = set_xattrs(read_dir_list,0,0,LIST);
+				if (setxattr_res != 0)
 					return -1;
 			}
 			if (options.show_write_proc != 0)
@@ -464,8 +470,8 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 					acl_free(acl);
 				}
 				if (options.xattrs == 1) {
-					set_xattrs_res = set_xattrs(NULL,new_source,new_destination,ARRAY);
-					if (set_xattrs_res != 0)
+					setxattr_res = set_xattrs(NULL,new_source,new_destination,ARRAY);
+					if (setxattr_res != 0)
 						return -1;
 				}
 			}
@@ -485,7 +491,7 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 					if (options.quit_read_errors == 1)
 						return -1;
 					else if (options.quit_read_errors == 0) {
-						options.file_open_error_count++;
+						errors.file_open_error_count++;
 						some_errors++;
 						continue;
 					}
@@ -497,7 +503,7 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 				if (write_descriptor == -1) {
 					perror("open");
 					fprintf(stderr, "read_write_data() 3: %s\n", destination_path);
-					options.file_create_error_count++;
+					errors.file_create_error_count++;
 					if (options.quit_write_errors == 1)
 						return -1;
 					else if (options.quit_write_errors == 0) {
@@ -564,8 +570,8 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 					acl_free(acl);
 				}
 				if (options.xattrs == 1) {
-					set_xattrs_res = set_xattrs(NULL,new_source,new_destination,ARRAY);
-					if (set_xattrs_res != 0)
+					setxattr_res = set_xattrs(NULL,new_source,new_destination,ARRAY);
+					if (setxattr_res != 0)
 						return -1;
 				}
 				
@@ -575,8 +581,8 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 					fprintf(stderr, "read_write_data: error closing the read descriptor.\n");
 					if (options.quit_read_errors == 1)
 						return -1;
-					else if (options.quit_read_errors == 0) {
-						some_errors++:
+					else if (options.quit_read_errors == 0)
+						some_errors++;
 				}
 				if (close(write_descriptor) == -1) {
 					printf("read_write_data: error closing the write descriptor.\n");
@@ -640,8 +646,8 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 					}
 				}
 				if (options.xattrs == 1) {
-					set_xattrs_res = set_xattrs(NULL,new_source,new_destination,ARRAY);
-					if (set_xattrs_res != 0)
+					setxattr_res = set_xattrs(NULL,new_source,new_destination,ARRAY);
+					if (setxattr_res != 0)
 						return -1;
 				}
 				if (options.show_write_proc != 0)
@@ -742,8 +748,8 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 						}
 					}
 					if (options.xattrs == 1) {
-						set_xattrs_res = set_xattrs(read_file_list,0,0,LIST);
-						if (set_xattrs_res != 0)
+						setxattr_res = set_xattrs(read_file_list,0,0,LIST);
+						if (setxattr_res != 0)
 							return -1;
 					}
 					if (options.show_write_proc != 0)
@@ -839,8 +845,8 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 				acl_free(acl);
 			}
 			if (options.xattrs == 1) {
-				set_xattrs_res = set_xattrs(read_file_list,0,0,LIST);
-				if (set_xattrs_res != 0)
+				setxattr_res = set_xattrs(read_file_list,0,0,LIST);
+				if (setxattr_res != 0)
 					return -1;
 			}
 			if (options.show_write_proc != 0)
@@ -914,7 +920,7 @@ int read_write_data(DList *data, int choose, char *source, char *destination) //
 			if (rmdir(read_dir_list->dir_location) != 0) {
 				perror("rmdir");
 				printf("read_write_data() 6: %s\n", read_dir_list->dir_location);
-				errors.dir_delete_errors_count++;
+				errors.dir_delete_error_count++;
 				if (options.quit_delete_errors == 1)
 					return -1;
 				else if (options.quit_delete_errors == 0) {
@@ -1230,7 +1236,7 @@ int set_xattrs(DListElmt *to_copy, char source[], char destination[], int use)
 		if (options.quit_read_errors == 1)
 			return -1;
 		else if (options.quit_read_errors == 0) {
-			some_errors++;
+			//some_errors++;
 			return 1;
 		}
 	}
@@ -1286,7 +1292,7 @@ int set_xattrs(DListElmt *to_copy, char source[], char destination[], int use)
 				errno = 0;
 				vallen = options.getxattr_func(current_loc, key, val, vallen);
 				if (vallen == -1) {
-					errors.xattr_read_errors++;
+					errors.xattr_error_count++;
 					perror("getxattr");
 					if (options.quit_read_errors == 1) {
 						free(xbuf);
@@ -1304,7 +1310,7 @@ int set_xattrs(DListElmt *to_copy, char source[], char destination[], int use)
 					errno = 0;
 					setxattr_status = options.setxattr_func(new_loc, key, val, vallen, XATTR_CREATE);
 					if (setxattr_status == -1) {
-						errors.xattr_read_errors++;
+						errors.xattr_error_count++;
 						perror("estxattr");
 						if (options.quit_read_errors == 1) {
 							free(xbuf);
