@@ -22,19 +22,33 @@ struct Data_Copy_Info {
         struct DList_of_lists_  *file_tree_top_dir_a;
         struct DList_of_lists_  *file_tree_top_dir_b;
         DList		*files_to_copy_list;	// linked list of files to copy
+        DList		*symlinks_to_copy_list;	// linked list of symbolic links to copy
         DList		*dirs_to_copy_list;	// linked list of directories to copy
         DList		*files_extraneous_list;	// linked list of extraneous files
+        DList		*symlinks_extraneous_list;	// linked list of extraneous symbolic links
         DList		*dirs_extraneous_list;	// linked list of extraneous directories
         DList		*diff_size_ms_list;	// linked list of files with different size, one in the main (source directory) location smaller
         DList		*diff_size_ml_list;	// linked list of files with different size, ine in the main (source directory) location larger
 	DList		*diff_time_mn_list;	// linked list of files with newer modification time from the main (source) directory
 	DList		*diff_time_mo_list;	// linked list of files with older modification time from the main (source) directory
+        DList		*symlinks_diff_size_ms_list;	// linked list of files with different size, one in the main (source directory) location smaller
+        DList		*symlinks_diff_size_ml_list;	// linked list of files with different size, ine in the main (source directory) location larger
+	DList		*symlinks_diff_time_mn_list;	// linked list of files with newer modification time from the main (source) directory
+	DList		*symlinks_diff_time_mo_list;	// linked list of files with older modification time from the main (source) directory
         unsigned long   global_files_to_copy_num;       // number of files to copy
         unsigned long	global_files_to_copy_size;      // size of files to copy in bytes
+	unsigned long	global_files_within_dirs_to_copy_num;	// number of files within directories to copy 
+	unsigned long	global_files_within_dirs_extraneous_num;	// number of files within directories to copy back
+	unsigned long	global_symlinks_within_dirs_to_copy_num;	// number of symlinks within directories to copy 
+	unsigned long	global_symlinks_within_dirs_extraneous_num;	// number of symlinks within directories to copy back
+        unsigned long   global_symlinks_to_copy_num;       // number of symbolic links to copy
+        unsigned long	global_symlinks_to_copy_size;      // size of symbolic links to copy in bytes
         unsigned long	global_dirs_to_copy_num;        // number of directories to copy
         unsigned long	global_dirs_to_copy_size;       // size of directories to copy in bytes
-        unsigned long	global_files_extraneous_num;       // number of extraneous files 
+        unsigned long	global_files_extraneous_num;       // number of extraneous files
         unsigned long	global_files_extraneous_size;      // size of extraneous files in bytes
+        unsigned long	global_symlinks_extraneous_num;    // number of extraneous symbolic links
+        unsigned long	global_symlinks_extraneous_size;   // size of extraneous symbolic links in bytes
         unsigned long	global_dirs_extraneous_num;        // number of extraneous directories
         unsigned long	global_dirs_extraneous_size;       // size of all extraneous directories in bytes
         unsigned long 	global_diff_size_ms_num;        // number of files with the same name, but different size, source location smaller
@@ -49,6 +63,18 @@ struct Data_Copy_Info {
 	unsigned long	global_diff_time_mo_num;
 	unsigned long	global_diff_time_mo_size;
 	unsigned long	global_diff_time_mo_orig_size;
+        unsigned long 	global_diff_symlinks_size_ms_num;        // number of symlinks with the same name, but different size, source location smaller
+        unsigned long	global_diff_symlinks_size_ms_size;       // size of symlinks with the same name, but different size, source location smaller
+	unsigned long	global_diff_symlinks_size_ms_orig_size;	// size of symlinks with the same name, but different size, source location smaller, but this one is for the original file
+        unsigned long 	global_diff_symlinks_size_ml_num;        // number of symlinks with the same name, but different size, source location larger
+        unsigned long	global_diff_symlinks_size_ml_size;       // number of symlinks with the same name, but different size, source location larger
+	unsigned long	global_diff_symlinks_size_ml_orig_size;	// size of symlinks with the same name, but different size, source location larger, but this one is for the original file
+	unsigned long	global_diff_symlinks_time_mn_num;
+	unsigned long	global_diff_symlinks_time_mn_size;
+	unsigned long	global_diff_symlinks_time_mn_orig_size;
+	unsigned long	global_diff_symlinks_time_mo_num;
+	unsigned long	global_diff_symlinks_time_mo_size;
+	unsigned long	global_diff_symlinks_time_mo_orig_size;
         unsigned long 	global_dir_num_a;               // complete number of directories in the source directory
         unsigned long 	global_dir_num_b;               // complete number of directories in the destination directory
         unsigned long 	global_file_num_a;              // complete number of files in the source directory
@@ -59,7 +85,6 @@ struct Data_Copy_Info {
 	unsigned long 	global_symlink_num_b;		// number of symbolic links in the destination directory
 	unsigned long 	global_symlink_size_a;	// size of symbolic links in the source directory
 	unsigned long 	global_symlink_size_b;	// number of symbolic links in the destination directory
-	unsigned long	dlist_of_lists_num;		// benchmark
 };
 
 struct copied_or_not {
