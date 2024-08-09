@@ -35,6 +35,7 @@ struct errors_data {
 	unsigned long	symlink_read_error_count;
 	unsigned long	symlink_write_error_count;
 	unsigned long	symlink_overwrite_error_count;
+	unsigned long	symlink_delete_error_count;
 	unsigned long	atimestamp_error_count;
 	unsigned long	mtimestamp_error_count;
 	unsigned long	xattr_error_count;
