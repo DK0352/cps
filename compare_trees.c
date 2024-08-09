@@ -35,10 +35,13 @@ int compare_trees(struct thread_struct *thread_data_a, struct thread_struct *thr
 	extern int			no_files_and_dirs_b;
 	extern int			no_dirs_a;
 	extern int			no_dirs_b;
+
 	extern struct Data_Copy_Info	data_copy_info;
 	extern struct options_menu	options;
+
 	DList_of_lists 			*file_tree_element_a, *file_tree_element_b, *top_location_a, *top_location_b, *location_a_down, *location_b_down;
 	DList_of_lists			*start_a, *start_b;
+
 	int				same_dir_num;
 	int				dirlist_size_a, dirlist_size_b;
 
@@ -74,30 +77,15 @@ int compare_trees(struct thread_struct *thread_data_a, struct thread_struct *thr
 	else
 		dirlist_size_b = 0;
 
-	if (options.naive_mode == 0) {
-		if (options.ignore_symlinks != 1) {
-			if ((top_location_a->file_num != 0 && top_location_b->file_num != 0 || top_location_a->files_size != top_location_b->files_size) ||
-			top_location_a->sym_links_num != 0 && top_location_b->sym_links_num != 0 || top_location_a->sym_links_size != top_location_b->sym_links_size ) {
-				loop_files(top_location_a, top_location_b);
-			}
-		}
-		else if (options.ignore_symlinks == 1) {
-			if (top_location_a->file_num != 0 && top_location_b->file_num != 0 || top_location_a->files_size != top_location_b->files_size)
-				loop_files(top_location_a, top_location_b);
+	if (options.ignore_symlinks != 1) {
+		if ((top_location_a->file_num != 0 && top_location_b->file_num != 0 || top_location_a->files_size != top_location_b->files_size) ||
+		top_location_a->sym_links_num != 0 && top_location_b->sym_links_num != 0 || top_location_a->sym_links_size != top_location_b->sym_links_size ) {
+			loop_files(top_location_a, top_location_b);
 		}
 	}
-	else if (options.naive_mode == 1) {
-		if (options.ignore_symlinks != 1) {
-			if ((top_location_a->file_num != top_location_b->file_num || top_location_a->files_size != top_location_b->files_size) ||
-			top_location_a->sym_links_num != top_location_b->sym_links_num || top_location_a->sym_links_size != top_location_b->sym_links_size ) {
-				loop_files(top_location_a, top_location_b);
-			}
-		}
-		else if (options.ignore_symlinks == 1) {
-			if (top_location_a->file_num != top_location_b->file_num || top_location_a->files_size != top_location_b->files_size) {
-				loop_files(top_location_a, top_location_b);
-			}
-		}
+	else if (options.ignore_symlinks == 1) {
+		if (top_location_a->file_num != 0 && top_location_b->file_num != 0 || top_location_a->files_size != top_location_b->files_size)
+			loop_files(top_location_a, top_location_b);
 	}
 	/* This for loop compares just the top directories, and if there are differences in size, it calls loop_files() for difference in file size/number or modification time, and loop_dirs for 
 	 * differences in subdirectory size/number. It increments sam_dir_num variable for each directory with the same name, and if it matches the number of directories in each directory, the function
@@ -109,38 +97,16 @@ int compare_trees(struct thread_struct *thread_data_a, struct thread_struct *thr
 					++same_dir_num;
 					file_tree_element_a->found_dir_match = 1;
 					file_tree_element_b->found_dir_match = 1;
-					if (options.naive_mode == 0) {
-						if (options.ignore_symlinks != 1) {
-							if ((file_tree_element_a->file_num != 0 || file_tree_element_b->file_num != 0) || 
-							(file_tree_element_a->sym_links_num != 0 || file_tree_element_a->sym_links_num != 0))
-								loop_files(file_tree_element_a, file_tree_element_b);
-						}
-						else if (options.ignore_symlinks == 1) {
-							if (file_tree_element_a->file_num != 0 || file_tree_element_b->file_num != 0)
-								loop_files(file_tree_element_a, file_tree_element_b);
-						}
-						loop_dirs(file_tree_element_a, file_tree_element_b);
+					if (options.ignore_symlinks != 1) {
+						if ((file_tree_element_a->file_num != 0 || file_tree_element_b->file_num != 0) || 
+						(file_tree_element_a->sym_links_num != 0 || file_tree_element_a->sym_links_num != 0))
+							loop_files(file_tree_element_a, file_tree_element_b);
 					}
-					else if (options.naive_mode == 1) {
-						if (options.ignore_symlinks != 1) {
-							if ((file_tree_element_a->files_size != file_tree_element_b->files_size ||
-							file_tree_element_a->file_num != file_tree_element_b->file_num) || 
-							(file_tree_element_a->sym_links_num != file_tree_element_b->sym_links_num ||
-							file_tree_element_a->sym_links_size != file_tree_element_b->sym_links_size)) {
-								loop_files(file_tree_element_a, file_tree_element_b);
-							}
-						}
-						else if (options.ignore_symlinks == 1) {
-							if (file_tree_element_a->files_size != file_tree_element_b->files_size ||
-							file_tree_element_a->file_num != file_tree_element_b->file_num) {
-								loop_files(file_tree_element_a, file_tree_element_b);
-							}
-						}
-						if (file_tree_element_a->subdirs_size != file_tree_element_b->subdirs_size ||
-							file_tree_element_a->subdir_num != file_tree_element_b->subdir_num ||
-							file_tree_element_a->subdir_file_num != file_tree_element_b->subdir_file_num)
-								loop_dirs(file_tree_element_a, file_tree_element_b);
+					else if (options.ignore_symlinks == 1) {
+						if (file_tree_element_a->file_num != 0 || file_tree_element_b->file_num != 0)
+							loop_files(file_tree_element_a, file_tree_element_b);
 					}
+					loop_dirs(file_tree_element_a, file_tree_element_b);
 				} // if strcmp(dirname,dirname)
 			} // for loop b
 		} // for loop a
@@ -173,7 +139,9 @@ int compare_trees(struct thread_struct *thread_data_a, struct thread_struct *thr
 	
 					data_copy_info.global_dirs_to_copy_num++;
 					data_copy_info.global_dirs_to_copy_num += file_tree_element_a->complete_dir_num;
-					data_copy_info.global_files_to_copy_num += file_tree_element_a->complete_file_num;
+					data_copy_info.global_files_within_dirs_to_copy_num += file_tree_element_a->complete_file_num;
+					data_copy_info.global_symlinks_within_dirs_to_copy_num += file_tree_element_a->complete_sym_links_num;
+					data_copy_info.global_files_to_copy_num += file_tree_element_a->complete_file_num;	// provjeri
 					data_copy_info.global_dirs_to_copy_size += file_tree_element_a->complete_dir_size;
 	
 					file_tree_element_a->found_dir_match = 1;
@@ -200,6 +168,8 @@ int compare_trees(struct thread_struct *thread_data_a, struct thread_struct *thr
 	
 					data_copy_info.global_dirs_extraneous_num++;
 					data_copy_info.global_dirs_extraneous_num += file_tree_element_b->complete_dir_num;
+					data_copy_info.global_files_within_dirs_extraneous_num += file_tree_element_b->complete_file_num;
+					data_copy_info.global_symlinks_within_dirs_extraneous_num += file_tree_element_b->complete_sym_links_num;
 					data_copy_info.global_files_extraneous_num += file_tree_element_b->complete_file_num;
 					data_copy_info.global_dirs_extraneous_size += file_tree_element_b->complete_dir_size;
 	
@@ -227,6 +197,8 @@ int compare_trees(struct thread_struct *thread_data_a, struct thread_struct *thr
 	
 					data_copy_info.global_dirs_to_copy_num++;
 					data_copy_info.global_dirs_to_copy_num += file_tree_element_a->complete_dir_num;
+					data_copy_info.global_files_within_dirs_to_copy_num += file_tree_element_a->complete_file_num;
+					data_copy_info.global_symlinks_within_dirs_to_copy_num += file_tree_element_a->complete_sym_links_num;
 					data_copy_info.global_files_to_copy_num += file_tree_element_a->complete_file_num;
 					data_copy_info.global_dirs_to_copy_size += file_tree_element_a->complete_dir_size;
 	
@@ -252,6 +224,8 @@ int compare_trees(struct thread_struct *thread_data_a, struct thread_struct *thr
 	
 					data_copy_info.global_dirs_extraneous_num++;
 					data_copy_info.global_dirs_extraneous_num += file_tree_element_b->complete_dir_num;
+					data_copy_info.global_files_within_dirs_extraneous_num += file_tree_element_b->complete_file_num;
+					data_copy_info.global_symlinks_within_dirs_extraneous_num += file_tree_element_b->complete_sym_links_num;
 					data_copy_info.global_files_extraneous_num += file_tree_element_b->complete_file_num;
 					data_copy_info.global_dirs_extraneous_size += file_tree_element_b->complete_dir_size;
 	
@@ -281,6 +255,8 @@ int compare_trees(struct thread_struct *thread_data_a, struct thread_struct *thr
 
 			data_copy_info.global_dirs_to_copy_num++;
 			data_copy_info.global_dirs_to_copy_num += file_tree_element_a->complete_dir_num;
+			data_copy_info.global_files_within_dirs_to_copy_num += file_tree_element_a->complete_file_num;
+			data_copy_info.global_symlinks_within_dirs_to_copy_num += file_tree_element_a->complete_sym_links_num;
 			data_copy_info.global_files_to_copy_num += file_tree_element_a->complete_file_num;
 			data_copy_info.global_dirs_to_copy_size += file_tree_element_a->complete_dir_size;
 
@@ -303,6 +279,8 @@ int compare_trees(struct thread_struct *thread_data_a, struct thread_struct *thr
 
 			data_copy_info.global_dirs_extraneous_num++;
 			data_copy_info.global_dirs_extraneous_num += file_tree_element_b->complete_dir_num;
+			data_copy_info.global_files_within_dirs_extraneous_num += file_tree_element_b->complete_file_num;
+			data_copy_info.global_symlinks_within_dirs_extraneous_num += file_tree_element_b->complete_sym_links_num;
 			data_copy_info.global_files_extraneous_num += file_tree_element_b->complete_file_num;
 			data_copy_info.global_dirs_extraneous_size += file_tree_element_b->complete_dir_size;
 
