@@ -238,7 +238,8 @@ char *list_stats(int after_c)
 		printf("\n");
 		printf("DESTINATION DIRECTORY\n");
 		printf("\n");
-
+		
+		printf("copied.copied_data = %d\n", copied.copied_data);
 		if (copied.copied_data == 1) {
 			after_copying_file_num = 0;
 			after_copying_file_num = data_copy_info.global_file_num_b + data_copy_info.global_files_to_copy_num + data_copy_info.global_files_within_dirs_to_copy_num;
@@ -704,3 +705,36 @@ char *detailed_output(DList *to_copy_list, int output, char *what_is_copied, int
 		}
 	}
 }
+
+void print_errors(void)
+{
+	extern struct errors_data errors;
+
+	printf("Errors: ");
+	printf("file open: %ld file create: %ld file close: %ld file delete: %ld"
+		"directory open: %ld directory close: %ld directory delete: %ld"
+		"file read: %ld file write: %ld file overwrite: %ld directory read: %ld directory create: %ld\n"
+		"file attribute: %ld directory attribute: %ld symlink read: %ld symlink write: %ld symlink overwrite: %ld symlink delete: %ld"
+		"access timestamp: %ld modification timestamp: %ld extended attribute: %ld mac attribute: %ld\n",
+	errors.file_open_error_count,
+	errors.file_create_error_count,
+	errors.file_close_error_count,
+	errors.file_delete_error_count,
+	errors.dir_open_error_count,
+	errors.dir_close_error_count,
+	errors.dir_delete_error_count,
+	errors.file_read_error_count,
+	errors.file_write_error_count,
+	errors.file_overwrite_error_count,
+	errors.dir_read_error_count,
+	errors.dir_create_error_count,
+	errors.file_attr_error_count,
+	errors.dir_attr_error_count,
+	errors.symlink_read_error_count,
+	errors.symlink_write_error_count,
+	errors.symlink_overwrite_error_count,
+	errors.symlink_delete_error_count,
+	errors.atimestamp_error_count,
+	errors.mtimestamp_error_count,
+	errors.xattr_error_count,
+	errors.mac_error_count);
