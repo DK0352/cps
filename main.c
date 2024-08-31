@@ -1117,17 +1117,19 @@ int main(int argc, char *argv[])
 	}
 
 	// if there is some data, depending on options: create copy or content list file, then copy/overwrite/delete the data found
-	if (copy_files == 1 || copy_dirs == 1 || files_extraneous == 1 || dirs_extraneous == 1 ||  ow_main_smaller == 1 || ow_main_larger == 1 || ow_main_newer == 1 || ow_main_older == 1 ||
-		copy_symlinks == 1 || symlinks_extraneous == 1 ||  ow_symlinks_main_smaller == 1 || ow_symlinks_main_larger == 1 || ow_symlinks_main_newer == 1 || ow_symlinks_main_older == 1) {
+	if (copy_files == 1 || copy_dirs == 1 || files_extraneous == 1 || dirs_extraneous == 1 ||  ow_main_smaller == 1 || ow_main_larger == 1 || ow_main_newer == 1 || 
+			ow_main_older == 1 || copy_symlinks == 1 || symlinks_extraneous == 1 ||  ow_symlinks_main_smaller == 1 || ow_symlinks_main_larger == 1 || 
+			ow_symlinks_main_newer == 1 || ow_symlinks_main_older == 1) {
 		if (options.write_copy_content_file == 1 || options.just_write_copy_content_file == 1) {
 			errno = 0;
 			copyfile = open(file_loc2, O_CREAT | O_RDWR | O_APPEND, S_IRUSR | S_IWUSR);
 			if (copyfile == -1) {
 				perror("open");
-				printf("Error opening the copy content file: %s\n",file_loc2);
-				// dodaj da ignorira error ili pita dal zelim prekinut il ne....
-				// vidi jel permission error il sta vec...
-				exit(1);
+				fprintf(stderr, "Error opening the copy content file: %s\n",file_loc2);
+				clean_tree(thread_data_a->file_tree_top_dir,0);
+				clean_tree(thread_data_b->file_tree_top_dir,0);
+				clean_up_exit(thread_data_a, thread_data_b);;
+				destroy_data_structs();
 			}
 			else {
 				if (copy_files == 1 && options.just_copy_extraneous_back != 1 && options.just_delete_extraneous != 1) {
@@ -1670,8 +1672,9 @@ int main(int argc, char *argv[])
 			}
 			if (copied.copied_data == 1 || copied.copied_extraneous == 1 || copied.deleted_extraneous == 1 || copied.ow_smaller == 1 
 			|| copied.ow_larger == 1 || copied.ow_newer == 1 || copied.ow_older == 1)
-				if (options.dont_list_stats != 1)
+				if (options.dont_list_stats != 1) {
 					list_stats(1);
+				}
 		} // if (options.no_questions == 0) {
 		else if (options.no_questions == 1) {
 			if (copy_files == 1 && options.just_copy_extraneous_back != 1 && options.just_delete_extraneous != 1) {
@@ -1706,7 +1709,6 @@ int main(int argc, char *argv[])
 					destroy_data_structs();
 					exit(1);
 				}
-				copied.copied_data = 1;
 				copied.copied_data = 1;
 			}
 			if (options.copy_extraneous_back == 1) {
