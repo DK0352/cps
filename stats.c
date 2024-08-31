@@ -35,6 +35,7 @@ int write_contents_to_file(DList_of_lists *directory, short opened, int f_descri
 //char *list_stats(int after_c, struct copied_or_not copied, int output, int fd);
 char *list_stats(int after_c);
 char *calc_size(unsigned long data_size, int other_unit, int output, int fd);
+void print_errors(void);
 
 //char *list_stats(int after_c, struct copied_or_not copied, int output, int fd)
 char *list_stats(int after_c)
@@ -162,7 +163,8 @@ char *list_stats(int after_c)
 		if (options.copy_extraneous_back == 1 || options.just_copy_extraneous_back == 1) {
 			if (copied.copied_extraneous == 1) {
 				after_copying_file_num = 0;
-				after_copying_file_num = data_copy_info.global_file_num_a + data_copy_info.global_files_extraneous_num + data_copy_info.global_files_within_dirs_extraneous_num;
+				after_copying_file_num = data_copy_info.global_file_num_a + data_copy_info.global_files_extraneous_num 
+					+ data_copy_info.global_files_within_dirs_extraneous_num;
 				printf("Number of files: %ld\n", after_copying_file_num);
 				if (options.ignore_symlinks != 1) {
 					after_copying_symlinks_num = 0;
@@ -253,7 +255,8 @@ char *list_stats(int after_c)
 			}
 			if (options.ignore_symlinks != 1) {
 				after_copying_symlinks_num = 0;
-				after_copying_symlinks_num += data_copy_info.global_symlink_num_b + data_copy_info.global_symlinks_to_copy_num + data_copy_info.global_symlinks_within_dirs_to_copy_num;
+				after_copying_symlinks_num = data_copy_info.global_symlink_num_b + data_copy_info.global_symlinks_to_copy_num + 
+				data_copy_info.global_symlinks_within_dirs_to_copy_num;
 				if (options.delete_extraneous == 1) {
 					if (copied.deleted_extraneous == 1) {
 						after_copying_symlinks_num -= data_copy_info.global_symlinks_extraneous_num;
@@ -526,6 +529,7 @@ char *list_stats(int after_c)
 			calc_size(data_copy_info.global_files_size_b,options.other_unit,NORMAL,0);
 		}
 	}
+	print_errors();
 }
 
 char *calc_size(unsigned long data_size, int other_unit, int output, int fd)
@@ -682,26 +686,34 @@ char *detailed_output(DList *to_copy_list, int output, char *what_is_copied, int
 		printf("\n%s\n", what_is_copied);
 		for (to_copy = to_copy_list->head; to_copy != NULL; to_copy = to_copy->next) {
 			printf("%c%c%c%c%c%c%c%c%c     ", (to_copy->st_mode & S_IRUSR) ? 'r' : '-', (to_copy->st_mode & S_IWUSR) ? 'w' : '-', (to_copy->st_mode & S_IXUSR) ?
-					(((to_copy->st_mode & S_ISUID) && (to_copy->st_mode & FP_SPECIAL)) ? 's' : 'x') : (((to_copy->st_mode & S_ISUID) && (to_copy->st_mode & FP_SPECIAL)) ? 'S' : '-'),
+					(((to_copy->st_mode & S_ISUID) && (to_copy->st_mode & FP_SPECIAL)) ? 's' : 'x') : 
+					(((to_copy->st_mode & S_ISUID) && (to_copy->st_mode & FP_SPECIAL)) ? 'S' : '-'),
 					(to_copy->st_mode & S_IRGRP) ? 'r' : '-', (to_copy->st_mode & S_IWGRP) ? 'w' : '-', (to_copy->st_mode & S_IXGRP) ?
-					(((to_copy->st_mode & S_ISGID) && (to_copy->st_mode & FP_SPECIAL)) ? 's' : 'x') : (((to_copy->st_mode & S_ISGID) && (to_copy->st_mode & FP_SPECIAL)) ? 'S' : '-'),
+					(((to_copy->st_mode & S_ISGID) && (to_copy->st_mode & FP_SPECIAL)) ? 's' : 'x') : 
+					(((to_copy->st_mode & S_ISGID) && (to_copy->st_mode & FP_SPECIAL)) ? 'S' : '-'),
 					(to_copy->st_mode & S_IROTH) ? 'r' : '-', (to_copy->st_mode & S_IWOTH) ? 'w' : '-', (to_copy->st_mode & S_IXOTH) ?
-					(((to_copy->st_mode & S_ISVTX) && (to_copy->st_mode & FP_SPECIAL)) ? 't' : 'x') : (((to_copy->st_mode & S_ISVTX) && (to_copy->st_mode & FP_SPECIAL)) ? 'T' : '-'));
+					(((to_copy->st_mode & S_ISVTX) && (to_copy->st_mode & FP_SPECIAL)) ? 't' : 'x') : 
+					(((to_copy->st_mode & S_ISVTX) && (to_copy->st_mode & FP_SPECIAL)) ? 'T' : '-'));
 			printf("%s:     %s     %ld bytes \nlocation: %s     new location: %s\n\n", 
-				to_copy->name, to_copy->size ? calc_size(to_copy->size, options.other_unit, AS_RETURN_VAL, 0) : " ", to_copy->size, to_copy->dir_location, to_copy->new_location);
+				to_copy->name, to_copy->size ? calc_size(to_copy->size, options.other_unit, AS_RETURN_VAL, 0) : 
+				" ", to_copy->size, to_copy->dir_location, to_copy->new_location);
 		}
 	}
 	else if (output == TO_FILE) {
 		dprintf(fd, "\n%s\n", what_is_copied);
 		for (to_copy = to_copy_list->head; to_copy != NULL; to_copy = to_copy->next) {
 			dprintf(fd, "%c%c%c%c%c%c%c%c%c     ", (to_copy->st_mode & S_IRUSR) ? 'r' : '-', (to_copy->st_mode & S_IWUSR) ? 'w' : '-', (to_copy->st_mode & S_IXUSR) ?
-					(((to_copy->st_mode & S_ISUID) && (to_copy->st_mode & FP_SPECIAL)) ? 's' : 'x') : (((to_copy->st_mode & S_ISUID) && (to_copy->st_mode & FP_SPECIAL)) ? 'S' : '-'),
+					(((to_copy->st_mode & S_ISUID) && (to_copy->st_mode & FP_SPECIAL)) ? 's' : 'x') : 
+					(((to_copy->st_mode & S_ISUID) && (to_copy->st_mode & FP_SPECIAL)) ? 'S' : '-'),
 					(to_copy->st_mode & S_IRGRP) ? 'r' : '-', (to_copy->st_mode & S_IWGRP) ? 'w' : '-', (to_copy->st_mode & S_IXGRP) ?
-					(((to_copy->st_mode & S_ISGID) && (to_copy->st_mode & FP_SPECIAL)) ? 's' : 'x') : (((to_copy->st_mode & S_ISGID) && (to_copy->st_mode & FP_SPECIAL)) ? 'S' : '-'),
+					(((to_copy->st_mode & S_ISGID) && (to_copy->st_mode & FP_SPECIAL)) ? 's' : 'x') : 
+					(((to_copy->st_mode & S_ISGID) && (to_copy->st_mode & FP_SPECIAL)) ? 'S' : '-'),
 					(to_copy->st_mode & S_IROTH) ? 'r' : '-', (to_copy->st_mode & S_IWOTH) ? 'w' : '-', (to_copy->st_mode & S_IXOTH) ?
-					(((to_copy->st_mode & S_ISVTX) && (to_copy->st_mode & FP_SPECIAL)) ? 't' : 'x') : (((to_copy->st_mode & S_ISVTX) && (to_copy->st_mode & FP_SPECIAL)) ? 'T' : '-'));
+					(((to_copy->st_mode & S_ISVTX) && (to_copy->st_mode & FP_SPECIAL)) ? 't' : 'x') : 
+					(((to_copy->st_mode & S_ISVTX) && (to_copy->st_mode & FP_SPECIAL)) ? 'T' : '-'));
 			dprintf(fd, "%s:     %s     %ld bytes \nlocation: %s     new location: %s\n\n", 
-				to_copy->name, to_copy->size ? calc_size(to_copy->size, options.other_unit, AS_RETURN_VAL, 0) : " ", to_copy->size, to_copy->dir_location, to_copy->new_location);
+				to_copy->name, to_copy->size ? calc_size(to_copy->size, options.other_unit, AS_RETURN_VAL, 0) : 
+				" ", to_copy->size, to_copy->dir_location, to_copy->new_location);
 		}
 	}
 }
@@ -712,8 +724,8 @@ void print_errors(void)
 
 	printf("Errors: ");
 	printf("file open: %ld file create: %ld file close: %ld file delete: %ld"
-		"directory open: %ld directory close: %ld directory delete: %ld"
-		"file read: %ld file write: %ld file overwrite: %ld directory read: %ld directory create: %ld\n"
+		" directory open: %ld directory close: %ld directory delete: %ld"
+		" file read: %ld file write: %ld file overwrite: %ld\n directory read: %ld directory create: %ld"
 		"file attribute: %ld directory attribute: %ld symlink read: %ld symlink write: %ld symlink overwrite: %ld symlink delete: %ld"
 		"access timestamp: %ld modification timestamp: %ld extended attribute: %ld mac attribute: %ld\n",
 	errors.file_open_error_count,
@@ -738,3 +750,4 @@ void print_errors(void)
 	errors.mtimestamp_error_count,
 	errors.xattr_error_count,
 	errors.mac_error_count);
+}
