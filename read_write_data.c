@@ -284,8 +284,10 @@ int read_write_data(DList *data, int choose, char *source, char *destination)
 					errno = 0;
 					if (utimensat(0, read_dir_list->new_location, options.times, AT_SYMLINK_NOFOLLOW) == -1) {
 						perror("utimensat");
+						errors.atimestamp_error_count++;
+						some_errors++;
 						if (options.quit_write_errors == 1)
-							exit(1);
+							return -1;
 					}
 				}
 				if (options.preserve_m_time == 1) {
@@ -293,8 +295,10 @@ int read_write_data(DList *data, int choose, char *source, char *destination)
 					errno = 0;
 					if (utimensat(0, read_dir_list->new_location, options.times, AT_SYMLINK_NOFOLLOW) == -1) {
 						perror("utimensat");
+						errors.mtimestamp_error_count++;
+						some_errors++;
 						if (options.quit_write_errors == 1)
-							exit(1);
+							return -1;
 					}
 				}
 			}
@@ -304,17 +308,32 @@ int read_write_data(DList *data, int choose, char *source, char *destination)
 				if (acl == NULL) {
 					perror("acl_get_file");
 				}
+				errors.mac_error_count++;
+				if (options.quit_read_errors == 1) {
+					acl_free(acl);
+					return -1;
+				}
 				errno = 0;
 				acl_res = acl_set_file(read_dir_list->new_location,ACL_TYPE_ACCESS,acl);
 				if (acl_res != 0) {
 					perror("acl_set_file");
 				}
+				errors.mac_error_count++;
+				if (options.quit_read_errors == 1) {
+					acl_free(acl);
+					return -1;
+				}
 				acl_free(acl);
 			}
 			if (options.xattrs == 1) {
 				setxattr_res = set_xattrs(read_dir_list,0,0,LIST);
-				if (setxattr_res != 0)
-					return -1;
+				if (setxattr_res != 0) {
+					errors.xattr_error_count++;
+					if (options.quit_write_errors == 1)
+						return -1;
+					else if (options.quit_write_errors == 1)
+						some_errors++;
+				}
 			}
 			if (options.show_write_proc != 0)
 				printf("Directory: %s\n", read_dir_list->new_location);
@@ -360,7 +379,7 @@ int read_write_data(DList *data, int choose, char *source, char *destination)
 				direntry = malloc(sizeof(struct dirent));
 				if (direntry == NULL) {
 					fprintf(stderr, "read_write_data() 3 malloc_error: direntry\n");
-						return -1; // ili nesto drugo posto je malloc, vidi kasnije
+						exit(1); 
 				}
 				direntry_init = 1;
 			}
@@ -378,7 +397,7 @@ int read_write_data(DList *data, int choose, char *source, char *destination)
 					}
 				}
 				else
-					return -1;
+					break;
 			}
 			if (strcmp(direntry->d_name, ".") == 0 || strcmp(direntry->d_name, "..") == 0)
 				continue;
@@ -430,7 +449,8 @@ int read_write_data(DList *data, int choose, char *source, char *destination)
 						return -1;
 					else if (options.quit_write_errors == 0) {
 						errors.dir_create_error_count++;
-						return 1;
+						some_errors++;
+						continue;
 					}
 				}
 				if (options.show_write_proc != 0)
@@ -442,8 +462,11 @@ int read_write_data(DList *data, int choose, char *source, char *destination)
 						errno = 0;
 						if (utimensat(0, new_destination, options.times, AT_SYMLINK_NOFOLLOW) == -1) {
 							perror("utimensat");
-								if (options.quit_write_errors == 1)
-							exit(1);
+							errors.atimestamp_error_count++;
+							if (options.quit_write_errors == 1)
+								return -1;
+							else if (options.quit_write_errors == 0)
+								some_errors++;
 						}
 					}
 					if (options.preserve_m_time == 1) {
@@ -451,8 +474,11 @@ int read_write_data(DList *data, int choose, char *source, char *destination)
 						errno = 0;
 						if (utimensat(0, new_destination, options.times, AT_SYMLINK_NOFOLLOW) == -1) {
 							perror("utimensat");
+							errors.mtimestamp_error_count++;
 							if (options.quit_write_errors == 1)
-								exit(1);
+								return -1;
+							else if (options.quit_write_errors == 0)
+								some_errors++;
 						}
 					}
 				}
@@ -462,17 +488,39 @@ int read_write_data(DList *data, int choose, char *source, char *destination)
 					if (acl == NULL) {
 						perror("acl_get_file");
 					}
+					errors.mac_error_count++;
+					if (options.quit_read_errors == 1) {
+						acl_free(acl);
+						return -1;
+					}
+					else if (options.quit_read_errors == 0) {
+						acl_free(acl);
+						some_errors++;
+					}
 					errno = 0;
 					acl_res = acl_set_file(new_destination,ACL_TYPE_ACCESS,acl);
 					if (acl_res != 0) {
 						perror("acl_set_file");
 					}
-					acl_free(acl);
+					errors.mac_error_count++;
+					if (options.quit_read_errors == 1) {
+						acl_free(acl);
+						return -1;
+					}
+					else if (options.quit_read_errors == 0) {
+						some_errors++;
+						acl_free(acl);
+					}
 				}
 				if (options.xattrs == 1) {
 					setxattr_res = set_xattrs(NULL,new_source,new_destination,ARRAY);
-					if (setxattr_res != 0)
-						return -1;
+					if (setxattr_res != 0) {
+						errors.xattr_error_count++;
+						if (options.quit_read_errors == 1)
+							return -1;
+						else if (options.quit_write_errors == 0)
+							some_errors++;
+					}
 				}
 			}
 			else if (S_ISREG(file_t->st_mode)) {
@@ -488,10 +536,10 @@ int read_write_data(DList *data, int choose, char *source, char *destination)
 				if (read_descriptor == -1) {	
 					perror("open");
 					fprintf(stderr, "read_write_data() 3: %s\n", source_path);
+					errors.file_open_error_count++;
 					if (options.quit_read_errors == 1)
 						return -1;
 					else if (options.quit_read_errors == 0) {
-						errors.file_open_error_count++;
 						some_errors++;
 						continue;
 					}
@@ -542,8 +590,11 @@ int read_write_data(DList *data, int choose, char *source, char *destination)
 						errno = 0;
 						if (utimensat(0, new_destination, options.times, AT_SYMLINK_NOFOLLOW) == -1) {
 							perror("utimensat");
+							errors.atimestamp_error_count++;
 							if (options.quit_write_errors == 1)
-								exit(1);
+								return -1;
+							else if (options.quit_write_errors == 0)
+								some_errors++;
 						}
 					}
 					if (options.preserve_m_time == 1) {
@@ -551,8 +602,11 @@ int read_write_data(DList *data, int choose, char *source, char *destination)
 						errno = 0;
 						if (utimensat(0, new_destination, options.times, AT_SYMLINK_NOFOLLOW) == -1) {
 							perror("utimensat");
+							errors.mtimestamp_error_count++;
 							if (options.quit_write_errors == 1)
-								exit(1);
+								return -1;
+							else if (options.quit_write_errors == 0)
+								some_errors++;
 						}
 					}
 				}
@@ -562,17 +616,37 @@ int read_write_data(DList *data, int choose, char *source, char *destination)
 					if (acl == NULL) {
 						perror("acl_get_file");
 					}
+					errors.mac_error_count++;
+					if (options.quit_read_errors == 1) {
+						acl_free(acl);
+						return -1;
+					}
+					else if(options.quit_read_errors == 0)
+						some_errors++;
 					errno = 0;
 					acl_res = acl_set_file(new_destination,ACL_TYPE_ACCESS,acl);
 					if (acl_res != 0) {
 						perror("acl_set_file");
 					}
-					acl_free(acl);
+					errors.mac_error_count++;
+					if (options.quit_read_errors == 1) {
+						acl_free(acl);
+						return -1;
+					}
+					else if (options.quit_read_errors == 0) {
+						some_errors++;
+						acl_free(acl);
+					}
 				}
 				if (options.xattrs == 1) {
 					setxattr_res = set_xattrs(NULL,new_source,new_destination,ARRAY);
-					if (setxattr_res != 0)
-						return -1;
+					if (setxattr_res != 0) {
+						errors.xattr_error_count++;
+						if (options.quit_write_errors == 1)
+							return -1;
+						else if (options.quit_write_errors == 0)
+							some_errors++;
+					}
 				}
 				
 				if (options.show_write_proc != 0)
@@ -588,6 +662,8 @@ int read_write_data(DList *data, int choose, char *source, char *destination)
 					printf("read_write_data: error closing the write descriptor.\n");
 					if (options.quit_write_errors == 1)
 						return -1;
+					else if (options.quit_write_errors == 0)
+						some_errors++;
 				}
 			}
 			else if (S_ISLNK(file_t->st_mode)) {
@@ -631,8 +707,11 @@ int read_write_data(DList *data, int choose, char *source, char *destination)
 						errno = 0;
 						if (utimensat(0, new_destination, options.times, AT_SYMLINK_NOFOLLOW) == -1) {
 							perror("utimensat");
+							errors.atimestamp_error_count++;
 							if (options.quit_write_errors == 1)
-								exit(1);
+								return -1;
+							else if (options.quit_write_errors == 0)
+								some_errors++;
 						}
 					}
 					if (options.preserve_m_time == 1) {
@@ -640,15 +719,23 @@ int read_write_data(DList *data, int choose, char *source, char *destination)
 						errno = 0;
 						if (utimensat(0, new_destination, options.times, AT_SYMLINK_NOFOLLOW) == -1) {
 							perror("utimensat");
+							errors.mtimestamp_error_count++;
 							if (options.quit_write_errors == 1)
-								exit(1);
+								return -1;
+							else if (options.quit_write_errors == 0)
+								some_errors++;
 						}
 					}
 				}
 				if (options.xattrs == 1) {
 					setxattr_res = set_xattrs(NULL,new_source,new_destination,ARRAY);
-					if (setxattr_res != 0)
-						return -1;
+					if (setxattr_res != 0) {
+						errors.xattr_error_count++;
+						if (options.quit_write_errors == 1)
+							return -1;
+						else if (options.quit_write_errors == 0)
+							some_errors++;
+					}
 				}
 				if (options.show_write_proc != 0)
 					printf("%s\n", new_destination);
@@ -969,8 +1056,6 @@ int read_write_data(DList *data, int choose, char *source, char *destination)
 						continue;
 					}
 				}
-				else ///////////////////////////////////////////////////////////////////////////////// vidi ovo jos
-					break;
 			}
 			if (strcmp(direntry->d_name, ".") == 0 || strcmp(direntry->d_name, "..") == 0)
 				continue;
@@ -1101,8 +1186,11 @@ int read_write_data(DList *data, int choose, char *source, char *destination)
 					errno = 0;
 					if (utimensat(0, read_file_list->new_location, options.times, AT_SYMLINK_NOFOLLOW) == -1) {
 						perror("utimensat");
+						errors.atimestamp_error_count++;
 						if (options.quit_write_errors == 1)
-							exit(1);
+							return -1;
+						else if (options.quit_write_errors == 0)
+							some_errors++;
 					}
 				}
 				if (options.preserve_m_time == 1) {
@@ -1110,8 +1198,11 @@ int read_write_data(DList *data, int choose, char *source, char *destination)
 					errno = 0;
 					if (utimensat(0, read_file_list->new_location, options.times, AT_SYMLINK_NOFOLLOW) == -1) {
 						perror("utimensat");
+						errors.mtimestamp_error_count++;
 						if (options.quit_write_errors == 1)
-							exit(1);
+							return -1;
+						else if (options.quit_write_errors == 0)
+							some_errors++;
 					}
 				}
 			}
@@ -1175,8 +1266,11 @@ int read_write_data(DList *data, int choose, char *source, char *destination)
 					errno = 0;
 					if (utimensat(0, read_file_list->new_location, options.times, AT_SYMLINK_NOFOLLOW) == -1) {
 						perror("utimensat");
+						errors.atimestamp_error_count++;
 						if (options.quit_write_errors == 1)
-							exit(1);
+							return -1;
+						else if (options.quit_write_errors == 0)
+							some_errors++;
 					}
 				}
 				if (options.preserve_m_time == 1) {
@@ -1184,8 +1278,11 @@ int read_write_data(DList *data, int choose, char *source, char *destination)
 					errno = 0;
 					if (utimensat(0, read_file_list->new_location, options.times, AT_SYMLINK_NOFOLLOW) == -1) {
 						perror("utimensat");
+						errors.mtimestamp_error_count++;
 						if (options.quit_write_errors == 1)
-							exit(1);
+							return -1;
+						else if (options.quit_write_errors == 0)
+							some_errors;
 					}
 				}
 			}
