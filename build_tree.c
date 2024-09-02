@@ -36,8 +36,6 @@ int no_files_and_dirs_b = 0; // external variable that signals that the destinat
 int no_dirs_a = 0;	// don't start the loop to create/compare directories if there aren't any
 int no_dirs_b = 0;	// don't start the loop to create/compare directories if there aren't any
 
-// no files_a,b ??????????????
-
 /* builds file trees for the source and destination directory. */
 void build_tree(struct thread_struct *thread_data)
 {
@@ -61,7 +59,7 @@ void build_tree(struct thread_struct *thread_data)
 	init_to_zero(file_tree_top_dir);
 	thread_data->file_tree_top_dir = file_tree_top_dir;
 	file_tree_element = file_tree_top_dir;
-	file_tree_element->file_tree_top_dir = file_tree_top_dir;	/* same element, but this top_dir stays to refer to the top of the tree, first directory from which everything starts */
+	file_tree_element->file_tree_top_dir = file_tree_top_dir;
 	file_tree_element->this_is_top_dir = 1;
 
 	// need to separete the pathname from the directory behind the last '/' (slash)
