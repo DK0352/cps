@@ -87,9 +87,10 @@ int compare_trees(struct thread_struct *thread_data_a, struct thread_struct *thr
 		if (top_location_a->file_num != 0 && top_location_b->file_num != 0 || top_location_a->files_size != top_location_b->files_size)
 			loop_files(top_location_a, top_location_b);
 	}
-	/* This for loop compares just the top directories, and if there are differences in size, it calls loop_files() for difference in file size/number or modification time, and loop_dirs for 
-	 * differences in subdirectory size/number. It increments sam_dir_num variable for each directory with the same name, and if it matches the number of directories in each directory, the function
-	returns. If not, function does additional comparsion and determines which directories are missing in the destination, or which directories are extraneous. */
+	/* This for loop compares just the top directories, and if there are differences in size, it calls the loop_files() function to compare the difference in file size/number 
+	 * or modification time, and loop_dirs for differences in subdirectory size/number. It increments sam_dir_num variable for each directory with the same name, and if it matches 
+	 * the number of directories in each directory, the function returns. If not, function does additional comparsion and determines which directories are missing in the destination,
+	 * or which directories are extraneous. */
 	if (no_dirs_a != 1 && no_dirs_b != 1) {
 		for (file_tree_element_a = top_location_a->first_dir_in_chain; file_tree_element_a != NULL; file_tree_element_a = file_tree_element_a->next) {
 			for (file_tree_element_b = top_location_b->first_dir_in_chain; file_tree_element_b != NULL; file_tree_element_b = file_tree_element_b->next) {
