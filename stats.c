@@ -159,23 +159,33 @@ char *list_stats(int after_c)
 		printf("\n");
 		printf("SOURCE DIRECTORY\n");
 		printf("\n");
+
+		after_copying_file_num = 0;
+		after_copying_symlinks_num = 0;
+		after_copying_dir_num = 0;
+		after_copying_size = 0;
+
 		// for files and symbolic links
 		if (options.copy_extraneous_back == 1 || options.just_copy_extraneous_back == 1) {
 			if (copied.copied_extraneous == 1) {
 				after_copying_file_num = 0;
-				after_copying_file_num = data_copy_info.global_file_num_a + data_copy_info.global_files_extraneous_num 
-					+ data_copy_info.global_files_within_dirs_extraneous_num;
-				printf("Number of files: %ld\n", after_copying_file_num);
+				after_copying_file_num += data_copy_info.global_file_num_a; 
+				after_copying_file_num += data_copy_info.global_files_extraneous_num; 
+				// after_copying_file_num += data_copy_info.global_files_within_dirs_extraneous_num;
+				//printf("Number of files: %ld\n", after_copying_file_num);
 				if (options.ignore_symlinks != 1) {
 					after_copying_symlinks_num = 0;
-					after_copying_symlinks_num = data_copy_info.global_symlink_num_a + data_copy_info.global_symlinks_extraneous_num 
-					+ data_copy_info.global_symlinks_within_dirs_extraneous_num;
-					printf("Number of symbolic links: %ld\n", after_copying_symlinks_num);
+					after_copying_symlinks_num += data_copy_info.global_symlink_num_a;
+					after_copying_symlinks_num += data_copy_info.global_symlinks_extraneous_num;
+					after_copying_symlinks_num += data_copy_info.global_symlinks_within_dirs_extraneous_num;
+					//printf("Number of symbolic links: %ld\n", after_copying_symlinks_num);
 				}
 				else if (options.ignore_symlinks == 1) {
 					printf("Number of symbolic links: %ld\n", data_copy_info.global_symlink_num_a);
 				}
 				printf("Number of files and symbolic links: %ld\n", after_copying_file_num + after_copying_symlinks_num);
+				printf("Number of files: %ld\n", after_copying_file_num);
+				printf("Number of symbolic links: %ld\n", after_copying_symlinks_num);
 			}
 			else if (copied.copied_extraneous == 0) {
 				printf("Aborted copying the extraneous data back to the source.\n");
@@ -241,10 +251,13 @@ char *list_stats(int after_c)
 		printf("DESTINATION DIRECTORY\n");
 		printf("\n");
 		
-		printf("copied.copied_data = %d\n", copied.copied_data);
+		after_copying_file_num = 0;
+		after_copying_symlinks_num = 0;
+		after_copying_dir_num = 0;
+		after_copying_size = 0;
+
 		if (copied.copied_data == 1) {
-			after_copying_file_num = 0;
-			after_copying_file_num = data_copy_info.global_file_num_b + data_copy_info.global_files_to_copy_num + data_copy_info.global_files_within_dirs_to_copy_num;
+			after_copying_file_num = data_copy_info.global_file_num_b + data_copy_info.global_files_to_copy_num;
 			if (options.delete_extraneous == 1) {
 				if (copied.deleted_extraneous == 1) {
 					after_copying_file_num -= data_copy_info.global_files_extraneous_num;
@@ -254,9 +267,7 @@ char *list_stats(int after_c)
 				}
 			}
 			if (options.ignore_symlinks != 1) {
-				after_copying_symlinks_num = 0;
-				after_copying_symlinks_num = data_copy_info.global_symlink_num_b + data_copy_info.global_symlinks_to_copy_num + 
-				data_copy_info.global_symlinks_within_dirs_to_copy_num;
+				after_copying_symlinks_num = data_copy_info.global_symlink_num_b + data_copy_info.global_symlinks_to_copy_num;
 				if (options.delete_extraneous == 1) {
 					if (copied.deleted_extraneous == 1) {
 						after_copying_symlinks_num -= data_copy_info.global_symlinks_extraneous_num;
@@ -267,6 +278,8 @@ char *list_stats(int after_c)
 					}
 				}
 			}
+			else
+				after_copying_symlinks_num = data_copy_info.global_symlink_num_b;
 			if (options.ignore_symlinks != 1)
 				printf("Number of files and symbolic links: %ld\n", after_copying_file_num + after_copying_symlinks_num);
 			else if (options.ignore_symlinks == 1)
@@ -279,7 +292,6 @@ char *list_stats(int after_c)
 			else if (options.ignore_symlinks == 1)
 				printf("Number of symbolic links: %ld\n", data_copy_info.global_symlink_num_b);
 
-			after_copying_dir_num = 0;
 			after_copying_dir_num = data_copy_info.global_dir_num_b + data_copy_info.global_dirs_to_copy_num;
 			if (options.delete_extraneous == 1) {
 				if (copied.deleted_extraneous == 1) {
@@ -294,14 +306,21 @@ char *list_stats(int after_c)
 			else
 				printf("Number of directories (excluding the top directory): %ld\n", after_copying_dir_num);
 
-			after_copying_size = 0;
+			// ********************* size *************************
 			if (options.ignore_symlinks != 1) {
-				after_copying_size = data_copy_info.global_files_size_b + data_copy_info.global_symlink_size_b + data_copy_info.global_files_to_copy_size + 
-				data_copy_info.global_symlinks_to_copy_size + data_copy_info.global_dirs_to_copy_size;
+				after_copying_size = data_copy_info.global_files_size_b + data_copy_info.global_symlink_size_b;
+				after_copying_size += data_copy_info.global_symlinks_to_copy_size;
+				if (copied.copied_files == 1)
+					after_copying_size += data_copy_info.global_files_to_copy_size;
+				if (copied.copied_directories == 1)
+					after_copying_size += data_copy_info.global_dirs_to_copy_size;
 			}
 			else if (options.ignore_symlinks == 1) {
-				after_copying_size = data_copy_info.global_files_size_b + data_copy_info.global_symlink_size_b + 
-				data_copy_info.global_files_to_copy_size + data_copy_info.global_dirs_to_copy_size;
+				after_copying_size = data_copy_info.global_files_size_b + data_copy_info.global_symlink_size_b;
+				if (copied.copied_files == 1)
+					after_copying_size += data_copy_info.global_files_to_copy_size;
+				if (copied.copied_directories == 1)
+					after_copying_size += data_copy_info.global_dirs_to_copy_size;
 			}
 			// - errors.file_read_write_errors_size;
 			if (options.ow_main_larger == 1) {
@@ -369,7 +388,7 @@ char *list_stats(int after_c)
 				printf("\n");
 			}
 		} // if (copied.copied_data == 1)
-		else if ((copied.copied_data == 0 && options.delete_extraneous == 1) || (copied.copied_data == 0 && options.just_delete_extraneous == 1)) {
+		if (options.just_delete_extraneous == 1) {
 			after_copying_file_num = data_copy_info.global_file_num_b;
 			after_copying_symlinks_num = data_copy_info.global_symlink_num_b;
 			after_copying_dir_num = data_copy_info.global_dir_num_b;
@@ -529,7 +548,6 @@ char *list_stats(int after_c)
 			calc_size(data_copy_info.global_files_size_b,options.other_unit,NORMAL,0);
 		}
 	}
-	print_errors();
 }
 
 char *calc_size(unsigned long data_size, int other_unit, int output, int fd)
@@ -724,10 +742,10 @@ void print_errors(void)
 
 	printf("Errors: ");
 	printf("file open: %ld file create: %ld file close: %ld file delete: %ld"
-		" directory open: %ld directory close: %ld directory delete: %ld"
-		" file read: %ld file write: %ld file overwrite: %ld\n directory read: %ld directory create: %ld"
-		"file attribute: %ld directory attribute: %ld symlink read: %ld symlink write: %ld symlink overwrite: %ld symlink delete: %ld"
-		"access timestamp: %ld modification timestamp: %ld extended attribute: %ld mac attribute: %ld\n",
+		" directory open: %ld directory close: %ld directory delete: %ld\n"
+		" file read: %ld file write: %ld file overwrite: %ld directory read: %ld directory create: %ld"
+		" file attribute: %ld directory attribute: %ld\n symlink read: %ld symlink write: %ld symlink overwrite: %ld symlink delete: %ld"
+		" access timestamp: %ld modification timestamp: %ld extended attribute: %ld mac attribute: %ld\n",
 	errors.file_open_error_count,
 	errors.file_create_error_count,
 	errors.file_close_error_count,
