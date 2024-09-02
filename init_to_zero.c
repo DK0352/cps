@@ -24,9 +24,14 @@ void init_to_zero(DList_of_lists *file_tree_element)
 {
 	file_tree_element->file_num = 0;
 	file_tree_element->subdir_file_num = 0;
+	file_tree_element->sym_links_num = 0;
+	file_tree_element->subdir_sym_links_num = 0;
 	file_tree_element->complete_file_num = 0;
+	file_tree_element->complete_sym_links_num = 0;
 	file_tree_element->files_size = 0;
+	file_tree_element->sym_links_size = 0;
 	file_tree_element->complete_files_size = 0;
+	file_tree_element->complete_sym_links_size = 0;
 	file_tree_element->dir_num = 0;
 	file_tree_element->subdir_num = 0;
 	file_tree_element->complete_dir_num = 0;
@@ -43,16 +48,8 @@ void init_to_zero(DList_of_lists *file_tree_element)
 	file_tree_element->dir_location = NULL;
 	file_tree_element->files = NULL;
 	file_tree_element->directories = NULL;
-	/*
-	file_tree_element->files_to_copy = NULL;
-	file_tree_element->dirs_to_copy = NULL;
-	file_tree_element->files_extraneous = NULL;
-	file_tree_element->dirs_extraneous = NULL;
-	file_tree_element->diff_type = NULL;
-	file_tree_element->diff_size = NULL;
-	file_tree_element->diff_size_ml = NULL;
-	file_tree_element->diff_size_ms = NULL;
-	*/
+	file_tree_element->sym_links = NULL;
+	file_tree_element->file_tree_top_dir = NULL;
 	file_tree_element->one_of_the_top_dirs = NULL;
 	file_tree_element->first_dir_in_chain = NULL;
 	file_tree_element->last_dir_in_chain = NULL;
