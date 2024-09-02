@@ -1038,6 +1038,7 @@ int main(int argc, char *argv[])
 					}
 				}
 			}
+		}
 	}
 	if (options.ignore_symlinks != 1) {
 		symlinks_ms_list = data_copy_info.symlinks_diff_size_ms_list;
@@ -1115,8 +1116,7 @@ int main(int argc, char *argv[])
 			}
 		}
 	}
-
-	// if there is some data, depending on options: create copy or content list file, then copy/overwrite/delete the data found
+	// if there is some data to copy, depending on options: create copy file list, then copy/overwrite/delete the data
 	if (copy_files == 1 || copy_dirs == 1 || files_extraneous == 1 || dirs_extraneous == 1 ||  ow_main_smaller == 1 || ow_main_larger == 1 || ow_main_newer == 1 || 
 			ow_main_older == 1 || copy_symlinks == 1 || symlinks_extraneous == 1 ||  ow_symlinks_main_smaller == 1 || ow_symlinks_main_larger == 1 || 
 			ow_symlinks_main_newer == 1 || ow_symlinks_main_older == 1) {
@@ -1130,52 +1130,101 @@ int main(int argc, char *argv[])
 				clean_tree(thread_data_b->file_tree_top_dir,0);
 				clean_up_exit(thread_data_a, thread_data_b);;
 				destroy_data_structs();
+				exit(1);
 			}
-			else {
-				if (copy_files == 1 && options.just_copy_extraneous_back != 1 && options.just_delete_extraneous != 1) {
+			if (copy_files == 1 && options.just_copy_extraneous_back != 1 && options.just_delete_extraneous != 1) {
+				if (options.less_detailed != 1)
+					detailed_output(file_list,TO_FILE,string1,copyfile);
+				else if (options.less_detailed == 1) {
+					write(copyfile, string1, strlen(string1));
+					for (file_list_element = file_list->head; file_list_element != NULL; file_list_element = file_list_element->next) {
+						strcpy(file_location,file_list_element->dir_location);
+						strcat(file_location,"\n");
+						write(copyfile, file_location, strlen(file_location));
+					}
+				}
+			}
+			if (options.ignore_symlinks != 1) {
+				if (copy_symlinks == 1 && options.just_copy_extraneous_back != 1 && options.just_delete_extraneous != 1) {
 					if (options.less_detailed != 1)
-						detailed_output(file_list,TO_FILE,string1,copyfile);
+						detailed_output(symlinks_list,TO_FILE,string1_1,copyfile);
 					else if (options.less_detailed == 1) {
-						write(copyfile, string1, strlen(string1));
-						for (file_list_element = file_list->head; file_list_element != NULL; file_list_element = file_list_element->next) {
+						write(copyfile, string1_1, strlen(string1_1));
+						for (file_list_element = symlinks_list->head; file_list_element != NULL; file_list_element = file_list_element->next) {
 							strcpy(file_location,file_list_element->dir_location);
 							strcat(file_location,"\n");
 							write(copyfile, file_location, strlen(file_location));
 						}
 					}
 				}
-				if (options.ignore_symlinks != 1) {
-					if (copy_symlinks == 1 && options.just_copy_extraneous_back != 1 && options.just_delete_extraneous != 1) {
-						if (options.less_detailed != 1)
-							detailed_output(symlinks_list,TO_FILE,string1_1,copyfile);
-						else if (options.less_detailed == 1) {
-							write(copyfile, string1_1, strlen(string1_1));
-							for (file_list_element = symlinks_list->head; file_list_element != NULL; file_list_element = file_list_element->next) {
-								strcpy(file_location,file_list_element->dir_location);
-								strcat(file_location,"\n");
-								write(copyfile, file_location, strlen(file_location));
-							}
-						}
+			}
+			if (copy_dirs == 1 && options.just_copy_extraneous_back != 1 && options.just_delete_extraneous != 1) {
+				if (options.less_detailed != 1)
+					detailed_output(dir_list,TO_FILE,string2,copyfile);
+				else if (options.less_detailed == 1) {
+					write(copyfile, string2, strlen(string2));
+					for (dir_list_element = dir_list->head; dir_list_element != NULL; dir_list_element = dir_list_element->next) {
+						strcpy(file_location,dir_list_element->dir_location);
+						strcat(file_location,"\n");
+						write(copyfile, file_location, strlen(file_location));
 					}
 				}
-				if (copy_dirs == 1 && options.just_copy_extraneous_back != 1 && options.just_delete_extraneous != 1) {
-					if (options.less_detailed != 1)
-						detailed_output(dir_list,TO_FILE,string2,copyfile);
-					else if (options.less_detailed == 1) {
-						write(copyfile, string2, strlen(string2));
-						for (dir_list_element = dir_list->head; dir_list_element != NULL; dir_list_element = dir_list_element->next) {
-							strcpy(file_location,dir_list_element->dir_location);
-							strcat(file_location,"\n");
-							write(copyfile, file_location, strlen(file_location));
-						}
+			}
+			if (options.ow_main_larger == 1 && options.just_copy_extraneous_back != 1 && options.just_delete_extraneous != 1) {
+				if (options.less_detailed != 1)
+					detailed_output(file_ml_list,TO_FILE,string3,copyfile);
+				else if (options.less_detailed == 1) {
+					write(copyfile, string3, strlen(string3));
+					for (file_list_element = file_ml_list->head; file_list_element != NULL; file_list_element = file_list_element->next) {
+						strcpy(file_location,file_list_element->dir_location);
+						strcat(file_location,"\n");
+						write(copyfile, file_location, strlen(file_location));
 					}
 				}
+			}
+			else if (options.ow_main_smaller == 1 && options.just_copy_extraneous_back != 1 && options.just_delete_extraneous != 1) {
+				if (options.less_detailed != 1)
+					detailed_output(file_ms_list,TO_FILE,string4,copyfile);
+				else if (options.less_detailed == 1) {
+					write(copyfile, string4, strlen(string4));
+					for (file_list_element = file_ms_list->head; file_list_element != NULL; file_list_element = file_list_element->next) {
+						strcpy(file_location,file_list_element->dir_location);
+						strcat(file_location,"\n");
+						write(copyfile, file_location, strlen(file_location));
+					}
+				}
+			}
+			if (options.ow_main_newer == 1 && options.just_copy_extraneous_back != 1 && options.just_delete_extraneous != 1) {
+				if (options.less_detailed != 1)
+					detailed_output(file_mn_list,TO_FILE,string9,copyfile);
+				else if (options.less_detailed == 1) {
+					write(copyfile, string9, strlen(string9));
+					for (file_list_element = file_mn_list->head; file_list_element != NULL; file_list_element = file_list_element->next) {
+						strcpy(file_location,file_list_element->dir_location);
+						strcat(file_location,"\n");
+						write(copyfile, file_location, strlen(file_location));
+					}
+				}
+			}
+			else if (options.ow_main_older == 1 && options.just_copy_extraneous_back != 1 && options.just_delete_extraneous != 1) {
+				if (options.less_detailed != 1)
+					detailed_output(file_mo_list,TO_FILE,string10,copyfile);
+				else if (options.less_detailed == 1) {
+					write(copyfile, string10, strlen(string10));
+					for (file_list_element = file_mo_list->head; file_list_element != NULL; file_list_element = file_list_element->next) {
+						strcpy(file_location,file_list_element->dir_location);
+						strcat(file_location,"\n");
+						write(copyfile, file_location, strlen(file_location));
+					}
+				}
+			}
+			if (options.ignore_symlinks != 1) {
 				if (options.ow_main_larger == 1 && options.just_copy_extraneous_back != 1 && options.just_delete_extraneous != 1) {
 					if (options.less_detailed != 1)
-						detailed_output(file_ml_list,TO_FILE,string3,copyfile);
+						detailed_output(symlinks_ml_list,TO_FILE,string12,copyfile);
 					else if (options.less_detailed == 1) {
-						write(copyfile, string3, strlen(string3));
-						for (file_list_element = file_ml_list->head; file_list_element != NULL; file_list_element = file_list_element->next) {
+						write(copyfile, string12, strlen(string12));
+						for (file_list_element = symlinks_ml_list->head; file_list_element != NULL; file_list_element = file_list_element->next) {
 							strcpy(file_location,file_list_element->dir_location);
 							strcat(file_location,"\n");
 							write(copyfile, file_location, strlen(file_location));
@@ -1184,22 +1233,24 @@ int main(int argc, char *argv[])
 				}
 				else if (options.ow_main_smaller == 1 && options.just_copy_extraneous_back != 1 && options.just_delete_extraneous != 1) {
 					if (options.less_detailed != 1)
-						detailed_output(file_ms_list,TO_FILE,string4,copyfile);
+						detailed_output(symlinks_ms_list,TO_FILE,string11,copyfile);
 					else if (options.less_detailed == 1) {
-						write(copyfile, string4, strlen(string4));
-						for (file_list_element = file_ms_list->head; file_list_element != NULL; file_list_element = file_list_element->next) {
+						write(copyfile, string11, strlen(string11));
+						for (file_list_element = symlinks_ms_list->head; file_list_element != NULL; file_list_element = file_list_element->next) {
 							strcpy(file_location,file_list_element->dir_location);
 							strcat(file_location,"\n");
 							write(copyfile, file_location, strlen(file_location));
 						}
 					}
 				}
+			}
+			if (options.ignore_symlinks != 1) {
 				if (options.ow_main_newer == 1 && options.just_copy_extraneous_back != 1 && options.just_delete_extraneous != 1) {
 					if (options.less_detailed != 1)
-						detailed_output(file_mn_list,TO_FILE,string9,copyfile);
+						detailed_output(symlinks_mn_list,TO_FILE,string13,copyfile);
 					else if (options.less_detailed == 1) {
-						write(copyfile, string9, strlen(string9));
-						for (file_list_element = file_mn_list->head; file_list_element != NULL; file_list_element = file_list_element->next) {
+						write(copyfile, string13, strlen(string13));
+						for (file_list_element = symlinks_mn_list->head; file_list_element != NULL; file_list_element = file_list_element->next) {
 							strcpy(file_location,file_list_element->dir_location);
 							strcat(file_location,"\n");
 							write(copyfile, file_location, strlen(file_location));
@@ -1208,10 +1259,24 @@ int main(int argc, char *argv[])
 				}
 				else if (options.ow_main_older == 1 && options.just_copy_extraneous_back != 1 && options.just_delete_extraneous != 1) {
 					if (options.less_detailed != 1)
-						detailed_output(file_mo_list,TO_FILE,string10,copyfile);
+						detailed_output(symlinks_mo_list,TO_FILE,string14,copyfile);
 					else if (options.less_detailed == 1) {
-						write(copyfile, string10, strlen(string10));
-						for (file_list_element = file_mo_list->head; file_list_element != NULL; file_list_element = file_list_element->next) {
+						write(copyfile, string14, strlen(string14));
+						for (file_list_element = symlinks_mo_list->head; file_list_element != NULL; file_list_element = file_list_element->next) {
+							strcpy(file_location,file_list_element->dir_location);
+							strcat(file_location,"\n");
+							write(copyfile, file_location, strlen(file_location));
+						}
+					}
+				}
+			}
+			if (options.copy_extraneous_back == 1 || options.just_copy_extraneous_back == 1) {
+				if (options.less_detailed != 1)
+					detailed_output(file_surp_list,TO_FILE,string5,copyfile);
+				else if (options.less_detailed == 1) {
+					if (files_extraneous == 1) {
+						write(copyfile, string5, strlen(string5));
+						for (file_list_element = file_surp_list->head; file_list_element != NULL; file_list_element = file_list_element->next) {
 							strcpy(file_location,file_list_element->dir_location);
 							strcat(file_location,"\n");
 							write(copyfile, file_location, strlen(file_location));
@@ -1219,211 +1284,145 @@ int main(int argc, char *argv[])
 					}
 				}
 				if (options.ignore_symlinks != 1) {
-					if (options.ow_main_larger == 1 && options.just_copy_extraneous_back != 1 && options.just_delete_extraneous != 1) {
-						if (options.less_detailed != 1)
-							detailed_output(symlinks_ml_list,TO_FILE,string12,copyfile);
-						else if (options.less_detailed == 1) {
-							write(copyfile, string12, strlen(string12));
-							for (file_list_element = symlinks_ml_list->head; file_list_element != NULL; file_list_element = file_list_element->next) {
+					if (options.less_detailed != 1)
+						detailed_output(symlinks_surp_list,TO_FILE,string5_1,copyfile);
+					else if (options.less_detailed == 1) {
+						if (symlinks_extraneous == 1) {
+							write(copyfile, string5_1, strlen(string5_1));
+							for (file_list_element = symlinks_surp_list->head; file_list_element != NULL; file_list_element = file_list_element->next) {
 								strcpy(file_location,file_list_element->dir_location);
 								strcat(file_location,"\n");
 								write(copyfile, file_location, strlen(file_location));
 							}
 						}
 					}
-					else if (options.ow_main_smaller == 1 && options.just_copy_extraneous_back != 1 && options.just_delete_extraneous != 1) {
-						if (options.less_detailed != 1)
-							detailed_output(symlinks_ms_list,TO_FILE,string11,copyfile);
-						else if (options.less_detailed == 1) {
-							write(copyfile, string11, strlen(string11));
-							for (file_list_element = symlinks_ms_list->head; file_list_element != NULL; file_list_element = file_list_element->next) {
-								strcpy(file_location,file_list_element->dir_location);
-								strcat(file_location,"\n");
-								write(copyfile, file_location, strlen(file_location));
-							}
+				}
+				if (dirs_extraneous == 1) {
+					if (options.less_detailed != 1)
+						detailed_output(dir_surp_list,TO_FILE,string6,copyfile);
+					else if (options.less_detailed == 1) {
+						write(copyfile, string6, strlen(string6));
+						for (dir_list_element = dir_surp_list->head; dir_list_element != NULL; dir_list_element = dir_list_element->next) {
+							strcpy(file_location,dir_list_element->dir_location);
+							strcat(file_location,"\n");
+							write(copyfile, file_location, strlen(file_location));
+						}
+					}
+				}
+			}
+			else if (options.delete_extraneous == 1 || options.just_delete_extraneous == 1) {
+				if (options.less_detailed != 1)
+					detailed_output(file_surp_list,TO_FILE,string7,copyfile);
+				else if (options.less_detailed == 1) {
+					if (files_extraneous == 1) {
+						write(copyfile, string7, strlen(string7));
+						for (file_list_element = file_surp_list->head; file_list_element != NULL; file_list_element = file_list_element->next) {
+							strcpy(file_location,file_list_element->dir_location);
+							strcat(file_location,"\n");
+							write(copyfile, file_location, strlen(file_location));
 						}
 					}
 				}
 				if (options.ignore_symlinks != 1) {
-					if (options.ow_main_newer == 1 && options.just_copy_extraneous_back != 1 && options.just_delete_extraneous != 1) {
-						if (options.less_detailed != 1)
-							detailed_output(symlinks_mn_list,TO_FILE,string13,copyfile);
-						else if (options.less_detailed == 1) {
-							write(copyfile, string13, strlen(string13));
-							for (file_list_element = symlinks_mn_list->head; file_list_element != NULL; file_list_element = file_list_element->next) {
-								strcpy(file_location,file_list_element->dir_location);
-								strcat(file_location,"\n");
-								write(copyfile, file_location, strlen(file_location));
-							}
-						}
-					}
-					else if (options.ow_main_older == 1 && options.just_copy_extraneous_back != 1 && options.just_delete_extraneous != 1) {
-						if (options.less_detailed != 1)
-							detailed_output(symlinks_mo_list,TO_FILE,string14,copyfile);
-						else if (options.less_detailed == 1) {
-							write(copyfile, string14, strlen(string14));
-							for (file_list_element = symlinks_mo_list->head; file_list_element != NULL; file_list_element = file_list_element->next) {
-								strcpy(file_location,file_list_element->dir_location);
-								strcat(file_location,"\n");
-								write(copyfile, file_location, strlen(file_location));
-							}
-						}
-					}
-				}
-				if (options.copy_extraneous_back == 1 || options.just_copy_extraneous_back == 1) {
 					if (options.less_detailed != 1)
-						detailed_output(file_surp_list,TO_FILE,string5,copyfile);
+						detailed_output(symlinks_surp_list,TO_FILE,string7_1,copyfile);
 					else if (options.less_detailed == 1) {
-						if (files_extraneous == 1) {
-							write(copyfile, string5, strlen(string5));
-							for (file_list_element = file_surp_list->head; file_list_element != NULL; file_list_element = file_list_element->next) {
+						if (symlinks_extraneous == 1) {
+							write(copyfile, string7_1, strlen(string7_1));
+							for (file_list_element = symlinks_surp_list->head; file_list_element != NULL; file_list_element = file_list_element->next) {
 								strcpy(file_location,file_list_element->dir_location);
 								strcat(file_location,"\n");
 								write(copyfile, file_location, strlen(file_location));
 							}
 						}
 					}
-					if (options.ignore_symlinks != 1) {
-						if (options.less_detailed != 1)
-							detailed_output(symlinks_surp_list,TO_FILE,string5_1,copyfile);
-						else if (options.less_detailed == 1) {
-							if (symlinks_extraneous == 1) {
-								write(copyfile, string5_1, strlen(string5_1));
-								for (file_list_element = symlinks_surp_list->head; file_list_element != NULL; file_list_element = file_list_element->next) {
-									strcpy(file_location,file_list_element->dir_location);
-									strcat(file_location,"\n");
-									write(copyfile, file_location, strlen(file_location));
-								}
-							}
-						}
-					}
-					if (dirs_extraneous == 1) {
-						if (options.less_detailed != 1)
-							detailed_output(dir_surp_list,TO_FILE,string6,copyfile);
-						else if (options.less_detailed == 1) {
-							write(copyfile, string6, strlen(string6));
-							for (dir_list_element = dir_surp_list->head; dir_list_element != NULL; dir_list_element = dir_list_element->next) {
-								strcpy(file_location,dir_list_element->dir_location);
-								strcat(file_location,"\n");
-								write(copyfile, file_location, strlen(file_location));
-							}
-						}
-					}
 				}
-				else if (options.delete_extraneous == 1 || options.just_delete_extraneous == 1) {
+				if (dirs_extraneous == 1) {
 					if (options.less_detailed != 1)
-						detailed_output(file_surp_list,TO_FILE,string7,copyfile);
+						detailed_output(dir_surp_list,TO_FILE,string8,copyfile);
 					else if (options.less_detailed == 1) {
-						if (files_extraneous == 1) {
-							write(copyfile, string7, strlen(string7));
-							for (file_list_element = file_surp_list->head; file_list_element != NULL; file_list_element = file_list_element->next) {
-								strcpy(file_location,file_list_element->dir_location);
-								strcat(file_location,"\n");
-								write(copyfile, file_location, strlen(file_location));
-							}
-						}
-					}
-					if (options.ignore_symlinks != 1) {
-						if (options.less_detailed != 1)
-							detailed_output(symlinks_surp_list,TO_FILE,string7_1,copyfile);
-						else if (options.less_detailed == 1) {
-							if (symlinks_extraneous == 1) {
-								write(copyfile, string7_1, strlen(string7_1));
-								for (file_list_element = symlinks_surp_list->head; file_list_element != NULL; file_list_element = file_list_element->next) {
-									strcpy(file_location,file_list_element->dir_location);
-									strcat(file_location,"\n");
-									write(copyfile, file_location, strlen(file_location));
-								}
-							}
-						}
-					}
-					if (dirs_extraneous == 1) {
-						if (options.less_detailed != 1)
-							detailed_output(dir_surp_list,TO_FILE,string8,copyfile);
-						else if (options.less_detailed == 1) {
-							write(copyfile, string8, strlen(string8));
-							for (dir_list_element = dir_surp_list->head; dir_list_element != NULL; dir_list_element = dir_list_element->next) {
-								strcpy(file_location,dir_list_element->dir_location);
-								strcat(file_location,"\n");
-								write(copyfile, file_location, strlen(file_location));
-							}
+						write(copyfile, string8, strlen(string8));
+						for (dir_list_element = dir_surp_list->head; dir_list_element != NULL; dir_list_element = dir_list_element->next) {
+							strcpy(file_location,dir_list_element->dir_location);
+							strcat(file_location,"\n");
+							write(copyfile, file_location, strlen(file_location));
 						}
 					}
 				}
-				errno = 0;
-				if (close(copyfile) == -1)
-					perror("close");
 			}
-		}
-			if (options.just_write_copy_content_file == 1) {
-				clean_tree(thread_data_a->file_tree_top_dir,0);
-				clean_tree(thread_data_b->file_tree_top_dir,0);
-				free(pathname1);
-				free(pathname2);
-				if (thread_data_a->id != NULL)
-					free(thread_data_a->id);
-				if (thread_data_b->id != NULL)
-					free(thread_data_b->id);
-				free(thread_data_a);
-				free(thread_data_b);
-				destroy_data_structs();
+			errno = 0;
+			if (close(copyfile) == -1)
+				perror("close");
+		} // if (options.write_copy_content_file == 1 ||
+		if (options.just_write_copy_content_file == 1) {
+			clean_tree(thread_data_a->file_tree_top_dir,0);
+			clean_tree(thread_data_b->file_tree_top_dir,0);
+			free(pathname1);
+			free(pathname2);
+			if (thread_data_a->id != NULL)
+				free(thread_data_a->id);
+			if (thread_data_b->id != NULL)
+				free(thread_data_b->id);
+			free(thread_data_a);
+			free(thread_data_b);
+			destroy_data_structs();
 
-				return 0;
-			}
-		} // if (options.write_copy_content_file == 1 ...
+			exit(0);
+		}
 		if (options.no_questions == 0) {
 			if (options.dont_list_stats != 1)
 				list_stats(0);
-			if (options.just_copy_extraneous_back != 1 && options.just_delete_extraneous != 1)
-			if (copy_files == 1 || copy_dirs == 1) {
-				printf("Do you want to write the missing files and directories? Type yes or no ...\n");
-				while (fgets(line,BUF,stdin) != NULL) {
-					length = strlen(line);
-					line[length-1] = '\0';
-					if (strcmp(line,"yes") == 0) {
-						if (copy_files == 1) {
-							read_write_data_res = read_write_data(data_copy_info.files_to_copy_list,1,NULL,NULL);
-							if (read_write_data_res == 0)
-								printf("\nFiles were written successfully.\n");
-							else if (read_write_data_res == 1)
-								printf("\nSome files written successfully, but there were some errors.\n");
-							else if (read_write_data_res == -1) {
-								printf("\nError writing the files. Exiting.\n");
-								list_stats(1);
-								clean_tree(thread_data_a->file_tree_top_dir,0);
-								clean_tree(thread_data_b->file_tree_top_dir,0);
-								clean_up_exit(thread_data_a, thread_data_b);;
-								destroy_data_structs();
-								exit(1);
+			if (options.just_copy_extraneous_back != 1 && options.just_delete_extraneous != 1) {
+				if (copy_files == 1 || copy_dirs == 1) {
+					printf("Do you want to write the missing files and directories? Type yes or no ...\n");
+					while (fgets(line,BUF,stdin) != NULL) {
+						length = strlen(line);
+						line[length-1] = '\0';
+						if (strcmp(line,"yes") == 0) {
+							if (copy_files == 1) {
+								read_write_data_res = read_write_data(data_copy_info.files_to_copy_list,1,NULL,NULL);
+								if (read_write_data_res == 0)
+									printf("\nFiles were written successfully.\n");
+								else if (read_write_data_res == 1)
+									printf("\nSome files written successfully, but there were some errors.\n");
+								else if (read_write_data_res == -1) {
+									printf("\nError writing the files. Exiting.\n");
+									list_stats(1);
+									clean_tree(thread_data_a->file_tree_top_dir,0);
+									clean_tree(thread_data_b->file_tree_top_dir,0);
+									clean_up_exit(thread_data_a, thread_data_b);;
+									destroy_data_structs();
+									exit(1);
+								}
 							}
-						}
-						if (copy_dirs == 1) {
-							read_write_data_res = read_write_data(data_copy_info.dirs_to_copy_list,2,NULL,NULL);
-							if (read_write_data_res == 0)
-								printf("\nDirectories were written succesfully.\n");
-							else if (read_write_data_res == 1)
-								printf("\nSome directories written successfully, but there were some errors.\n");
-							else if (read_write_data_res == -1) {
-								printf("\nError writing the directories. Exiting.\n");
-								list_stats(1);
-								clean_tree(thread_data_a->file_tree_top_dir,0);
-								clean_tree(thread_data_b->file_tree_top_dir,0);
-								clean_up_exit(thread_data_a, thread_data_b);;
-								destroy_data_structs();
-								exit(1);
+							if (copy_dirs == 1) {
+								read_write_data_res = read_write_data(data_copy_info.dirs_to_copy_list,2,NULL,NULL);
+								if (read_write_data_res == 0)
+									printf("\nDirectories were written succesfully.\n");
+								else if (read_write_data_res == 1)
+									printf("\nSome directories written successfully, but there were some errors.\n");
+								else if (read_write_data_res == -1) {
+									printf("\nError writing the directories. Exiting.\n");
+									list_stats(1);
+									clean_tree(thread_data_a->file_tree_top_dir,0);
+									clean_tree(thread_data_b->file_tree_top_dir,0);
+									clean_up_exit(thread_data_a, thread_data_b);;
+									destroy_data_structs();
+									exit(1);
+								}
 							}
+							copied.copied_data = 1;
+							printf("\n");
+							break;
 						}
-						copied.copied_data = 1;
-						printf("\n");
-						break;
+						else if (strcmp(line,"no") == 0) {
+							copied.aborted_copying = 1;
+							printf("\n");
+							break;
+						}
+						else
+							printf("Unrecognized answer. Type yes or no.\n");
 					}
-					else if (strcmp(line,"no") == 0) {
-						copied.aborted_copying = 1;
-						printf("\n");
-						break;
-					}
-					else
-						printf("Unrecognized answer. Type yes or no.\n");
 				}
 			}
 			if (options.copy_extraneous_back == 1 || options.just_copy_extraneous_back == 1) {
@@ -1530,7 +1529,6 @@ int main(int argc, char *argv[])
 						}
 						else
 							printf("Unrecognized answer. Type yes or no.\n");
-						
 					}
 				}
 			}
@@ -1928,17 +1926,17 @@ int main(int argc, char *argv[])
 				copied.copied_data = 1;
 			}
 			if (copied.copied_data == 1 || copied.copied_extraneous == 1 || copied.deleted_extraneous == 1 || copied.ow_smaller == 1 
-			|| copied.ow_larger == 1 || copied.ow_newer == 1 || copied.ow_older == 1)
+			|| copied.ow_larger == 1 || copied.ow_newer == 1 || copied.ow_older == 1) {
 				if (options.dont_list_stats != 1)
 					list_stats(1);
-		}
+			}
+		}  // else if (no_questions == 1
 	} // if (files_to_copy == 1 || dirs_to_copy == 1 || etc...
 	else {
 		printf("\nNo data to copy.\n");
 		if (options.dont_list_stats != 1)
 			list_stats(0);
 	}
-
 
 	// free the data structures used for file trees
 	clean_tree(thread_data_a->file_tree_top_dir,0);
@@ -1953,7 +1951,7 @@ int main(int argc, char *argv[])
 	free(thread_data_a);
 	free(thread_data_b);
 	*/
-	clean_up_exit(thread_data_a, thread_data_b);;
+	clean_up_exit(thread_data_a, thread_data_b);
 	destroy_data_structs();
 
 	exit(0);
