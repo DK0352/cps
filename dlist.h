@@ -25,6 +25,7 @@ typedef struct DList_of_lists_ {
 	unsigned long			file_num;		// number of files
 	unsigned long			subdir_file_num;	// number of files in all subdirectories
 	unsigned long			sym_links_num;		// number of symbolic links
+	unsigned long			subdir_sym_links_num;	// number of symbolic links in all subdirectories
 	unsigned long			complete_file_num;	// complete file number of a directory including the subdirectories
 	unsigned long			complete_sym_links_num;	// complete number of a symbolic links of a directory including the subdirectories
 	unsigned long 			files_size;		// size of all files in the current directory
