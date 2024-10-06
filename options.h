@@ -65,6 +65,8 @@ struct options_menu {
 	int	acls;				// preserve ACLs (Access Control Lists)
 	int	xattrs;				// preserve extended attributes
 	int	ignore_symlinks;		// don't copy symbolic links
+	int	ignore;				// ignore named files and directories in the top dir during scanning
+	DList	*ignore_list;			// file and directories to ignore in the top directory
 	int	(*setxattr_func)(const char *path, const char *name, const void *value, size_t size, int flags);
 	ssize_t	(*getxattr_func)(const char *path, const char *name, void *value, size_t size);
 	ssize_t	(*listxattr_func)(const char *path, char *list, size_t size);
