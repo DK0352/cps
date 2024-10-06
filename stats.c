@@ -134,7 +134,7 @@ char *list_stats(int after_c)
 			printf("Same files with different modification time (main location older): %ld\n", data_copy_info.global_diff_time_mo_num);
 			if (options.ignore_symlinks != 1) {
 				printf("Same symbolic links with different modification time (main location newer): %ld\n", data_copy_info.global_diff_symlinks_time_mn_num);
-				printf("Same symbolic with different modification time (main location older): %ld\n", data_copy_info.global_diff_symlinks_time_mo_num);
+				printf("Same symbolic links with different modification time (main location older): %ld\n", data_copy_info.global_diff_symlinks_time_mo_num);
 			}
 		}
 		else if (options.size_based == 1) {
@@ -185,7 +185,10 @@ char *list_stats(int after_c)
 				}
 				printf("Number of files and symbolic links: %ld\n", after_copying_file_num + after_copying_symlinks_num);
 				printf("Number of files: %ld\n", after_copying_file_num);
-				printf("Number of symbolic links: %ld\n", after_copying_symlinks_num);
+				if (options.ignore_symlinks != 1)
+					printf("Number of symbolic links: %ld\n", after_copying_symlinks_num);
+				else if (options.ignore_symlinks == 1)
+					printf("Number of symbolic links: %ld\n", data_copy_info.global_symlink_num_a);
 			}
 			else if (copied.copied_extraneous == 0) {
 				printf("Aborted copying the extraneous data back to the source.\n");
@@ -267,7 +270,9 @@ char *list_stats(int after_c)
 				}
 			}
 			if (options.ignore_symlinks != 1) {
-				after_copying_symlinks_num = data_copy_info.global_symlink_num_b + data_copy_info.global_symlinks_to_copy_num;
+				after_copying_symlinks_num = data_copy_info.global_symlink_num_b + data_copy_info.global_symlinks_to_copy_num
+				+ data_copy_info.global_symlinks_within_dirs_to_copy_num;
+				//after_copying_symlinks_num = data_copy_info.global_symlink_num_b + data_copy_info.global_symlinks_to_copy_num;
 				if (options.delete_extraneous == 1) {
 					if (copied.deleted_extraneous == 1) {
 						after_copying_symlinks_num -= data_copy_info.global_symlinks_extraneous_num;
