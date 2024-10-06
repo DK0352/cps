@@ -99,5 +99,6 @@ void dlist_init(DList *list);
 void dlist_destroy(DList *list);
 void dlist_destroy_2(DList *list);
 void dlist_destroy_3(DList *list);
-int dlist_ins_next(DList *list, DListElmt *element, char *name, mode_t perm, long size, char *dir_location, int match, char *new_location, time_t atime, time_t ctime, DList_of_lists *tree_position);
+int dlist_ins_next(DList *list, DListElmt *element, char *name, mode_t perm, long size, char *dir_location, int match, char *new_location, time_t atime, time_t ctime, 
+DList_of_lists *tree_position);
 int dlist_remove(DList *list, DListElmt *element, char **name, char **dir_location, char **new_location);
