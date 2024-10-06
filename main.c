@@ -105,7 +105,11 @@ int main(int argc, char *argv[])
 	int nice_val;
 	mode_t umask_val;
 	int read_write_data_res;		// read_write_data() return result
-	char *version = "1.3.1";		// cps version number
+
+	int i, ignore_len = 0, finish = 0, word_len = 0, words = 0;
+	char *beginning, *mark_word, *ignore_name;
+
+	char *version = "1.4";		// cps version number
 
 	char *string1 = "Files to copy:\n";
 	char *string1_1 = "Symbolic links to copy:\n";
@@ -184,8 +188,8 @@ int main(int argc, char *argv[])
 	char *help_string54 = "If two files with the same name are found, overwrite the older file in the secondary location with the newer file from the main location.";
 	char *help_string55 = "--overwrite-with-older or -O";
 	char *help_string56 = "If two files with the same name are found, overwrite the newer file in the secondary location with the older file from the main location.";
-	//char *help_string57 = "--naive-mode or -n";
-	//char *help_string58 = "Scan only based on top directories size. This won't detect the case where some files/dirs have only swapped places in the file tree.";
+	char *help_string57 = "--ignore or -I";
+	char *help_string58 = "Ignore named files or directories in the top directory during scanning/copying. Example: -I dir1 or -I dir1,dir2,dir3,file1,file2.";
 	char *help_string59 = "--size-mode or -S";
 	char *help_string60 = "Scan based on size difference instead of modification time.";
 	char *help_string61 = "--just-delete-extraneous or -X";
@@ -228,8 +232,8 @@ int main(int argc, char *argv[])
 	options.time_mods = 0;
 	options.preserve_a_time = 0;
 	options.preserve_m_time = 0;
-	options.time_based = 1;
-	options.size_based = 0;			// on by default
+	options.time_based = 1;			// on by default
+	options.size_based = 0;	
 	options.ow_main_newer = 0;
 	options.ow_main_older = 0;
 	options.list_conflicting = 0;
@@ -238,6 +242,8 @@ int main(int argc, char *argv[])
 	options.acls = 0;
 	options.xattrs = 0;
 	options.ignore_symlinks = 0;
+	options.ignore = 0;
+	options.ignore_list = NULL;
 
 	while (1) {
 		int this_option_optind = optind ? optind : 1;
@@ -276,10 +282,11 @@ int main(int argc, char *argv[])
 			{"acls", no_argument, &options.acls, 1 },
 			{"xattrs", no_argument, &options.xattrs, 1 },
 			{"ignore-symlinks", no_argument, &options.ignore_symlinks, 'i'},
+			{"ignore", required_argument, 0, 'I' },
 			{0, 0, 0, 0}
 		};
 
-		c = getopt_long(argc, argv, "abdeghik:lopqrstuvwxyzABDFG:K:LMNOPSX", long_options, &option_index);
+		c = getopt_long(argc, argv, "abdeghik:lopqrstuvwxyzABDFGI:K:LMNOPSX", long_options, &option_index);
 		if (c == -1)
 			break;
 		switch (c) {
@@ -327,6 +334,78 @@ int main(int argc, char *argv[])
 				break;
 			case 'h':
 				options.help = 1;
+				break;
+			case 'I':
+				options.ignore = 1;
+				ignore_len = strlen(optarg);
+				if (ignore_len == 0) {
+					printf("error: ignore_len == 0.\n");
+					exit(1);
+				}
+				else if (ignore_len > 0) {
+					words = 1;
+					options.ignore_list = malloc(sizeof(DList));
+					if (options.ignore_list != NULL)
+						dlist_init(options.ignore_list);	// dodaj free u glavnu funkciju za oslobađanje
+					else {
+						printf("Error allocating memory for ignore_list. Exiting.\n");
+						exit(1);
+					}
+				}
+				for (i = 0; i < ignore_len; i++) {
+					if (optarg[i] == ',')
+						words++;
+				}
+				if (words == 1) {
+					beginning = &optarg[0];
+					word_len = strlen(beginning);
+					ignore_name = malloc(word_len+1);
+					if (ignore_name == NULL) {
+						printf("Error 1 allocating memory for ignore option. Exiting.\n");
+						exit(1);
+					}
+					strcpy(ignore_name,beginning);
+					dlist_ins_next(options.ignore_list,options.ignore_list->tail,ignore_name,0,0,NULL,0,NULL,0,0,NULL);
+				}
+				else if (words > 0) {
+					beginning = &optarg[0];
+					finish = 0;
+					while (finish != 1) {	// probaj testirat sa dva zareza sta se desi -i=test1,test2,,test3
+						mark_word = strchr(beginning,',');
+						if (mark_word == NULL) {
+							if (*beginning != '\0') {
+								word_len = strlen(beginning);
+								ignore_name = malloc(word_len+1);
+								if (ignore_name == NULL) {
+									printf("Error 2 allocating memory for ignore option. Exiting.\n");
+									exit(1);
+								}
+								strcpy(ignore_name,beginning);
+								dlist_ins_next(options.ignore_list,options.ignore_list->tail,ignore_name,0,0,NULL,0,NULL,0,0,NULL);
+								finish = 1;
+							}
+							else
+								finish = 1;
+						}
+						else if (*mark_word == ',') {
+							*mark_word = '\0';
+							word_len = strlen(beginning);
+							ignore_name = malloc(word_len+1);
+							if (ignore_name == NULL) {
+								printf("Error 1 allocating memory for ignore option. Exiting.\n");
+								exit(1);
+							}
+							strcpy(ignore_name,beginning);
+							dlist_ins_next(options.ignore_list,options.ignore_list->tail,ignore_name,0,0,NULL,0,NULL,0,0,NULL);
+							*mark_word++;
+							if (*mark_word != '\0')
+								beginning = mark_word;
+							else {
+								finish = 1;
+							}
+						}
+					}
+				}
 				break;
 			case 'k':
 				options.write_copy_content_file = 1;
@@ -409,12 +488,9 @@ int main(int argc, char *argv[])
 
 	if (argc < 2 || options.help == 1) {
 		printf("\n");
-		printf("Usage: cps OPTIONS directory1 directory2\n");
+		printf("Usage: cps OPTIONS directory1 directory2 \t\t\t version: %s\n", version);
 		printf("\n");
-		printf("       directory1: the main directory\n");
-		printf("       directory2: the secondary directory (that you wish to synchronize with the main directory).\n");
-		printf("\n");
-		printf("OPTIONS: (long option) or (short option) \n");
+		printf("OPTIONS:\n");
 		printf("\n");
 		printf("%-37s  %s\n", help_string11, help_string12); // --list-extraneous
 		printf("%-37s  %s\n", help_string1, help_string2); // --copy-extraneous
@@ -426,6 +502,7 @@ int main(int argc, char *argv[])
 		printf("%-37s  %s\n", help_string7, help_string8); // --overwrite-with-larger
 		printf("%-37s  %s\n", help_string53, help_string54); // --overwrite-with-newer
 		printf("%-37s  %s\n", help_string55, help_string56); // --overwrite-with-older
+		printf("%-37s  %s\n", help_string57, help_string58); // --ignore
 		printf("%-37s  %s\n", help_string45, help_string46); // follow-sym-links
 		printf("%-37s  %s\n", help_string69, help_string70); // ignore-symlinks
 		printf("%-37s  %s\n", help_string71, help_string72); // less-detailed
@@ -449,9 +526,6 @@ int main(int argc, char *argv[])
 		printf("%-37s  %s\n", help_string67, help_string68); // --xattrs
 		printf("%-37s  %s\n", help_string35, help_string36); // --unit=OPTION
 		printf("%-37s  %s\n", help_string37, help_string38); // --si-units
-		printf("\n");
-		printf("cps %s\n", version);
-		printf("\n");
 		exit(1);
 	}
 
