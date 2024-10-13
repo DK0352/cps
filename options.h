@@ -35,7 +35,8 @@ struct options_menu {
 	int	list_extraneous;			// just list extraneous files/dirs, but dont copy them.
 	int	dont_list_data_to_copy;		// don't list files and directories to copy
 	int	no_questions;			// don't ask for confirmation whether to copy/write data
-	int	help;				// show help
+	int	show_help;
+	int	show_version;
 	int	write_content_file;		// write file trees of both directories into file after copying
 	int	just_write_content_file;	// write file trees of both directories, but don't copy anything
 	int	write_copy_content_file;	// write copyied files and directories into the file
