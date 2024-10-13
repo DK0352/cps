@@ -42,6 +42,7 @@ char *calc_size(unsigned long data_size, int other_unit, int output, int fd);
 char *detailed_output(DList *to_copy_list, int output, char *what_is_copied, int fd);
 void destroy_data_structs(void);
 void clean_up_exit(struct thread_struct *, struct thread_struct *);
+void show_help();
 
 int full_dir_write = 0;		// if set to 1, copy the complete source directory, if set to 2, copy the complete destination directory
 char file_loc1[PATH_MAX];	// file tree content file location
@@ -54,14 +55,15 @@ struct errors_data errors;				// errors info
 
 int main(int argc, char *argv[])
 {
-	dev_t major1, major2, minor1, minor2;				// used to determine whether the two locations to compare are on the same disk, or on a separate disk.
-	pthread_t th1, th2, th3, th4;					// threads used to read directories with build_tree() function concurently if two locations to compare are on separate disks.
+	dev_t major1, major2, minor1, minor2;		// used to determine whether the two locations to compare are on the same disk, or on a separate disk.
+	pthread_t th1, th2, th3, th4;			// threads used to read directories with build_tree() function concurently if two locations to compare are on separate disks.
 	int th1_status, th2_status;					// if concurent threads access is used, these are return values for the threads
 	int th3_status, th4_status;					// if concurent threads access is used, these are return values for the threads
 	void *th1_retval, *th2_retval;
 	void *th3_retval, *th4_retval;
 
-	struct thread_struct *thread_data_a, *thread_data_b;		// main data structure for reading directories a (source) and b (destination). despite it's name, it is used even if threads are not used.
+	struct thread_struct *thread_data_a, *thread_data_b;		// main data structure for reading directories a (source) and b (destination). 
+									// despite it's name, it is used even if threads are not used.
 
 	DList *file_list, *dir_list, *file_surp_list, *dir_surp_list;	// file and directory lists, file and directory extraneous lists
 	DList *symlinks_list, *symlinks_surp_list;
@@ -132,80 +134,7 @@ int main(int argc, char *argv[])
 	char *string16 = "Extraneous symbolic links:\n";
 	char *string17 = "Extraneous directories:\n";
 
-	char *help_string1 = "--copy-extraneous-back or -b";
-	char *help_string2 = "Copy the extraneous data from the secondary location into the main location while synchronizing the directories.";
-	char *help_string3 = "--delete-extraneous or -x";
-	char *help_string4 = "Delete the extraneous data from the secondary location while synchronizing the directories.";
-	char *help_string5 = "--overwrite-with-smaller or -s";
-	char *help_string6 = "If two files with the same name are found, overwrite the larger file in the secondary location with the smaller from the main location.";
-	char *help_string7 = "--overwrite-with-larger or -l";
-	char *help_string8 = "If two files with the same name are found, overwrite the smaller file in the secondary location with the larger file from the main location.";
-	char *help_string9 = "--list-conflicting or -L";
-	char *help_string10 = "List files with the same name, but different size or modification time.";
-	char *help_string11 = "--list-extraneous or -e";
-	char *help_string12 = "Just list extraneous files and directories, but dont copy them.";
-	char *help_string13 = "--dont-list-data-to-copy or -g";
-	char *help_string14 = "Don't list the files and directories to copy after scaning.";
-	char *help_string15 = "--help or -h";
-	char *help_string16 = "Show help and options.";
-	//char *help_string17 = "--content-file=[FILE] or -c";
-	//char *help_string18 = "Write the content of both directories to a file before copying.";
-	//char *help_string19 = "--just-content-file=[FILE] or -C";
-	//char *help_string20 = "Just write the content of both directories to a file and exit the program.";
-	char *help_string21 = "--copy-content-file=[FILE] or -k";
-	char *help_string22 = "Write the files and directories to copy into a file.";
-	char *help_string23 = "--just-copy-content-file=[FILE] or -K";
-	char *help_string24 = "Just write the files and directories to copy into a file and exit the program.";
-	char *help_string25 = "--dont-list-stats or -G";
-	char *help_string26 = "Don't list statistics about the file and directory size, number, etc.";
-	char *help_string27 = "--dont-quit-read-errors or -y";
-	char *help_string28 = "Don't quit on read errors. Useful for unexpected permissions on a file or directory.";
-	char *help_string29 = "--dont-quit-write-errors or -z";
-	char *help_string30 = "Don't quit on write errors. Useful for unexpected permissions on a file or directory.";
-	char *help_string31 = "--dont-quit-delete-errors or -p";
-	char *help_string32 = "Don't quit if deleting the file or directory fails. Useful for unexpected permissions on a file or directory.";
-	char *help_string33 = "--no-questions or -q";
-	char *help_string34 = "Don't ask for confirmation to write the data.";
-	char *help_string35 = "--unit=OPTION";
-	char *help_string36 = "Show sizes in unit of a choice (KB, MB, GB, TB, example: --unit=MB) insted of the default unit appropriate for the size.";
-	char *help_string37 = "--si-units";
-	char *help_string38 = "Use powers of 1000 instead of the default 1024";
-	char *help_string39 = "--dont-show-read-process or -r";
-	char *help_string40 = "Don't list files and directories currently reading.";
-	char *help_string41 = "--dont-show-write-process or -w";
-	char *help_string42 = "Don't list files and directories currently writing.";
-	char *help_string43 = "--just-copy-extraneous-back or -B";
-	char *help_string44 = "Just copy the extraneous data from the secondary location into the main location, but don't synchronize directories.";
-	char *help_string45 = "--follow-sym-links or -F";
-	char *help_string46 = "Follow symbolic links.";
-	char *help_string47 = "--no-access-time or -a";
-	char *help_string48 = "Do not update the last access time on files in the source directory during copying.";
-	char *help_string49 = "--preserve-atime or -A";
-	char *help_string50 = "Preserve access time on the data to be copied.";
-	char *help_string51 = "--preserve-mtime or -M";
-	char *help_string52 = "Preserve modification time on the data to be copied.";
-	char *help_string53 = "--overwrite-with-newer or -N";
-	char *help_string54 = "If two files with the same name are found, overwrite the older file in the secondary location with the newer file from the main location.";
-	char *help_string55 = "--overwrite-with-older or -O";
-	char *help_string56 = "If two files with the same name are found, overwrite the newer file in the secondary location with the older file from the main location.";
-	char *help_string57 = "--ignore or -I";
-	char *help_string58 = "Ignore named files or directories in the top directory during scanning/copying. Example: -I dir1 or -I dir1,dir2,dir3,file1,file2.";
-	char *help_string59 = "--size-mode or -S";
-	char *help_string60 = "Scan based on size difference instead of modification time.";
-	char *help_string61 = "--just-delete-extraneous or -X";
-	char *help_string62 = "Just delete the extraneous data from the secondary location.";
-	char *help_string63 = "--preserve-perms or -P";
-	char *help_string64 = "Preserve the permissions during copying.";
-	char *help_string71 = "--less-detailed or -D";
-	char *help_string72 = "Don't show detailed information about each file (size, permissions, etc) for copy list or copy content file.";
-	char *help_string65 = "--acls";
-	char *help_string66 = "Preserve ACLs during copying.";
-	char *help_string67 = "--xattrs";
-	char *help_string68 = "Preserve extended attributes during copying.";
-	char *help_string69 = "--ignore-symlinks or -i";
-	char *help_string70 = "Ignore (don't copy) symbolic links.";
-
-	// 0 option is inactive, 1 option is active
+	// 0 if option is inactive, 1 if option is active by default
 	options.quit_read_errors = 1;		// on by default
 	options.quit_write_errors = 1;		// on by default
 	options.quit_delete_errors = 1;		// on by default
@@ -218,7 +147,8 @@ int main(int argc, char *argv[])
 	options.follow_sym_links = 0;
 	options.list_extraneous = 0;
 	options.dont_list_data_to_copy = 0;
-	options.help = 0;
+	options.show_help = 0;
+	options.show_version = 0;
 	options.write_copy_content_file = 0;
 	options.just_write_copy_content_file = 0;
 	options.dont_list_stats = 0;
@@ -259,6 +189,7 @@ int main(int argc, char *argv[])
 			{"dont-list-data-to-copy", no_argument, 0, 'g' },
 			{"less-detailed", no_argument, 0, 'D' },
 			{"help", no_argument, 0, 'h' },
+			{"version", no_argument, 0, 'v' },
 			{"copy-content-file", required_argument, 0, 'k' },
 			{"just-copy-content-file", required_argument, 0, 'K' },
 			{"dont-list-stats", no_argument, 0, 'G' },
@@ -333,7 +264,7 @@ int main(int argc, char *argv[])
 				options.dont_list_data_to_copy = 1;
 				break;
 			case 'h':
-				options.help = 1;
+				options.show_help = 1;
 				break;
 			case 'I':
 				options.ignore = 1;
@@ -475,6 +406,9 @@ int main(int argc, char *argv[])
 			case 'i':
 				options.ignore_symlinks = 1;
 				break;
+			case 'v':
+				options.show_version = 1;
+				break;
 			case '?':
 				printf("%c Unknown option. Exiting.\n", optopt);
 				exit(1);
@@ -486,47 +420,23 @@ int main(int argc, char *argv[])
 		} // switch()
 	} // while(1)
 
-	if (argc < 2 || options.help == 1) {
-		printf("\n");
-		printf("Usage: cps OPTIONS directory1 directory2 \t\t\t version: %s\n", version);
-		printf("\n");
-		printf("OPTIONS:\n");
-		printf("\n");
-		printf("%-37s  %s\n", help_string11, help_string12); // --list-extraneous
-		printf("%-37s  %s\n", help_string1, help_string2); // --copy-extraneous
-		printf("%-37s  %s\n", help_string3, help_string4); // --delete-extraneous
-		printf("%-37s  %s\n", help_string43, help_string44); // --just-copy-extraneous-back
-		printf("%-37s  %s\n", help_string61, help_string62); // --just-delete-extraneous
-		printf("%-37s  %s\n", help_string9, help_string10); // --list-conflicting
-		printf("%-37s  %s\n", help_string5, help_string6); // --overwrite-with-smaller
-		printf("%-37s  %s\n", help_string7, help_string8); // --overwrite-with-larger
-		printf("%-37s  %s\n", help_string53, help_string54); // --overwrite-with-newer
-		printf("%-37s  %s\n", help_string55, help_string56); // --overwrite-with-older
-		printf("%-37s  %s\n", help_string57, help_string58); // --ignore
-		printf("%-37s  %s\n", help_string45, help_string46); // follow-sym-links
-		printf("%-37s  %s\n", help_string69, help_string70); // ignore-symlinks
-		printf("%-37s  %s\n", help_string71, help_string72); // less-detailed
-		printf("%-37s  %s\n", help_string25, help_string26); // --dont-list-stats
-		printf("%-37s  %s\n", help_string13, help_string14); // --dont-list-data-to-copy
-		printf("%-37s  %s\n", help_string39, help_string40); // --dont-show-read-process
-		printf("%-37s  %s\n", help_string41, help_string42); // --dont-show-write-process
-		printf("%-37s  %s\n", help_string27, help_string28); // --dont-quit-read-errors
-		printf("%-37s  %s\n", help_string29, help_string30); // --dont-quit-write-errors
-		printf("%-37s  %s\n", help_string31, help_string32); // --dont-quit-delete-errors
-		printf("%-37s  %s\n", help_string15, help_string16); // --help
-		printf("%-37s  %s\n", help_string21, help_string22); // --copy-content-file
-		printf("%-37s  %s\n", help_string23, help_string24); // --just-copy-content-file
-		printf("%-37s  %s\n", help_string33, help_string34); // --no-questions
-		printf("%-37s  %s\n", help_string47, help_string48); // --no-access-time
-		printf("%-37s  %s\n", help_string49, help_string50); // --preserve-atime
-		printf("%-37s  %s\n", help_string51, help_string52); // --preserve-mtime
-		printf("%-37s  %s\n", help_string63, help_string64); // --preserve-perms
-		printf("%-37s  %s\n", help_string59, help_string60); // --size-mode
-		printf("%-37s  %s\n", help_string65, help_string66); // --acls
-		printf("%-37s  %s\n", help_string67, help_string68); // --xattrs
-		printf("%-37s  %s\n", help_string35, help_string36); // --unit=OPTION
-		printf("%-37s  %s\n", help_string37, help_string38); // --si-units
-		exit(1);
+	if (argc < 2) {
+		printf("USAGE: cps directory1 directory2 or cps OPTIONS directory1 directory2\n");
+		printf("For help type man cps or cps -h\n");
+		exit(0);
+	}
+	if (options.show_version == 1 && options.show_help == 0) {
+		printf("cps version: %s\n", version);
+		exit(0);
+	}
+	else if (options.show_help == 1 && options.show_version == 0) {
+		show_help();
+		exit(0);
+	}
+	else if (options.show_help == 1 && options.show_version == 1) {
+		printf("cps version: %s\n", version);
+		show_help();
+		exit(0);
 	}
 
 	if (options.ow_main_smaller == 1 && options.ow_main_larger == 1) {
@@ -2073,4 +1983,45 @@ void clean_up_exit(struct thread_struct *thread_data_a, struct thread_struct *th
 		free(thread_data_b->id);
 	free(thread_data_a);
 	free(thread_data_b);
+}
+
+#include "help.h"
+void show_help()
+{
+	printf("OPTIONS:\n");
+	printf("%-37s  %s\n", help_string11, help_string12); // --list-extraneous
+	printf("%-37s  %s\n", help_string1, help_string2); // --copy-extraneous
+	printf("%-37s  %s\n", help_string3, help_string4); // --delete-extraneous
+	printf("%-37s  %s\n", help_string43, help_string44); // --just-copy-extraneous-back
+	printf("%-37s  %s\n", help_string61, help_string62); // --just-delete-extraneous
+	printf("%-37s  %s\n", help_string9, help_string10); // --list-conflicting
+	printf("%-37s  %s\n", help_string5, help_string6); // --overwrite-with-smaller
+	printf("%-37s  %s\n", help_string7, help_string8); // --overwrite-with-larger
+	printf("%-37s  %s\n", help_string53, help_string54); // --overwrite-with-newer
+	printf("%-37s  %s\n", help_string55, help_string56); // --overwrite-with-older
+	printf("%-37s  %s\n", help_string57, help_string58); // --ignore
+	printf("%-37s  %s\n", help_string45, help_string46); // follow-sym-links
+	printf("%-37s  %s\n", help_string69, help_string70); // ignore-symlinks
+	printf("%-37s  %s\n", help_string71, help_string72); // less-detailed
+	printf("%-37s  %s\n", help_string25, help_string26); // --dont-list-stats
+	printf("%-37s  %s\n", help_string13, help_string14); // --dont-list-data-to-copy
+	printf("%-37s  %s\n", help_string39, help_string40); // --dont-show-read-process
+	printf("%-37s  %s\n", help_string41, help_string42); // --dont-show-write-process
+	printf("%-37s  %s\n", help_string27, help_string28); // --dont-quit-read-errors
+	printf("%-37s  %s\n", help_string29, help_string30); // --dont-quit-write-errors
+	printf("%-37s  %s\n", help_string31, help_string32); // --dont-quit-delete-errors
+	printf("%-37s  %s\n", help_string15, help_string16); // --help
+	printf("%-37s  %s\n", help_string17, help_string18); // --version
+	printf("%-37s  %s\n", help_string21, help_string22); // --copy-content-file
+	printf("%-37s  %s\n", help_string23, help_string24); // --just-copy-content-file
+	printf("%-37s  %s\n", help_string33, help_string34); // --no-questions
+	printf("%-37s  %s\n", help_string47, help_string48); // --no-access-time
+	printf("%-37s  %s\n", help_string49, help_string50); // --preserve-atime
+	printf("%-37s  %s\n", help_string51, help_string52); // --preserve-mtime
+	printf("%-37s  %s\n", help_string63, help_string64); // --preserve-perms
+	printf("%-37s  %s\n", help_string59, help_string60); // --size-mode
+	printf("%-37s  %s\n", help_string65, help_string66); // --acls
+	printf("%-37s  %s\n", help_string67, help_string68); // --xattrs
+	printf("%-37s  %s\n", help_string35, help_string36); // --unit=OPTION
+	printf("%-37s  %s\n", help_string37, help_string38); // --si-units
 }
