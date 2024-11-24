@@ -127,7 +127,7 @@ int loop_dirs(DList_of_lists *file_tree_element_a, DList_of_lists *file_tree_ele
 					new_dir_location(file_tree_element_a,upper_b,data_copy_info.dirs_to_copy_list);
 
 					data_copy_info.global_dirs_to_copy_num++;
-					data_copy_info.global_dirs_to_copy_num += file_tree_element_a->complete_dir_num;
+					// data_copy_info.global_dirs_to_copy_num += file_tree_element_a->complete_dir_num;
 					data_copy_info.global_files_within_dirs_to_copy_num += file_tree_element_a->complete_file_num;
 					data_copy_info.global_symlinks_within_dirs_to_copy_num += file_tree_element_a->complete_sym_links_num;
 					data_copy_info.global_files_to_copy_num += file_tree_element_a->complete_file_num;
