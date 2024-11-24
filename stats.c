@@ -745,32 +745,73 @@ void print_errors(void)
 {
 	extern struct errors_data errors;
 
-	printf("Errors: ");
-	printf("file open: %ld file create: %ld file close: %ld file delete: %ld"
-		" directory open: %ld directory close: %ld directory delete: %ld\n"
-		" file read: %ld file write: %ld file overwrite: %ld directory read: %ld directory create: %ld"
-		" file attribute: %ld directory attribute: %ld\n symlink read: %ld symlink write: %ld symlink overwrite: %ld symlink delete: %ld"
-		" access timestamp: %ld modification timestamp: %ld extended attribute: %ld mac attribute: %ld\n",
-	errors.file_open_error_count,
-	errors.file_create_error_count,
-	errors.file_close_error_count,
-	errors.file_delete_error_count,
-	errors.dir_open_error_count,
-	errors.dir_close_error_count,
-	errors.dir_delete_error_count,
-	errors.file_read_error_count,
-	errors.file_write_error_count,
-	errors.file_overwrite_error_count,
-	errors.dir_read_error_count,
-	errors.dir_create_error_count,
-	errors.file_attr_error_count,
-	errors.dir_attr_error_count,
-	errors.symlink_read_error_count,
-	errors.symlink_write_error_count,
-	errors.symlink_overwrite_error_count,
-	errors.symlink_delete_error_count,
-	errors.atimestamp_error_count,
-	errors.mtimestamp_error_count,
-	errors.xattr_error_count,
-	errors.mac_error_count);
+	if (errors.file_open_error_count != 0)
+		printf("File open errors: %ld\n", errors.file_open_error_count);
+	if (errors.file_create_error_count != 0)
+		printf("File create errors: %ld\n", errors.file_create_error_count);
+	if (errors.file_close_error_count != 0)
+		printf("File close errors: %ld\n", errors.file_close_error_count);
+	if (errors.file_delete_error_count != 0)
+		printf("File delete errors: %ld\n", errors.file_delete_error_count);
+	if (errors.dir_open_error_count != 0)
+		printf("Directory open errors: %ld\n", errors.dir_open_error_count);
+	if (errors.dir_close_error_count != 0)
+		printf("Directory close errors: %ld\n", errors.dir_close_error_count):
+	if (errors.dir_delete_error_count != 0)
+		printf("Directory delete errors: %ld\n", errors.dir_delete_error_count);
+	if (errors.file_read_error_count != 0)
+		printf("File read errors: %ld\n", errors.file_read_error_count);
+	if (errors.file_write_error_count != 0)
+		printf("File write errors: %ld\n", errors.file_write_error_count);
+	if (errors.file_overwrite_error_count != 0)
+		printf("File overwrite errors: %ld\n"; errors.file_overwrite_error_count);
+	if (errors.dir_read_error_count != 0)
+		printf("Directory read errors: %ld\n", errors.dir_read_error_count);
+	if (errors.dir_create_error_count != 0)
+		printf("Directory create errors: %ld\n", errors.dir_create_error_count);
+	if (errors.file_attr_error_count != 0)
+		printf("File attribute errors: %ld\n", errors.file_attr_error_count);
+	if (errors.dir_attr_error_count != 0)
+		printf("Directory attribute errors: %ld\n", errors.dir_attr_error_count);
+	if (errors.symlink_read_error_count != 0)
+		printf("Symbolic link read errors: %ld\n", errors.symlink_read_error_count);
+	if (errors.symlink_write_error_count != 0)
+		printf("Symbolic link write errors: %ld\n", errors.symlink_write_error_count,
+	if (errors.symlink_overwrite_error_count != 0)
+		printf("Symbolic link overwrite errors: %ld\n", errors.symlink_overwrite_error_count);
+	if (errors.symlink_delete_error_count != 0)
+		printf("Symbolic link delete errors: %ld\n", errors.symlink_delete_error_count);
+	if (errors.atimestamp_error_count != 0)
+		printf("Access timestamp errors: %ld\n", errors.atimestamp_error_count);
+	if (errors.mtimestamp_error_count != 0)
+		printf("Modification timestamp errors: %ld\n", errors.mtimestamp_error_count);
+	if (errors.xattr_error_count != 0)
+		printf("Extended attribute errors: %ld\n", errors.xattr_error_count);
+	if (errors.mac_error_count != 0)
+		printf("MAC attribute errors: %ld\n", errors.mac_error_count);
+}
+
+void print_results()
+{
+	struct Data_Copy_Info *result = &data_copy_info;
+
+	printf("SOURCE DIRECTORY\n");
+	printf("Number of files and symbolic links: %ld \n", result->ac_number_files_a + result->ac_number_symlinks_a);
+	printf("Number of files: %ld \n", result->ac_number_files_a + result->ac_number_symlinks_a);
+	printf("Number of symbolic links: %ld \n", result->ac_number_files_a + result->ac_number_symlinks_a);
+	printf("Number of directories: %ld\n", result->ac_number_directories_a);
+	printf("Size of directory in bytes: %ld\n", result->ac_size_directory_a);
+	printf("Size:");
+	calc_size(result->ac_size_directory_a);
+	printf("\n");
+	printf("\n");
+	printf("DESTINATION DIRECTORY\n");
+	printf("Number of files and symbolic links: %ld \n", result->ac_number_files_b + result->ac_number_symlinks_b);
+	printf("Number of files: %ld \n", result->ac_number_files_b + result->ac_number_symlinks_b);
+	printf("Number of symbolic links: %ld \n", result->ac_number_files_b + result->ac_number_symlinks_b);
+	printf("Number of directories: %ld\n", result->ac_number_directories_b);
+	printf("Size of directory in bytes: %ld\n", result->ac_size_directory_b);
+	calc_size(result->ac_size_directory_a);
+	printf("\n");
+	//print_errors();
 }
