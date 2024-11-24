@@ -65,7 +65,8 @@ DList_of_lists *create_top_dirs(DList *list, DList_of_lists *file_tree_element)
 			file_tree_element->file_tree_top_dir = save_file_tree_top_dir;
 			file_tree_element->this_is_top_dir = 1;
 			file_tree_element->dirname = dirlist_pointer->name; /* using directory list created using open_dirs() function and creating dlist_of_lists file tree */
-			file_tree_element->dir_location = dirlist_pointer->dir_location; /* just using pointers as all the allocated data will be destroyed by using dlist_destroy function in process of destroying dlist_of_lists */
+			file_tree_element->dir_location = dirlist_pointer->dir_location; /* just using pointers as all the allocated data will be destroyed by using 
+											dlist_destroy function in process of destroying dlist_of_lists */
 			file_tree_element->st_mode = dirlist_pointer->st_mode;
 			file_tree_element->atime = dirlist_pointer->atime;
 			file_tree_element->mtime = dirlist_pointer->mtime;
