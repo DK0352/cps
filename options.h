@@ -19,8 +19,8 @@
 
 // 
 struct options_menu {
-	int	pause_read_errors;		// if read error occurs, pause any operations; the default is ignore read/write error, but mark all such files and directories
-	int	pause_write_errors;		// if write error occurs, pause any operations; the default is to quit on read error.
+	//int	pause_read_errors;		// if read error occurs, pause any operations; the default is ignore read/write error, but mark all such files and directories
+	//int	pause_write_errors;		// if write error occurs, pause any operations; the default is to quit on read error.
 	int	quit_read_errors;		// if read error occurs, if 1 (default) quit the program. if 0, don't quit the program.
 	int	quit_write_errors;		// if write error occurs, if 1 (default) quit the program. if 0, don't quit the program.
 	int	quit_delete_errors;		// if delete error occurs, if 1 (default) quit the program. if 0, don't quit the program.
@@ -37,10 +37,10 @@ struct options_menu {
 	int	no_questions;			// don't ask for confirmation whether to copy/write data
 	int	show_help;
 	int	show_version;
-	int	write_content_file;		// write file trees of both directories into file after copying
-	int	just_write_content_file;	// write file trees of both directories, but don't copy anything
-	int	write_copy_content_file;	// write copyied files and directories into the file
-	int	just_write_copy_content_file;	// just write files and directories to copy into the file, bud don't copy anything
+	//int	write_content_file;		// write file trees of both directories into file after copying
+	//int	just_write_content_file;	// write file trees of both directories, but don't copy anything
+	int	copy_content_file;		// write list of copied files and directories into the file
+	int	just_copy_content_file;		// write list of files and directories to copy into the file, bud don't copy anything
 	int	dont_list_stats;		// dont list statistics about files and dirs, their size, number, etc...
 	int	other_unit;			// if 1, use nondefault, user specified size unit (KB, MB, GB)
 	int	si_units;			// if 1, use multiples of 1000 insted of 1024 for units (KB, MB, GB)
