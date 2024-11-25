@@ -60,7 +60,7 @@ int read_write_data(DList *data, int choose, char *source, char *destination)
 
 	acl_t		acl;
 	int		acl_res; // return value for acl function
-				 // ///////////////
+
 	char		xattr_list[XATTR_SIZE], xattr_value[XATTR_SIZE];
 	char		newf_xattr_list[XATTR_SIZE], newf_xattr_value[XATTR_SIZE];
 	int		xattr_len, xattr_val_len, xattr_res, setxattr_res;
