@@ -20,7 +20,6 @@
 typedef struct DListElmt_ DListElmt;
 typedef struct DList_ DList;
 
-/* linked list of linked lists */
 typedef struct DList_of_lists_ {
 	unsigned long			file_num;		// number of files
 	unsigned long			subdir_file_num;	// number of files in all subdirectories
