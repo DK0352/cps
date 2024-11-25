@@ -23,6 +23,7 @@
 #include "errors.h"
 #include "options.h"
 #include <getopt.h>
+
 #define BUF 100
 #define SCREEN 101		// output from list_stats() and calc_size() to stdout
 #define TO_FILE 102		// output from list_stats() and calc_size() to file
@@ -30,16 +31,21 @@
 #define NORMAL 104
 #define AS_RETURN_VAL 105
 #define BOTH 106
+#define BEFORE 107
+#define AFTER 108
+#define REGULAR 109
+#define FULL_DIR 110
 
 int open_dirs(struct thread_struct *thread_data);	// function to open and read directories
 void build_tree(struct thread_struct *thread_data);	// build (file) tree
 int compare_trees(struct thread_struct *thread_data_a, struct thread_struct *thread_data_b); 		// compare file trees a and b
-int read_write_data(DList *, int choose, char *source, char *destination);				// read and write files and directories that should be copied, or delete them if specified
+int read_write_data(DList *, int choose, char *source, char *destination);		// read and write files and directories that should be copied, or delete them if specified
 int clean_tree(DList_of_lists *, short);								// free the dynamically allocated file tree
 int write_contents_to_file(DList_of_lists *directory, short opened, int f_descriptor);			// write the file trees to a file
-char *list_stats(int after_c);
+char *calc_stats(int type);
 char *calc_size(unsigned long data_size, int other_unit, int output, int fd);
 char *detailed_output(DList *to_copy_list, int output, char *what_is_copied, int fd);
+void print_results(int when, int where, int fd);
 void destroy_data_structs(void);
 void clean_up_exit(struct thread_struct *, struct thread_struct *);
 void show_help();
@@ -149,8 +155,8 @@ int main(int argc, char *argv[])
 	options.dont_list_data_to_copy = 0;
 	options.show_help = 0;
 	options.show_version = 0;
-	options.write_copy_content_file = 0;
-	options.just_write_copy_content_file = 0;
+	options.copy_content_file = 0;
+	options.just_copy_content_file = 0;
 	options.dont_list_stats = 0;
 	options.no_questions = 0;
 	options.other_unit = 0;
@@ -339,11 +345,11 @@ int main(int argc, char *argv[])
 				}
 				break;
 			case 'k':
-				options.write_copy_content_file = 1;
+				options.copy_content_file = 1;
 				strcpy(file_loc2,optarg);
 				break;
 			case 'K':
-				options.just_write_copy_content_file = 1;
+				options.just_copy_content_file = 1;
 				strcpy(file_loc2,optarg);
 				break;
 			case 'G':
@@ -499,6 +505,19 @@ int main(int argc, char *argv[])
 	}
 	if (options.ow_main_smaller == 1 && options.ow_main_larger == 1) {
 		printf("Error: Conflicting options: --overwrite-with-smaller or -s and --overwrite-with-larger or -l. Specify either one or the other.\n");
+		exit(1);
+	}
+	if ((options.copy_content_file == 1 && options.just_copy_content_file == 0) || (options.copy_content_file == 0 && options.just_copy_content_file == 1)) {
+		errno = 0;
+		copyfile = open(file_loc2, O_CREAT | O_RDWR | O_APPEND, S_IRUSR | S_IWUSR);
+		if (copyfile == -1) {
+			perror("open");
+			fprintf(stderr, "Error opening the copy content file: %s\n",file_loc2);
+			exit(1);
+		}
+	}
+	else if (options.copy_content_file == 1 || options.just_copy_content_file == 1) {
+		printf("Error: Conflicting options write copy content file and write only copy content file. Specify either one or the other.\n");
 		exit(1);
 	}
 
@@ -709,11 +728,11 @@ int main(int argc, char *argv[])
 	}
 
 	// if option is set: create the file with the complete file tree listed
-	if (options.write_content_file == 1) {
+	/*if (options.copy_content_file == 1) {
 		write_contents_to_file(thread_data_a->file_tree_top_dir,0,0);
 		write_contents_to_file(thread_data_b->file_tree_top_dir,0,0);
 	}
-	else if (options.just_write_content_file == 1) {
+	else if (options.just_copy_content_file == 1) {
 		write_contents_to_file(thread_data_a->file_tree_top_dir,0,0);
 		write_contents_to_file(thread_data_b->file_tree_top_dir,0,0);
 		clean_tree(thread_data_a->file_tree_top_dir,0);
@@ -729,21 +748,43 @@ int main(int argc, char *argv[])
 		destroy_data_structs();
 
 		return 0;
-	}
+	}*/
+
 	// copy entire source directory to the destination because it's empty
 	if (full_dir_write == 1) {
 		if (options.no_questions == 0) {
-			if (options.dont_list_stats != 1)
-				list_stats(0);
+			if (options.dont_list_stats != 1) {
+				if (options.copy_content_file != 1 && options.just_copy_content_file != 1)
+					print_results(BEFORE,SCREEN,copyfile);
+				else if (options.copy_content_file == 1)
+					print_results(BEFORE,PRINT_BOTH,copyfile);
+				else if (options.just_copy_content_file == 1)
+					print_results(BEFORE,TO_FILE,copyfile);
+			}
 			printf("\nDestination directory is empty, entire source directory will be copied. Do you want to write the data? Type yes or no ...\n");
 			while (fgets(line,BUF,stdin) != NULL) {
 				length = strlen(line);
 				line[length-1] = '\0';
 				if (strcmp(line,"yes") == 0) {
-					read_write_data(NULL,3,pathname1,pathname2);
-					copied.full_dir1_copied = 1;
-					if (options.dont_list_stats != 1)
-						list_stats(2);
+					read_write_data_res = read_write_data(NULL,3,pathname1,pathname2);
+					if (read_write_data_res == 0) {
+						printf("\nFull directory copied successfully.\n");
+						copied.full_dir1_copied = 1;
+						calc_stats(FULL_DIR);
+						if (options.dont_list_stats != 1) {
+							if (options.copy_content_file != 1 && options.just_copy_content_file != 1)
+								print_results(AFTER,SCREEN,copyfile);
+							else if (options.copy_content_file == 1)
+								print_results(AFTER,PRINT_BOTH,copyfile);
+							else if (options.just_copy_content_file == 1)
+								print_results(AFTER,TO_FILE,copyfile);
+						}
+					}
+					else if (read_write_data_res == 1) 
+						printf("\nFull directory copied partially with some errors.\n");
+					else if (read_write_data_res == -1) {
+						printf("\nError copying full directory. Exiting.\n");
+					}	
 					clean_tree(thread_data_a->file_tree_top_dir,0);
 					free(pathname1);
 					free(pathname2);
@@ -764,12 +805,35 @@ int main(int argc, char *argv[])
 			}
 		}
 		else {
-			if (options.dont_list_stats != 1)
-				list_stats(0);
-			read_write_data(NULL,3,pathname1,pathname2);
-			copied.full_dir1_copied = 1;
-			if (options.dont_list_stats != 1)
-				list_stats(2);
+			if (options.dont_list_stats != 1) {
+				if (options.copy_content_file != 1 && options.just_copy_content_file != 1)
+					print_results(BEFORE,SCREEN,copyfile);
+				else if (options.copy_content_file == 1)
+					print_results(BEFORE,PRINT_BOTH,copyfile);
+				else if (options.just_copy_content_file == 1)
+					print_results(BEFORE,TO_FILE,copyfile);
+			}
+			read_write_data_res = read_write_data(NULL,3,pathname1,pathname2);
+			if (read_write_data_res == 0) {
+				printf("\nFull directory copied successfully.\n");
+				copied.full_dir1_copied = 1;
+				calc_stats(FULL_DIR);
+				if (options.dont_list_stats != 1)
+					if (options.dont_list_stats != 1) {
+						if (options.copy_content_file != 1 && options.just_copy_content_file != 1)
+							print_results(AFTER,SCREEN,copyfile);
+						else if (options.copy_content_file == 1)
+							print_results(AFTER,PRINT_BOTH,copyfile);
+						else if (options.just_copy_content_file == 1)
+							print_results(AFTER,TO_FILE,copyfile);
+					}
+			}
+			else if (read_write_data_res == 1) 
+				printf("\nFull directory copied partially with some errors.\n");
+			else if (read_write_data_res == -1) {
+				printf("\nError copying full directory. Exiting.\n");
+			}	
+
 			clean_tree(thread_data_a->file_tree_top_dir,0);
 			free(pathname1);
 			free(pathname2);
@@ -787,17 +851,39 @@ int main(int argc, char *argv[])
 	// copy entire destination directory to the source because it's empty
 	else if (full_dir_write == 2) {
 		if (options.no_questions == 0) {
-			if (options.dont_list_stats != 1)
-				list_stats(0);
+			if (options.dont_list_stats != 1) {
+				if (options.copy_content_file != 1 && options.just_copy_content_file != 1)
+					print_results(BEFORE,SCREEN,copyfile);
+				else if (options.copy_content_file == 1)
+					print_results(BEFORE,PRINT_BOTH,copyfile);
+				else if (options.just_copy_content_file == 1)
+					print_results(BEFORE,TO_FILE,copyfile);
+			}
 			printf("Source directory is empty, entire destination directory will be copied. Do you want to write the data? Type yes or no ...\n");
 			while (fgets(line,BUF,stdin) != NULL) {
 				length = strlen(line);
 				line[length-1] = '\0';
 				if (strcmp(line,"yes") == 0) {
-					read_write_data(NULL,3,pathname2,pathname1);
-					copied.full_dir2_copied = 1;
-					if (options.dont_list_stats != 1)
-						list_stats(2);
+					read_write_data_res = read_write_data(NULL,3,pathname2,pathname1);
+					if (read_write_data_res == 0) {
+						printf("\nFull directory copied successfully.\n");
+						copied.full_dir2_copied = 1;
+						calc_stats(FULL_DIR);
+						if (options.dont_list_stats != 1) {
+							if (options.copy_content_file != 1 && options.just_copy_content_file != 1)
+								print_results(AFTER,SCREEN,copyfile);
+							else if (options.copy_content_file == 1)
+								print_results(AFTER,PRINT_BOTH,copyfile);
+							else if (options.just_copy_content_file == 1)
+								print_results(AFTER,TO_FILE,copyfile);
+						}
+					}
+					else if (read_write_data_res == 1) 
+						printf("\nFull directory copied partially with some errors.\n");
+					else if (read_write_data_res == -1) {
+						printf("\nError copying full directory. Exiting.\n");
+					}	
+
 					clean_tree(thread_data_b->file_tree_top_dir,0);
 					free(pathname1);
 					free(pathname2);
@@ -818,12 +904,35 @@ int main(int argc, char *argv[])
 			}
 		}
 		else {
-			if (options.dont_list_stats != 1)
-				list_stats(0);
-			read_write_data(NULL,3,pathname2,pathname1);
-			copied.full_dir2_copied = 1;
-			if (options.dont_list_stats != 1)
-				list_stats(2);
+			if (options.dont_list_stats != 1) {
+				if (options.copy_content_file != 1 && options.just_copy_content_file != 1)
+					print_results(BEFORE,SCREEN,copyfile);
+				else if (options.copy_content_file == 1)
+					print_results(BEFORE,PRINT_BOTH,copyfile);
+				else if (options.just_copy_content_file == 1)
+					print_results(BEFORE,TO_FILE,copyfile);
+			}
+			read_write_data_res = read_write_data(NULL,3,pathname2,pathname1);
+			if (read_write_data_res == 0) {
+				printf("\nFull directory copied successfully.\n");
+				copied.full_dir2_copied = 1;
+				calc_stats(FULL_DIR);
+				if (options.dont_list_stats != 1)
+					if (options.dont_list_stats != 1) {
+						if (options.copy_content_file != 1 && options.just_copy_content_file != 1)
+							print_results(AFTER,SCREEN,copyfile);
+						else if (options.copy_content_file == 1)
+							print_results(AFTER,PRINT_BOTH,copyfile);
+						else if (options.just_copy_content_file == 1)
+							print_results(AFTER,TO_FILE,copyfile);
+					}
+			}
+			else if (read_write_data_res == 1) 
+				printf("\nFull directory copied partially with some errors.\n");
+			else if (read_write_data_res == -1) {
+				printf("\nError copying full directory. Exiting.\n");
+			}	
+
 			clean_tree(thread_data_b->file_tree_top_dir,0);
 			free(pathname1);
 			free(pathname2);
@@ -1101,21 +1210,10 @@ int main(int argc, char *argv[])
 		}
 	}
 	// if there is some data to copy, depending on options: create copy file list, then copy/overwrite/delete the data
-	if (copy_files == 1 || copy_dirs == 1 || files_extraneous == 1 || dirs_extraneous == 1 ||  ow_main_smaller == 1 || ow_main_larger == 1 || ow_main_newer == 1 || 
-			ow_main_older == 1 || copy_symlinks == 1 || symlinks_extraneous == 1 ||  ow_symlinks_main_smaller == 1 || ow_symlinks_main_larger == 1 || 
-			ow_symlinks_main_newer == 1 || ow_symlinks_main_older == 1) {
-		if (options.write_copy_content_file == 1 || options.just_write_copy_content_file == 1) {
-			errno = 0;
-			copyfile = open(file_loc2, O_CREAT | O_RDWR | O_APPEND, S_IRUSR | S_IWUSR);
-			if (copyfile == -1) {
-				perror("open");
-				fprintf(stderr, "Error opening the copy content file: %s\n",file_loc2);
-				clean_tree(thread_data_a->file_tree_top_dir,0);
-				clean_tree(thread_data_b->file_tree_top_dir,0);
-				clean_up_exit(thread_data_a, thread_data_b);;
-				destroy_data_structs();
-				exit(1);
-			}
+	if (copy_files == 1 || copy_dirs == 1 || files_extraneous == 1 || dirs_extraneous == 1 ||  ow_main_smaller == 1 || ow_main_larger == 1 || ow_main_newer == 1 
+		|| ow_main_older == 1 || copy_symlinks == 1 || symlinks_extraneous == 1 ||  ow_symlinks_main_smaller == 1 || ow_symlinks_main_larger == 1 
+		|| ow_symlinks_main_newer == 1 || ow_symlinks_main_older == 1) {
+		if (options.copy_content_file == 1 || options.just_copy_content_file == 1) {
 			if (copy_files == 1 && options.just_copy_extraneous_back != 1 && options.just_delete_extraneous != 1) {
 				if (options.less_detailed != 1)
 					detailed_output(file_list,TO_FILE,string1,copyfile);
@@ -1333,12 +1431,14 @@ int main(int argc, char *argv[])
 						}
 					}
 				}
+				if (options.dont_list_stats == 1 || options.just_copy_content_file == 1) {
+					errno = 0;
+					if (close(copyfile) == -1)
+						perror("close");
+				}	
 			}
-			errno = 0;
-			if (close(copyfile) == -1)
-				perror("close");
-		} // if (options.write_copy_content_file == 1 ||
-		if (options.just_write_copy_content_file == 1) {
+		} // if (options.copy_content_file == 1 ||
+		if (options.just_copy_content_file == 1) {
 			clean_tree(thread_data_a->file_tree_top_dir,0);
 			clean_tree(thread_data_b->file_tree_top_dir,0);
 			free(pathname1);
@@ -1354,10 +1454,16 @@ int main(int argc, char *argv[])
 			exit(0);
 		}
 		if (options.no_questions == 0) {
-			if (options.dont_list_stats != 1)
-				list_stats(0);
+			if (options.dont_list_stats != 1) {
+				if (options.copy_content_file != 1 && options.just_copy_content_file != 1)
+					print_results(BEFORE,SCREEN,copyfile);
+				else if (options.copy_content_file == 1)
+					print_results(BEFORE,PRINT_BOTH,copyfile);
+				else if (options.just_copy_content_file == 1)
+					print_results(BEFORE,TO_FILE,copyfile);
+			}
 			if (options.just_copy_extraneous_back != 1 && options.just_delete_extraneous != 1) {
-				if (copy_files == 1 || copy_dirs == 1) {
+				if (copy_files == 1 || copy_dirs == 1 || copy_symlinks == 1) {
 					printf("Do you want to write the missing files and directories? Type yes or no ...\n");
 					while (fgets(line,BUF,stdin) != NULL) {
 						length = strlen(line);
@@ -1365,13 +1471,35 @@ int main(int argc, char *argv[])
 						if (strcmp(line,"yes") == 0) {
 							if (copy_files == 1) {
 								read_write_data_res = read_write_data(data_copy_info.files_to_copy_list,1,NULL,NULL);
-								if (read_write_data_res == 0)
+								if (read_write_data_res == 0) {
 									printf("\nFiles were written successfully.\n");
-								else if (read_write_data_res == 1)
-									printf("\nSome files written successfully, but there were some errors.\n");
+									copied.copied_files = 1;
+								}
+								else if (read_write_data_res == 1) {
+									printf("\nSome files were written successfully, but there were some errors.\n");
+									copied.copied_files = 1;
+								}
 								else if (read_write_data_res == -1) {
 									printf("\nError writing the files. Exiting.\n");
-									list_stats(1);
+									clean_tree(thread_data_a->file_tree_top_dir,0);
+									clean_tree(thread_data_b->file_tree_top_dir,0);
+									clean_up_exit(thread_data_a, thread_data_b);;
+									destroy_data_structs();
+									exit(1);
+								}
+							}
+							if (copy_symlinks == 1) {
+								read_write_data_res = read_write_data(data_copy_info.symlinks_to_copy_list,1,NULL,NULL);
+								if (read_write_data_res == 0) {
+									printf("\nSymbolic links were written successfully.\n");
+									copied.copied_symlinks = 1;
+								}
+								else if (read_write_data_res == 1) {
+									printf("\nSome symbolic links were written successfully, but there were some errors.\n");
+									copied.copied_symlinks = 1;
+								}
+								else if (read_write_data_res == -1) {
+									printf("\nError writing the symbolic links. Exiting.\n");
 									clean_tree(thread_data_a->file_tree_top_dir,0);
 									clean_tree(thread_data_b->file_tree_top_dir,0);
 									clean_up_exit(thread_data_a, thread_data_b);;
@@ -1381,13 +1509,16 @@ int main(int argc, char *argv[])
 							}
 							if (copy_dirs == 1) {
 								read_write_data_res = read_write_data(data_copy_info.dirs_to_copy_list,2,NULL,NULL);
-								if (read_write_data_res == 0)
+								if (read_write_data_res == 0) {
 									printf("\nDirectories were written succesfully.\n");
-								else if (read_write_data_res == 1)
+									copied.copied_directories = 1;
+								}
+								else if (read_write_data_res == 1) {
 									printf("\nSome directories written successfully, but there were some errors.\n");
+									copied.copied_directories = 1;
+								}
 								else if (read_write_data_res == -1) {
 									printf("\nError writing the directories. Exiting.\n");
-									list_stats(1);
 									clean_tree(thread_data_a->file_tree_top_dir,0);
 									clean_tree(thread_data_b->file_tree_top_dir,0);
 									clean_up_exit(thread_data_a, thread_data_b);;
@@ -1395,7 +1526,6 @@ int main(int argc, char *argv[])
 									exit(1);
 								}
 							}
-							copied.copied_data = 1;
 							printf("\n");
 							break;
 						}
@@ -1418,13 +1548,35 @@ int main(int argc, char *argv[])
 						if (strcmp(line,"yes") == 0) {
 							if (files_extraneous == 1) {
 								read_write_data_res = read_write_data(file_surp_list,1,NULL,NULL);
-								if (read_write_data_res == 0)
+								if (read_write_data_res == 0) {
 									printf("\nExtraneous files were written successfully.\n");
-								else if (read_write_data_res == 1)
-									printf("\nSome extraneous files were written successfully, but there were also some errors.\n");
+									copied.copied_files_extraneous = 1;
+								}
+								else if (read_write_data_res == 1) {
+									printf("\nSome extraneous files were written successfully, but there were some errors.\n");
+									copied.copied_files_extraneous = 1;
+								}
 								else if (read_write_data_res == -1) {
 									printf("\nError writing the extraneous files. Exiting.\n");
-									list_stats(1);
+									clean_tree(thread_data_a->file_tree_top_dir,0);
+									clean_tree(thread_data_b->file_tree_top_dir,0);
+									clean_up_exit(thread_data_a, thread_data_b);;
+									destroy_data_structs();
+									exit(1);
+								}
+							}
+							if (symlinks_extraneous == 1) {
+								read_write_data_res = read_write_data(symlinks_surp_list,1,NULL,NULL);
+								if (read_write_data_res == 0) {
+									printf("\nExtraneous symbolic links were written successfully.\n");
+									copied.copied_files_extraneous = 1;
+								}
+								else if (read_write_data_res == 1) {
+									printf("\nSome extraneous symbolic links were written successfully, but there were some errors.\n");
+									copied.copied_files_extraneous = 1;
+								}
+								else if (read_write_data_res == -1) {
+									printf("\nError writing the extraneous symbolic links. Exiting.\n");
 									clean_tree(thread_data_a->file_tree_top_dir,0);
 									clean_tree(thread_data_b->file_tree_top_dir,0);
 									clean_up_exit(thread_data_a, thread_data_b);;
@@ -1434,13 +1586,16 @@ int main(int argc, char *argv[])
 							}
 							if (dirs_extraneous == 1) {
 								read_write_data_res = read_write_data(dir_surp_list,2,NULL,NULL);
-								if (read_write_data_res == 0)
+								if (read_write_data_res == 0) {
 									printf("\nExtraneous directories were written successfully.\n");
-								else if (read_write_data_res == 1)
+									copied.copied_directories_extraneous = 1;
+								}
+								else if (read_write_data_res == 1) {
 									printf("\nSome extraneous directories were written successfully, but there were also some errors.\n");
+									copied.copied_directories_extraneous = 1;
+								}
 								else if (read_write_data_res == -1) {
 									printf("\nError writing the extraneous directories. Exiting\n");
-									list_stats(1);
 									clean_tree(thread_data_a->file_tree_top_dir,0);
 									clean_tree(thread_data_b->file_tree_top_dir,0);
 									clean_up_exit(thread_data_a, thread_data_b);;
@@ -1448,8 +1603,6 @@ int main(int argc, char *argv[])
 									exit(1);
 								}
 							}
-							copied.copied_extraneous = 1;
-							copied.copied_data = 1;
 							printf("\n");
 							break;
 						}
@@ -1471,13 +1624,35 @@ int main(int argc, char *argv[])
 						if (strcmp(line,"yes") == 0) {
 							if (files_extraneous == 1) {
 								read_write_data_res = read_write_data(file_surp_list,5,NULL,NULL);
-								if (read_write_data_res == 0)
+								if (read_write_data_res == 0) {
 									printf("\nDeleting the extraneous files was successful.\n");
-								else if (read_write_data_res == 1) 
+									copied.deleted_files_extraneous = 1;
+								}
+								else if (read_write_data_res == 1) {
 									printf("\nDeleting some extraneous files was successful, but there were also some errors.\n");
+									copied.deleted_files_extraneous = 1;
+								}
 								else if (read_write_data_res == -1) {
 									printf("\nError deleting the extraneous files. Exiting.\n");
-									list_stats(1);
+									clean_tree(thread_data_a->file_tree_top_dir,0);
+									clean_tree(thread_data_b->file_tree_top_dir,0);
+									clean_up_exit(thread_data_a, thread_data_b);;
+									destroy_data_structs();
+									exit(1);
+								}
+							}
+							if (symlinks_extraneous == 1) {
+								read_write_data_res = read_write_data(symlinks_surp_list,5,NULL,NULL);
+								if (read_write_data_res == 0) {
+									printf("\nDeleting the extraneous symbolic links was successful.\n");
+									copied.deleted_symlinks_extraneous = 1;
+								}
+								else if (read_write_data_res == 1) {
+									printf("\nDeleting some extraneous symbolic links was successful, but there were also some errors.\n");
+									copied.deleted_symlinks_extraneous = 1;
+								}
+								else if (read_write_data_res == -1) {
+									printf("\nError deleting the extraneous symbolic links. Exiting.\n");
 									clean_tree(thread_data_a->file_tree_top_dir,0);
 									clean_tree(thread_data_b->file_tree_top_dir,0);
 									clean_up_exit(thread_data_a, thread_data_b);;
@@ -1487,13 +1662,16 @@ int main(int argc, char *argv[])
 							}
 							if (dirs_extraneous == 1) {
 								read_write_data_res = read_write_data(dir_surp_list,6,NULL,NULL);
-								if (read_write_data_res == 0)
+								if (read_write_data_res == 0) {
 									printf("\nDeleting the extraneous directories was successful.\n");
-								else if (read_write_data_res == 1)
+									copied.deleted_directories_extraneous = 1;
+								}
+								else if (read_write_data_res == 1) {
 									printf("\nDeleting some extraneous directories was successfull, but there were also some errors.\n");
+									copied.deleted_directories_extraneous = 1;
+								}
 								else if (read_write_data_res == -1) {
 									printf("\nError deleting the extraneous directories. Exiting.\n");
-									list_stats(1);
 									clean_tree(thread_data_a->file_tree_top_dir,0);
 									clean_tree(thread_data_b->file_tree_top_dir,0);
 									clean_up_exit(thread_data_a, thread_data_b);;
@@ -1502,8 +1680,6 @@ int main(int argc, char *argv[])
 								}
 							}
 
-							copied.deleted_extraneous = 1;
-							copied.copied_data = 1;
 							printf("\n");
 							break;
 						}
@@ -1524,21 +1700,22 @@ int main(int argc, char *argv[])
 					line[length-1] = '\0';
 					if (strcmp(line,"yes") == 0) {
 						read_write_data_res = read_write_data(data_copy_info.diff_size_ms_list,4,NULL,NULL);
-						if (read_write_data_res == 0)
+						if (read_write_data_res == 0) {
 							printf("Larger files overwritten successfully.\n");
-						else if (read_write_data_res == 1)
+							copied.ow_smaller = 1;
+						}
+						else if (read_write_data_res == 1) {
 							printf("There were some errors while overwriting the larger files.\n");
+							copied.ow_smaller = 1;
+						}
 						else if (read_write_data_res == -1) {
 							printf("There were some errors while overwriting the larger files. Exiting.\n");
-								list_stats(1);
 								clean_tree(thread_data_a->file_tree_top_dir,0);
 								clean_tree(thread_data_b->file_tree_top_dir,0);
 								clean_up_exit(thread_data_a, thread_data_b);;
 								destroy_data_structs();
 								exit(1);
 						}
-						copied.ow_smaller = 1;
-						copied.copied_data = 1;
 						printf("\n");
 						break;
 					}
@@ -1558,21 +1735,22 @@ int main(int argc, char *argv[])
 					line[length-1] = '\0';
 					if (strcmp(line,"yes") == 0) {
 						read_write_data_res = read_write_data(data_copy_info.diff_size_ml_list,4,NULL,NULL);
-						if (read_write_data_res == 0)
+						if (read_write_data_res == 0) {
 							printf("Smaller files were overwritten successfully\n");
-						else if (read_write_data_res == 1)
+							copied.ow_larger = 1;
+						}
+						else if (read_write_data_res == 1) {
 							printf("There were some errors overwriting the smaller files.\n");
+							copied.ow_larger = 1;
+						}
 						else if (read_write_data_res == -1) {
 							printf("There were some errors while overwriting the smaller files. Exiting.\n");
-							list_stats(1);
 							clean_tree(thread_data_a->file_tree_top_dir,0);
 							clean_tree(thread_data_b->file_tree_top_dir,0);
 							clean_up_exit(thread_data_a, thread_data_b);;
 							destroy_data_structs();
 							exit(1);
 						}
-						copied.ow_larger = 1;
-						copied.copied_data = 1;
 						printf("\n");
 						break;
 					}
@@ -1592,21 +1770,22 @@ int main(int argc, char *argv[])
 					line[length-1] = '\0';
 					if (strcmp(line,"yes") == 0) {
 						read_write_data_res = read_write_data(data_copy_info.diff_time_mn_list,4,NULL,NULL);
-						if (read_write_data_res == 0)
+						if (read_write_data_res == 0) {
 							printf("Older files were overwritten successfully.\n");
-						else if (read_write_data_res == 1)
+							copied.ow_newer = 1;
+						}
+						else if (read_write_data_res == 1) {
 							printf("There were some errors overwriting the older files.\n");
+							copied.ow_newer = 1;
+						}
 						else if (read_write_data_res == -1) {
 							printf("There were some errors while overwriting the older files. Exiting.\n");
-							list_stats(1);
 							clean_tree(thread_data_a->file_tree_top_dir,0);
 							clean_tree(thread_data_b->file_tree_top_dir,0);
 							clean_up_exit(thread_data_a, thread_data_b);;
 							destroy_data_structs();
 							exit(1);
 						}
-						copied.ow_newer = 1;
-						copied.copied_data = 1;
 						printf("\n");
 						break;
 					}
@@ -1626,21 +1805,22 @@ int main(int argc, char *argv[])
 					line[length-1] = '\0';
 					if (strcmp(line,"yes") == 0) {
 						read_write_data_res = read_write_data(data_copy_info.diff_time_mo_list,4,NULL,NULL);
-						if (read_write_data_res == 0)
+						if (read_write_data_res == 0) {
 							printf("Newer files were overwritten successfully.\n");
-						else if (read_write_data_res == 1)
+							copied.ow_older = 1;
+						}
+						else if (read_write_data_res == 1) {
 							printf("There were some errors while overwriting the newer files.\n");
+							copied.ow_older = 1;
+						}
 						else if (read_write_data_res == -1) {
 							printf("There were some errors while overwriting the newer files. Exiting.\n");
-							list_stats(1);
 							clean_tree(thread_data_a->file_tree_top_dir,0);
 							clean_tree(thread_data_b->file_tree_top_dir,0);
 							clean_up_exit(thread_data_a, thread_data_b);;
 							destroy_data_structs();
 							exit(1);
 						}
-						copied.ow_older = 1;
-						copied.copied_data = 1;
 						printf("\n");
 						break;
 					}
@@ -1653,56 +1833,89 @@ int main(int argc, char *argv[])
 			 	}
 			}
 			if (copied.copied_data == 1 || copied.copied_extraneous == 1 || copied.deleted_extraneous == 1 || copied.ow_smaller == 1 
-			|| copied.ow_larger == 1 || copied.ow_newer == 1 || copied.ow_older == 1)
+			|| copied.ow_larger == 1 || copied.ow_newer == 1 || copied.ow_older == 1) {
+				calc_stats(REGULAR);
 				if (options.dont_list_stats != 1) {
-					list_stats(1);
+					if (options.copy_content_file != 1 && options.just_copy_content_file != 1)
+						print_results(AFTER,SCREEN,copyfile);
+					else if (options.copy_content_file == 1)
+						print_results(AFTER,PRINT_BOTH,copyfile);
+					else if (options.just_copy_content_file == 1)
+						print_results(AFTER,TO_FILE,copyfile);
 				}
+			}
 		} // if (options.no_questions == 0) {
 		else if (options.no_questions == 1) {
 			if (copy_files == 1 && options.just_copy_extraneous_back != 1 && options.just_delete_extraneous != 1) {
 				read_write_data_res = read_write_data(data_copy_info.files_to_copy_list,1,NULL,NULL);
-				if (read_write_data_res == 0)
+				if (read_write_data_res == 0) {
 					printf("\nFiles were written successfully.\n");
-				else if (read_write_data_res == 1)
+					copied.copied_files = 1;
+				}
+				else if (read_write_data_res == 1) {
 					printf("\nSome files written successfully, but there were some errors.\n");
+					copied.copied_files = 1;
+				}
 				else if (read_write_data_res == -1) {
 					printf("\nError writing the files. Exiting.\n");
-					list_stats(1);
 					clean_tree(thread_data_a->file_tree_top_dir,0);
 					clean_tree(thread_data_b->file_tree_top_dir,0);
 					clean_up_exit(thread_data_a, thread_data_b);;
 					destroy_data_structs();
 					exit(1);
 				}
-				copied.copied_data = 1;
 			}
 			if (copy_dirs == 1 && options.just_copy_extraneous_back != 1 && options.just_delete_extraneous != 1) {
 				read_write_data_res = read_write_data(data_copy_info.dirs_to_copy_list,2,NULL,NULL);
-				if (read_write_data_res == 0)
+				if (read_write_data_res == 0) {
 					printf("\nDirectories were written succesfully.\n");
-				else if (read_write_data_res == 1)
+					copied.copied_directories = 1;
+				}
+				else if (read_write_data_res == 1) {
 					printf("\nSome directories written successfully, but there were some errors.\n");
+					copied.copied_directories = 1;
+				}
 				else if (read_write_data_res == -1) {
 					printf("\nError writing the directories. Exiting.\n");
-					list_stats(1);
 					clean_tree(thread_data_a->file_tree_top_dir,0);
 					clean_tree(thread_data_b->file_tree_top_dir,0);
 					clean_up_exit(thread_data_a, thread_data_b);;
 					destroy_data_structs();
 					exit(1);
 				}
-				copied.copied_data = 1;
 			}
-			if (options.copy_extraneous_back == 1) {
+			if (options.copy_extraneous_back == 1 || options.just_copy_extraneous_back == 1) {
 				if (files_extraneous == 1) {
 					read_write_data_res = read_write_data(data_copy_info.files_extraneous_list,1,NULL,NULL);
-					if (read_write_data_res == 0)
+					if (read_write_data_res == 0) {
 						printf("\nExtraneous files were written successfully.\n");
-					else if (read_write_data_res == 1)
+						copied.copied_files_extraneous = 1;
+					}
+					else if (read_write_data_res == 1) {
 						printf("\nSome extraneous files were written successfully, but there were also some errors.\n");
+						copied.copied_files_extraneous = 1;
+					}
 					else if (read_write_data_res == -1) {
 						printf("\nError writing the extraneous files. Exiting.\n");
-						list_stats(1);
+						clean_tree(thread_data_a->file_tree_top_dir,0);
+						clean_tree(thread_data_b->file_tree_top_dir,0);
+						clean_up_exit(thread_data_a, thread_data_b);;
+						destroy_data_structs();
+						exit(1);
+					}
+				}
+				if (symlinks_extraneous == 1) {
+					read_write_data_res = read_write_data(data_copy_info.symlinks_extraneous_list,1,NULL,NULL);
+					if (read_write_data_res == 0) {
+						printf("\nExtraneous symbolic links were written successfully.\n");
+						copied.copied_symlinks_extraneous = 1;
+					}
+					else if (read_write_data_res == 1) {
+						printf("\nSome extraneous symbolic links were written successfully, but there were also some errors.\n");
+						copied.copied_symlinks_extraneous = 1;
+					}
+					else if (read_write_data_res == -1) {
+						printf("\nError writing the extraneous symbolic links. Exiting.\n");
 						clean_tree(thread_data_a->file_tree_top_dir,0);
 						clean_tree(thread_data_b->file_tree_top_dir,0);
 						clean_up_exit(thread_data_a, thread_data_b);;
@@ -1712,13 +1925,16 @@ int main(int argc, char *argv[])
 				}
 				if (dirs_extraneous == 1) {
 					read_write_data_res = read_write_data(data_copy_info.dirs_extraneous_list,2,NULL,NULL);
-					if (read_write_data_res == 0)
+					if (read_write_data_res == 0) {
 						printf("\nExtraneous directories were written successfully.\n");
-					else if (read_write_data_res == 1)
+						copied.copied_directories_extraneous = 1;
+					}
+					else if (read_write_data_res == 1) {
 						printf("\nSome extraneous directories were written successfully, but there were also some errors.\n");
+						copied.copied_directories_extraneous = 1;
+					}
 					else if (read_write_data_res == -1) {
 						printf("\nError writing the extraneous directories. Exiting\n");
-						list_stats(1);
 						clean_tree(thread_data_a->file_tree_top_dir,0);
 						clean_tree(thread_data_b->file_tree_top_dir,0);
 						clean_up_exit(thread_data_a, thread_data_b);;
@@ -1726,19 +1942,39 @@ int main(int argc, char *argv[])
 						exit(1);
 					}
 				}
-				copied.copied_extraneous = 1;
-				copied.copied_data = 1;
 			}
-			else if (options.delete_extraneous == 1) {
+			else if (options.delete_extraneous == 1 || options.just_delete_extraneous == 1) {
 				if (files_extraneous == 1) {
 					read_write_data_res = read_write_data(data_copy_info.files_extraneous_list,5,NULL,NULL);
-					if (read_write_data_res == 0)
+					if (read_write_data_res == 0) {
 						printf("\nDeleting the extraneous files was successful.\n");
-					else if (read_write_data_res == 1) 
-						printf("\nDeleting some extraneous files was successful, but there were also some errors.\n");
+						copied.deleted_files_extraneous = 1;
+					}
+					else if (read_write_data_res == 1) {
+						printf("\nDeleting some extraneous files was successful, but there were some errors.\n");
+						copied.deleted_files_extraneous = 1;
+					}
 					else if (read_write_data_res == -1) {
 						printf("\nError deleting the extraneous files. Exiting.\n");
-						list_stats(1);
+						clean_tree(thread_data_a->file_tree_top_dir,0);
+						clean_tree(thread_data_b->file_tree_top_dir,0);
+						clean_up_exit(thread_data_a, thread_data_b);;
+						destroy_data_structs();
+						exit(1);
+					}
+				}
+				if (symlinks_extraneous == 1) {
+					read_write_data_res = read_write_data(data_copy_info.symlinks_extraneous_list,5,NULL,NULL);
+					if (read_write_data_res == 0) {
+						printf("\nDeleting the extraneous symbolic links was successful.\n");
+						copied.deleted_symlinks_extraneous = 1;
+					}
+					else if (read_write_data_res == 1) {
+						printf("\nDeleting some extraneous symbolic links was successful, but there were some errors.\n");
+						copied.deleted_symlinks_extraneous = 1;
+					}
+					else if (read_write_data_res == -1) {
+						printf("\nError deleting the extraneous symbolic links. Exiting.\n");
 						clean_tree(thread_data_a->file_tree_top_dir,0);
 						clean_tree(thread_data_b->file_tree_top_dir,0);
 						clean_up_exit(thread_data_a, thread_data_b);;
@@ -1748,13 +1984,16 @@ int main(int argc, char *argv[])
 				}
 				if (dirs_extraneous == 1) {
 					read_write_data_res = read_write_data(data_copy_info.dirs_extraneous_list,6,NULL,NULL);
-					if (read_write_data_res == 0)
+					if (read_write_data_res == 0) {
 						printf("\nDeleting the extraneous directories was successful.\n");
-					else if (read_write_data_res == 1)
+						copied.deleted_directories_extraneous = 1;
+					}
+					else if (read_write_data_res == 1) {
 						printf("\nDeleting some extraneous directories was successfull, but there were also some errors.\n");
+						copied.deleted_directories_extraneous = 1;
+					}
 					else if (read_write_data_res == -1) {
 						printf("\nError deleting the extraneous directories. Exiting.\n");
-						list_stats(1);
 						clean_tree(thread_data_a->file_tree_top_dir,0);
 						clean_tree(thread_data_b->file_tree_top_dir,0);
 						clean_up_exit(thread_data_a, thread_data_b);;
@@ -1762,10 +2001,8 @@ int main(int argc, char *argv[])
 						exit(1);
 					}
 				}
-				copied.deleted_extraneous = 1;
-				copied.copied_data = 1;
 			}
-			if (options.just_copy_extraneous_back == 1) {
+			/*if (options.just_copy_extraneous_back == 1) {
 				if (files_extraneous == 1) {
 					read_write_data_res = read_write_data(data_copy_info.files_extraneous_list,1,NULL,NULL);
 					if (read_write_data_res == 0)
@@ -1774,7 +2011,6 @@ int main(int argc, char *argv[])
 						printf("\nSome extraneous files were written successfully, but there were also some errors.\n");
 					else if (read_write_data_res == -1) {
 						printf("\nError writing the extraneous files. Exiting.\n");
-						list_stats(1);
 						clean_tree(thread_data_a->file_tree_top_dir,0);
 						clean_tree(thread_data_b->file_tree_top_dir,0);
 						clean_up_exit(thread_data_a, thread_data_b);;
@@ -1790,7 +2026,6 @@ int main(int argc, char *argv[])
 						printf("\nSome extraneous directories were written successfully, but there were also some errors.\n");
 					else if (read_write_data_res == -1) {
 						printf("\nError writing the extraneous directories. Exiting\n");
-						list_stats(1);
 						clean_tree(thread_data_a->file_tree_top_dir,0);
 						clean_tree(thread_data_b->file_tree_top_dir,0);
 						clean_up_exit(thread_data_a, thread_data_b);;
@@ -1798,8 +2033,6 @@ int main(int argc, char *argv[])
 						exit(1);
 					}
 				}
-				copied.copied_extraneous = 1;
-				copied.copied_data = 1;
 			}
 			else if (options.just_delete_extraneous == 1) {
 				if (files_extraneous == 1) {
@@ -1810,7 +2043,6 @@ int main(int argc, char *argv[])
 						printf("\nDeleting some extraneous files was successful, but there were also some errors.\n");
 					else if (read_write_data_res == -1) {
 						printf("\nError deleting the extraneous files. Exiting.\n");
-						list_stats(1);
 						clean_tree(thread_data_a->file_tree_top_dir,0);
 						clean_tree(thread_data_b->file_tree_top_dir,0);
 						clean_up_exit(thread_data_a, thread_data_b);;
@@ -1826,7 +2058,6 @@ int main(int argc, char *argv[])
 						printf("\nDeleting some extraneous directories was successfull, but there were also some errors.\n");
 					else if (read_write_data_res == -1) {
 						printf("\nError deleting the extraneous directories. Exiting.\n");
-						list_stats(1);
 						clean_tree(thread_data_a->file_tree_top_dir,0);
 						clean_tree(thread_data_b->file_tree_top_dir,0);
 						clean_up_exit(thread_data_a, thread_data_b);;
@@ -1834,93 +2065,107 @@ int main(int argc, char *argv[])
 						exit(1);
 					}
 				}
-				copied.deleted_extraneous = 1;
-				copied.copied_data = 1;
-			}
+			}*/
 			if (options.ow_main_smaller == 1 && options.just_copy_extraneous_back != 1 && options.just_delete_extraneous != 1) {
 				read_write_data_res = read_write_data(data_copy_info.diff_size_ms_list,4,NULL,NULL);
-				if (read_write_data_res == 0)
+				if (read_write_data_res == 0) {
 					printf("Larger files overwritten successfully.\n");
-				else if (read_write_data_res == 1)
+					copied.ow_smaller = 1;
+				}
+				else if (read_write_data_res == 1) {
 					printf("There were some errors while overwriting the larger files.\n");
+					copied.ow_smaller = 1;
+				}
 				else if (read_write_data_res == -1) {
 					printf("There were some errors while overwriting the larger files. Exiting.\n");
-						list_stats(1);
 						clean_tree(thread_data_a->file_tree_top_dir,0);
 						clean_tree(thread_data_b->file_tree_top_dir,0);
 						clean_up_exit(thread_data_a, thread_data_b);;
 						destroy_data_structs();
 						exit(1);
 				}
-				copied.ow_smaller = 1;
-				copied.copied_data = 1;
 			}
 			if (options.ow_main_larger == 1 && options.just_copy_extraneous_back != 1 && options.just_delete_extraneous != 1) {
 				read_write_data_res = read_write_data(data_copy_info.diff_size_ml_list,4,NULL,NULL);
-				if (read_write_data_res == 0)
+				if (read_write_data_res == 0) {
 					printf("Smaller files were overwritten successfully\n");
-				else if (read_write_data_res == 1)
+					copied.ow_larger = 1;
+				}
+				else if (read_write_data_res == 1) {
 					printf("There were some errors overwriting the smaller files.\n");
+					copied.ow_larger = 1;
+				}
 				else if (read_write_data_res == -1) {
 					printf("There were some errors while overwriting the smaller files. Exiting.\n");
-					list_stats(1);
 					clean_tree(thread_data_a->file_tree_top_dir,0);
 					clean_tree(thread_data_b->file_tree_top_dir,0);
 					clean_up_exit(thread_data_a, thread_data_b);;
 					destroy_data_structs();
 					exit(1);
 				}
-				copied.ow_larger = 1;
-				copied.copied_data = 1;
 			}
 			if (options.ow_main_newer == 1 && options.just_copy_extraneous_back != 1 && options.just_delete_extraneous != 1) {
 				read_write_data_res = read_write_data(data_copy_info.diff_time_mn_list,4,NULL,NULL);
-				if (read_write_data_res == 0)
+				if (read_write_data_res == 0) {
 					printf("Older files were overwritten successfully.\n");
-				else if (read_write_data_res == 1)
+					copied.ow_newer = 1;
+				}
+				else if (read_write_data_res == 1) {
 					printf("There were some errors overwriting the older files.\n");
+					copied.ow_newer = 1;
+				}
 				else if (read_write_data_res == -1) {
 					printf("There were some errors while overwriting the older files. Exiting.\n");
-					list_stats(1);
 					clean_tree(thread_data_a->file_tree_top_dir,0);
 					clean_tree(thread_data_b->file_tree_top_dir,0);
 					clean_up_exit(thread_data_a, thread_data_b);;
 					destroy_data_structs();
 					exit(1);
 				}
-				copied.ow_newer = 1;
-				copied.copied_data = 1;
 			}
 			if (options.ow_main_older == 1 && options.just_copy_extraneous_back != 1 && options.just_delete_extraneous != 1) {
 				read_write_data_res = read_write_data(data_copy_info.diff_time_mo_list,4,NULL,NULL);
-				if (read_write_data_res == 0)
+				if (read_write_data_res == 0) {
 					printf("Newer files were overwritten successfully.\n");
-				else if (read_write_data_res == 1)
+					copied.ow_older = 1;
+				}
+				else if (read_write_data_res == 1) {
 					printf("There were some errors while overwriting the newer files.\n");
+					copied.ow_older = 1;
+				}
 				else if (read_write_data_res == -1) {
 					printf("There were some errors while overwriting the newer files. Exiting.\n");
-					list_stats(1);
 					clean_tree(thread_data_a->file_tree_top_dir,0);
 					clean_tree(thread_data_b->file_tree_top_dir,0);
 					clean_up_exit(thread_data_a, thread_data_b);;
 					destroy_data_structs();
 					exit(1);
 				}
-				copied.ow_older = 1;
-				copied.copied_data = 1;
 			}
 			if (copied.copied_data == 1 || copied.copied_extraneous == 1 || copied.deleted_extraneous == 1 || copied.ow_smaller == 1 
 			|| copied.ow_larger == 1 || copied.ow_newer == 1 || copied.ow_older == 1) {
-				if (options.dont_list_stats != 1)
-					list_stats(1);
+				calc_stats(REGULAR);
+				if (options.dont_list_stats != 1) {
+					if (options.copy_content_file != 1 && options.just_copy_content_file != 1)
+						print_results(AFTER,SCREEN,copyfile);
+					else if (options.copy_content_file == 1)
+						print_results(AFTER,PRINT_BOTH,copyfile);
+					else if (options.just_copy_content_file == 1)
+						print_results(AFTER,TO_FILE,copyfile);
+				}
 			}
 		}  // else if (no_questions == 1
 	} // if (files_to_copy == 1 || dirs_to_copy == 1 || etc...
 	else {
 		printf("\nNo data to copy.\n");
 		if (options.dont_list_stats != 1)
-			list_stats(0);
+			print_results(BEFORE,SCREEN,0);
 	}
+	if (options.copy_content_file == 1 || options.just_copy_content_file == 1) {
+		errno = 0;
+		if (close(copyfile) == -1)
+			perror("close");
+	}	
 
 	// free the data structures used for file trees
 	clean_tree(thread_data_a->file_tree_top_dir,0);
