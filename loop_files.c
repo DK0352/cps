@@ -61,7 +61,7 @@ int loop_files(DList_of_lists *file_tree_element_a, DList_of_lists *file_tree_el
 			filelist_num_b = 0;
 		}
 	}
-	// pretend that the symbolic links are files
+	// pretend that symbolic links are files
 	else if (loop_links == 1) {
 		if (file_tree_element_a->sym_links != NULL) {
 			files_a = file_tree_element_a->sym_links;
@@ -104,8 +104,9 @@ int loop_files(DList_of_lists *file_tree_element_a, DList_of_lists *file_tree_el
 
 	same_file_num = 0;
 
-	/* compare_l is the larger file list, compare_s is the smaller file list. main_mark marks the source (main) directory. this is arranged so that smaller list is compared against  the larger, and
-	the rest is simply added as the files to copy list, or the files extraneous list if the same_file_num variable doesn't match the number of files in the source and destination directories. */
+	/* compare_l is the larger file list, compare_s is the smaller file list. main_mark marks the source (main) directory. this is arranged so that the smaller list is 
+	compared against  the larger, and the rest is simply added as the files to copy list, or the files extraneous list if the same_file_num variable doesn't match the 
+	number of files in the source and destination directories. */
 	if (filelist_num_a > 0 && filelist_num_b > 0) {
 		if (filelist_num_a > filelist_num_b) {
 			compare_l = files_a->head; // files_a is file_tree_element_a->files
@@ -128,10 +129,11 @@ int loop_files(DList_of_lists *file_tree_element_a, DList_of_lists *file_tree_el
 			list_s = files_b->head;
 			main_mark = COMPARE_L;
 		}
-		/* This for loop searches for the files with the same name, compares their size, type, and adds them to the appropriate list. for example: if two files with the same name are found, but their
-		size doesn't match, and the file with the main mark is larger, add it to the diff_size_ml_list. (ml is short for main larger). If the file in the destination directory is larger, add it to
-		the diff_size_ms_list (ms is short for main smaller). After the loop finishes, if the number of files in the source or destination doesn't match the same_file_num, the rest of the function 
-		after the loop takes care whether files are added to the copy or the extraneous lists. */
+		/* This for loop searches for the files with the same name, compares their size, type, and adds them to the appropriate list. for example: if two files with the 
+		same name are found, but their size doesn't match, and the file with the main mark is larger, add it to the diff_size_ml_list. (ml is short for main larger). 
+		If the file in the destination directory is larger, add it to the diff_size_ms_list (ms is short for main smaller). After the loop finishes, if the number of files 
+		in the source or destination doesn't match the same_file_num, the rest of the function after the loop takes care whether files are added to the copy or the 
+		extraneous lists. */
 		for (compare_l = list_l; compare_l != NULL; compare_l = compare_l->next) {
 			for (compare_s = list_s; compare_s != NULL; compare_s = compare_s->next) {
 				/* Compare file names. If they are same and match isn't 1 (which means that they haven't already been compared, set match to 1, 
@@ -558,7 +560,7 @@ int loop_files(DList_of_lists *file_tree_element_a, DList_of_lists *file_tree_el
 	// don't go further if filelist_num a and b are same
 	if (filelist_num_a == same_file_num && filelist_num_b == same_file_num)
 		return 0;
-	/*************************************** all files in the directory compared, but same_file_num is not matched, so find the missing/extraneous files ************************************************/
+	/**************** all files in the directory compared, but same_file_num is not matched, so find the missing/extraneous files *******************/
 
 	compare_l = list_l;
 	compare_s = list_s;
