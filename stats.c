@@ -62,160 +62,100 @@ char *calc_stats(int type)
 	if (type == REGULAR) {
 		data_copy_info.ac_file_num_a = data_copy_info.global_file_num_a;
 		data_copy_info.ac_file_num_b = data_copy_info.global_file_num_b;
+		data_copy_info.ac_files_size_a = data_copy_info.global_files_size_a;
+		data_copy_info.ac_files_size_b = data_copy_info.global_files_size_b;
 		data_copy_info.ac_symlink_num_a = data_copy_info.global_symlink_num_a;
 		data_copy_info.ac_symlink_num_b = data_copy_info.global_symlink_num_b;
+		data_copy_info.ac_symlinks_size_a = data_copy_info.global_symlink_size_a;
+		data_copy_info.ac_symlinks_size_b = data_copy_info.global_symlink_size_b;
 		data_copy_info.ac_dir_num_a = data_copy_info.global_dir_num_a;
 		data_copy_info.ac_dir_num_b = data_copy_info.global_dir_num_b;
 
-		data_copy_info.ac_files_size_a = data_copy_info.global_files_size_a;
-		data_copy_info.ac_files_size_b = data_copy_info.global_files_size_b;
 
 		// SOURCE DIRECTORY
 		// for files and symbolic links
 		if (options.copy_extraneous_back == 1 || options.just_copy_extraneous_back == 1) {
-			if (copied.copied_extraneous == 1) {
+			if (copied.copied_files_extraneous == 1) {
 				data_copy_info.ac_file_num_a += data_copy_info.global_files_extraneous_num; 
-				if (options.ignore_symlinks != 1) {
+				data_copy_info.ac_files_size_a += data_copy_info.global_files_extraneous_size;
+			}
+			if (options.ignore_symlinks != 1) {
+				if (copied.copied_symlinks_extraneous == 1) {
 					data_copy_info.ac_symlink_num_a += data_copy_info.global_symlinks_extraneous_num;
+					data_copy_info.ac_symlinks_size_a += data_copy_info.global_symlinks_extraneous_size;
 				}
 			}
-			else if (copied.copied_extraneous == 0) {
-				printf("Aborted copying the extraneous data back to the source.\n");
-			}
-		}
-		// for directories
-		if (options.copy_extraneous_back == 1 || options.just_copy_extraneous_back == 1) {
-			if (copied.copied_extraneous == 1) {
+			if (copied.copied_directories_extraneous == 1) {
 				data_copy_info.ac_dir_num_a += data_copy_info.global_dirs_extraneous_num;
-			}
-			else if (copied.copied_extraneous == 0) {
-				printf("Aborted copying the extraneous data back to the source.\n");
-			}
-		}
-		// size
-		if (options.copy_extraneous_back == 1 || options.just_copy_extraneous_back == 1) {
-			if (copied.copied_extraneous == 1) {
-				if (options.ignore_symlinks != 1) {
-					data_copy_info.ac_files_size_a += data_copy_info.global_files_extraneous_size;
-					data_copy_info.ac_symlink_size_a += data_copy_info.global_symlinks_extraneous_size;
-					data_copy_info.ac_files_size_a += data_copy_info.global_dirs_extraneous_size;
-				}
-				else if (options.ignore_symlinks == 1) {
-					data_copy_info.ac_files_size_a += data_copy_info.global_files_extraneous_size;
-					data_copy_info.ac_files_size_a += data_copy_info.global_dirs_extraneous_size;
-				}
-			}
-			else if (copied.copied_extraneous == 0) {
-				printf("Aborted copying the extraneous data back to the source: ");
+				data_copy_info.ac_dir_num_a += data_copy_info.global_subdirs_extraneous_num;
+				data_copy_info.ac_files_size_a += data_copy_info.global_dirs_extraneous_size;
+				data_copy_info.ac_file_num_a += data_copy_info.global_files_within_dirs_extraneous_num;
+				data_copy_info.ac_symlink_num_a += data_copy_info.global_symlinks_within_dirs_extraneous_num;
 			}
 		}
 		
 		// DESTINATION DIRECTORY
-		if (copied.copied_data == 1) {
+		if (copied.copied_files == 1) {
 			data_copy_info.ac_file_num_b += data_copy_info.global_files_to_copy_num;
-			if (options.delete_extraneous == 1) {
-				if (copied.deleted_extraneous == 1) {
-					data_copy_info.ac_file_num_b -= data_copy_info.global_files_extraneous_num;
-				}
-				else if (copied.deleted_extraneous == 0) {
-					printf("Aborted deleting extraneous data (files).\n");
-				}
+			data_copy_info.ac_files_size_b += data_copy_info.global_files_to_copy_size;
+		}
+		if (options.ignore_symlinks != 1) {
+			if (copied.copied_symlinks == 1) {
+				data_copy_info.ac_symlink_num_b += data_copy_info.global_symlinks_to_copy_num;
+				data_copy_info.ac_symlinks_size_b += data_copy_info.global_symlinks_to_copy_size;
+			}
+		}
+		if (copied.copied_directories == 1) {
+			data_copy_info.ac_dir_num_b += data_copy_info.global_dirs_to_copy_num;
+			data_copy_info.ac_dir_num_b += data_copy_info.global_subdirs_to_copy_num;
+			data_copy_info.ac_files_size_b += data_copy_info.global_dirs_to_copy_size;
+			data_copy_info.ac_file_num_b += data_copy_info.global_files_within_dirs_to_copy_num;
+			data_copy_info.ac_symlink_num_b += data_copy_info.global_symlinks_within_dirs_to_copy_num;
+		}
+
+		// ******* overwrite based on time/size *******
+		if (options.ow_main_larger == 1) {
+			if (copied.ow_larger == 1) {
+				data_copy_info.ac_files_size_b -= data_copy_info.global_diff_size_ml_orig_size;
+				data_copy_info.ac_files_size_b += data_copy_info.global_diff_size_ml_size;
+			}
+		}
+		else if (options.ow_main_smaller == 1) {
+			if (copied.ow_smaller == 1) {
+				data_copy_info.ac_files_size_b -= data_copy_info.global_diff_size_ms_orig_size;
+				data_copy_info.ac_files_size_b += data_copy_info.global_diff_size_ms_size;
+			}
+		}
+		if (options.ow_main_newer == 1) {
+			if (copied.ow_newer == 1) {
+				data_copy_info.ac_files_size_b -= data_copy_info.global_diff_time_mn_orig_size;
+				data_copy_info.ac_files_size_b += data_copy_info.global_diff_time_mn_size;
+			}
+		}
+		else if (options.ow_main_older == 1) {
+			if (copied.ow_older == 1) {
+				data_copy_info.ac_files_size_b -= data_copy_info.global_diff_time_mo_orig_size;
+				data_copy_info.ac_files_size_b += data_copy_info.global_diff_time_mo_size;
+			}
+		}
+
+		if (options.delete_extraneous == 1 || options.just_delete_extraneous == 1) {
+			if (copied.deleted_files_extraneous == 1) {
+				data_copy_info.ac_file_num_b -= data_copy_info.global_files_extraneous_num;
+				data_copy_info.ac_files_size_b -= data_copy_info.global_files_extraneous_size;
 			}
 			if (options.ignore_symlinks != 1) {
-				data_copy_info.ac_symlink_num_b += data_copy_info.global_symlinks_to_copy_num;
-				if (options.delete_extraneous == 1) {
-					if (copied.deleted_extraneous == 1) {
-						data_copy_info.ac_symlink_num_b -= data_copy_info.global_symlinks_extraneous_num;
-					}
-					else if (copied.deleted_extraneous == 0) {
-						printf("Aborted deleting extraneous data (symlinks).\n");
-					}
-				}
-			}
-
-			data_copy_info.ac_dir_num_b += data_copy_info.global_dirs_to_copy_num;
-			if (options.delete_extraneous == 1) {
-				if (copied.deleted_extraneous == 1) {
-					data_copy_info.ac_dir_num_b -= data_copy_info.global_dirs_extraneous_num;
-				}
-				else if (copied.deleted_extraneous == 0) {
-					printf("Aborted deleting extraneous data.\n");
-				}
-			}
-
-			// ********************* size *************************
-			if (copied.copied_files == 1) {
-				data_copy_info.ac_files_size_b += data_copy_info.global_files_to_copy_size;
-				if (options.ignore_symlinks != 1) {
-					data_copy_info.ac_symlink_size_b += data_copy_info.global_symlinks_to_copy_size;
-					// data_copy_info.ac_symlink_within_dirs_size_b += data_copy_info.global_symlinks_within_dirs_to_copy_size;
-				}
-			}
-			if (copied.copied_directories == 1) {
-				data_copy_info.ac_files_size_b += data_copy_info.global_dirs_to_copy_size;
-				// - errors.file_read_write_errors_size;
-			}
-
-			// ******* overwrite based on time/size *******
-			if (options.ow_main_larger == 1) {
-				if (copied.ow_larger == 1) {
-					data_copy_info.ac_files_size_b -= data_copy_info.global_diff_size_ml_orig_size;
-					data_copy_info.ac_files_size_b += data_copy_info.global_diff_size_ml_size;
-				}
-				else if (copied.ow_larger == 0) {
-					printf("Aborted overwriting the same files with different sizes.\n");
-				}
-			}
-			else if (options.ow_main_smaller == 1) {
-				if (copied.ow_smaller == 1) {
-					data_copy_info.ac_files_size_b -= data_copy_info.global_diff_size_ms_orig_size;
-					data_copy_info.ac_files_size_b += data_copy_info.global_diff_size_ms_size;
-				}
-				else if (copied.ow_smaller == 0) {
-					printf("Aborted overwriting the same files with different sizes.\n");
-				}
-			}
-			if (options.ow_main_newer == 1) {
-				if (copied.ow_newer == 1) {
-					data_copy_info.ac_files_size_b -= data_copy_info.global_diff_time_mn_orig_size;
-					data_copy_info.ac_files_size_b += data_copy_info.global_diff_time_mn_size;
-				}
-				else if (copied.ow_newer == 0) {
-					printf("Aborted overwriting the same files with different modification time.\n");
-				}
-			}
-			else if (options.ow_main_older == 1) {
-				if (copied.ow_older == 1) {
-					data_copy_info.ac_files_size_b -= data_copy_info.global_diff_time_mo_orig_size;
-					data_copy_info.ac_files_size_b += data_copy_info.global_diff_time_mo_size;
-				}
-				else if (copied.ow_older == 0) {
-					printf("Aborted overwriting the same files with different modification time.\n");
-				}
-			}
-
-			if (options.delete_extraneous == 1) {
-				if (copied.deleted_extraneous == 1) {
-					data_copy_info.ac_files_size_b -= data_copy_info.global_files_extraneous_size;
-					if (options.ignore_symlinks != 1)
-						data_copy_info.ac_files_size_b -= data_copy_info.global_symlinks_extraneous_size;
-					data_copy_info.ac_files_size_b -= data_copy_info.global_dirs_extraneous_size;
-				}
-				else if (copied.deleted_extraneous == 0) {
-					printf("Aborted deleting extraneous data.\n");
-				}
-			}
-		} // if (copied.copied_data == 1)
-		if (options.just_delete_extraneous == 1) {
-			if (copied.deleted_extraneous == 1) {
-				data_copy_info.ac_file_num_b -= data_copy_info.global_files_extraneous_num;
-				if (options.ignore_symlinks != 1) {
+				if (copied.deleted_symlinks_extraneous == 1) {
 					data_copy_info.ac_symlink_num_b -= data_copy_info.global_symlinks_extraneous_num;
+					data_copy_info.ac_symlinks_size_b -= data_copy_info.global_symlinks_extraneous_size;
 				}
-				data_copy_info.ac_files_size_b -= data_copy_info.global_dirs_extraneous_size;
 			}
-			else if (copied.deleted_extraneous == 0) {
-				printf("Aborted deleting extraneous data.\n");
+			if (copied.deleted_directories_extraneous == 1) {
+				data_copy_info.ac_dir_num_b -= data_copy_info.global_dirs_extraneous_num;
+				data_copy_info.ac_dir_num_b -= data_copy_info.global_subdirs_extraneous_num;
+				data_copy_info.ac_files_size_b -= data_copy_info.global_dirs_extraneous_size;
+				data_copy_info.ac_file_num_b -= data_copy_info.global_files_within_dirs_extraneous_num;
+				data_copy_info.ac_symlink_num_b -= data_copy_info.global_symlinks_within_dirs_extraneous_num;
 			}
 		}
 	}
@@ -224,7 +164,7 @@ char *calc_stats(int type)
 		if (copied.full_dir1_copied == 1) {
 			data_copy_info.ac_file_num_b = data_copy_info.ac_file_num_a;
 			data_copy_info.ac_symlink_num_b = data_copy_info.ac_symlink_num_a;
-			data_copy_info.ac_symlink_size_b = data_copy_info.ac_symlink_size_a;
+			data_copy_info.ac_symlinks_size_b = data_copy_info.ac_symlinks_size_a;
 			data_copy_info.ac_dir_num_b = data_copy_info.ac_dir_num_a;
 			data_copy_info.ac_files_size_b = data_copy_info.ac_files_size_a;
 		}
@@ -236,7 +176,7 @@ char *calc_stats(int type)
 		if (copied.full_dir2_copied == 1) {
 			data_copy_info.ac_file_num_b = data_copy_info.ac_file_num_a;
 			data_copy_info.ac_symlink_num_b = data_copy_info.ac_symlink_num_a;
-			data_copy_info.ac_symlink_size_b = data_copy_info.ac_symlink_size_a;
+			data_copy_info.ac_symlinks_size_b = data_copy_info.ac_symlinks_size_a;
 			data_copy_info.ac_dir_num_b = data_copy_info.ac_dir_num_a;
 			data_copy_info.ac_files_size_b = data_copy_info.ac_files_size_a;
 		}
@@ -591,15 +531,15 @@ void print_results(int when, int where, int fd)
 	else if (when == AFTER && where == SCREEN || when == AFTER && where == PRINT_BOTH) {
 		printf("\n");
 		printf("\n");
-		printf("After copying:\n");
+		printf("After copying:\n\n");
 		printf("SOURCE DIRECTORY\n");
 		printf("Number of files and symbolic links: %ld \n", result->ac_file_num_a + result->ac_symlink_num_a);
 		printf("Number of files: %ld \n", result->ac_file_num_a);
 		printf("Number of symbolic links: %ld \n", result->ac_symlink_num_a);
 		printf("Number of directories: %ld\n", result->ac_dir_num_a);
-		printf("Size of directory in bytes: %ld\n", result->ac_files_size_a);
+		printf("Size of directory in bytes: %ld\n", result->ac_files_size_a + result->ac_symlinks_size_a);
 		printf("Size:");
-		calc_size(result->ac_files_size_a,options.other_unit,NORMAL,0);
+		calc_size(result->ac_files_size_a + result->ac_symlinks_size_a,options.other_unit,NORMAL,0);
 		printf("\n");
 		printf("\n");
 		printf("DESTINATION DIRECTORY\n");
@@ -607,8 +547,9 @@ void print_results(int when, int where, int fd)
 		printf("Number of files: %ld \n", result->ac_file_num_b);
 		printf("Number of symbolic links: %ld \n", result->ac_symlink_num_b);
 		printf("Number of directories: %ld\n", result->ac_dir_num_b);
-		printf("Size of directory in bytes: %ld\n", result->ac_files_size_b);
-		calc_size(result->ac_files_size_a,options.other_unit,NORMAL,0);
+		printf("Size of directory in bytes: %ld\n", result->ac_files_size_b + result->ac_symlinks_size_b);
+		printf("Size:");
+		calc_size(result->ac_files_size_b + result->ac_symlinks_size_b,options.other_unit,NORMAL,0);
 		printf("\n");
 		//print_errors();
 	}
@@ -711,13 +652,13 @@ void print_results(int when, int where, int fd)
 	else if (when == AFTER && where == TO_FILE) {
 		printf("\n");
 		printf("\n");
-		printf("After copying:\n");
+		printf("After copying:\n\n");
 		printf("SOURCE DIRECTORY\n");
 		printf("Number of files and symbolic links: %ld \n", result->ac_file_num_a + result->ac_symlink_num_a);
 		printf("Number of files: %ld \n", result->ac_file_num_a);
 		printf("Number of symbolic links: %ld \n", result->ac_symlink_num_a);
 		printf("Number of directories: %ld\n", result->ac_dir_num_a);
-		printf("Size of directory in bytes: %ld\n", result->ac_files_size_a);
+		printf("Size of directory in bytes: %ld\n", result->ac_files_size_a + result->ac_symlinks_size_a);
 		printf("Size:");
 		calc_size(result->ac_files_size_a,options.other_unit,NORMAL,0);
 		printf("\n");
@@ -727,8 +668,9 @@ void print_results(int when, int where, int fd)
 		printf("Number of files: %ld \n", result->ac_file_num_b);
 		printf("Number of symbolic links: %ld \n", result->ac_symlink_num_b);
 		printf("Number of directories: %ld\n", result->ac_dir_num_b);
-		printf("Size of directory in bytes: %ld\n", result->ac_files_size_b);
-		calc_size(result->ac_files_size_a,options.other_unit,NORMAL,0);
+		printf("Size of directory in bytes: %ld\n", result->ac_files_size_b + result->ac_symlinks_size_b);
+		printf("Size:");
+		calc_size(result->ac_files_size_b,options.other_unit,NORMAL,0);
 		printf("\n");
 		//print_errors();
 	} 
