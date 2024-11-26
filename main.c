@@ -1710,11 +1710,11 @@ int main(int argc, char *argv[])
 						}
 						else if (read_write_data_res == -1) {
 							printf("There were some errors while overwriting the larger files. Exiting.\n");
-								clean_tree(thread_data_a->file_tree_top_dir,0);
-								clean_tree(thread_data_b->file_tree_top_dir,0);
-								clean_up_exit(thread_data_a, thread_data_b);;
-								destroy_data_structs();
-								exit(1);
+							clean_tree(thread_data_a->file_tree_top_dir,0);
+							clean_tree(thread_data_b->file_tree_top_dir,0);
+							clean_up_exit(thread_data_a, thread_data_b);;
+							destroy_data_structs();
+							exit(1);
 						}
 						printf("\n");
 						break;
@@ -1832,8 +1832,10 @@ int main(int argc, char *argv[])
 						printf("Unrecognized answer. Type yes or no.\n");
 			 	}
 			}
-			if (copied.copied_data == 1 || copied.copied_extraneous == 1 || copied.deleted_extraneous == 1 || copied.ow_smaller == 1 
-			|| copied.ow_larger == 1 || copied.ow_newer == 1 || copied.ow_older == 1) {
+			if (copied.copied_files == 1 || copied.copied_symlinks || copied.copied_directories == 1 || copied.copied_files_extraneous == 1 || 
+			copied.copied_symlinks_extraneous == 1 || copied.copied_directories_extraneous == 1 || copied.deleted_files_extraneous == 1 || 
+			copied.deleted_symlinks_extraneous || copied.deleted_directories_extraneous || copied.ow_smaller == 1 || copied.ow_larger == 1 || 
+			copied.ow_newer == 1 || copied.ow_older == 1) {
 				calc_stats(REGULAR);
 				if (options.dont_list_stats != 1) {
 					if (options.copy_content_file != 1 && options.just_copy_content_file != 1)
@@ -2142,8 +2144,10 @@ int main(int argc, char *argv[])
 					exit(1);
 				}
 			}
-			if (copied.copied_data == 1 || copied.copied_extraneous == 1 || copied.deleted_extraneous == 1 || copied.ow_smaller == 1 
-			|| copied.ow_larger == 1 || copied.ow_newer == 1 || copied.ow_older == 1) {
+			if (copied.copied_files == 1 || copied.copied_symlinks || copied.copied_directories == 1 || copied.copied_files_extraneous == 1 || 
+			copied.copied_symlinks_extraneous == 1 || copied.copied_directories_extraneous == 1 || copied.deleted_files_extraneous == 1 || 
+			copied.deleted_symlinks_extraneous || copied.deleted_directories_extraneous || copied.ow_smaller == 1 || copied.ow_larger == 1 || 
+			copied.ow_newer == 1 || copied.ow_older == 1) {
 				calc_stats(REGULAR);
 				if (options.dont_list_stats != 1) {
 					if (options.copy_content_file != 1 && options.just_copy_content_file != 1)
