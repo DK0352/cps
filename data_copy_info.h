@@ -96,31 +96,24 @@ struct Data_Copy_Info {
 
 	unsigned long	ac_file_num_a;		// after copying number of files (source)
 	unsigned long	ac_file_num_b;		// after copying number of files (destination)
-	//unsigned long	ac_file_within_dirs_num_a;
-	//unsigned long	ac_file_within_dirs_num_b;
-	unsigned long	ac_symlink_num_a;		// after copying number of symlinks (source)
-	unsigned long	ac_symlink_num_b;		// after copying number of symlinks (destination)
-	unsigned long	ac_symlink_size_a;		// after copying size of symlinks (source)
-	unsigned long	ac_symlink_size_b;		// after copying size of symlinks (destination)
-	//unsigned long	ac_symlink_within_dirs_num_a;
-	//unsigned long	ac_symlink_within_dirs_num_b;
-	unsigned long	ac_dir_num_a;		// after copying number of directories (source)
-	unsigned long	ac_dir_num_b;		// after copying number of directories (destination)
 	unsigned long	ac_files_size_a;
 	unsigned long	ac_files_size_b;
+	unsigned long	ac_symlink_num_a;		// after copying number of symlinks (source)
+	unsigned long	ac_symlink_num_b;		// after copying number of symlinks (destination)
+	unsigned long	ac_symlinks_size_a;		// after copying size of symlinks (source)
+	unsigned long	ac_symlinks_size_b;		// after copying size of symlinks (destination)
+	unsigned long	ac_dir_num_a;		// after copying number of directories (source)
+	unsigned long	ac_dir_num_b;		// after copying number of directories (destination)
 };
 
 struct copied_or_not {
-	int copied_data;		// if 1, add size in stats
 	int copied_files;
 	int copied_symlinks;
 	int copied_directories;
 	int aborted_copying;		// if 1, user aborted copying missing files and dirs
-	int copied_extraneous;		// if 1, add size in stats
 	int copied_files_extraneous;
 	int copied_symlinks_extraneous;
 	int copied_directories_extraneous;
-	int deleted_extraneous;		// if 1, subtract size in stats
 	int deleted_files_extraneous;
 	int deleted_symlinks_extraneous;
 	int deleted_directories_extraneous;
