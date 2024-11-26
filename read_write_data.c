@@ -70,7 +70,7 @@ int read_write_data(DList *data, int choose, char *source, char *destination)
 	ssize_t		buflen, keylen, vallen;
 	int		setxattr_status;
 
-	int		some_errors = 0;
+	int		some_errors = 0; // static int?
 	int		read_write_data_res = 0;
 
 	file_t_init = 0;
@@ -393,6 +393,7 @@ int read_write_data(DList *data, int choose, char *source, char *destination)
 						return -1;
 					else if (options.quit_read_errors == 0) {
 						some_errors++;
+						free(direntry);
 						return 1;
 					}
 				}
@@ -1053,9 +1054,11 @@ int read_write_data(DList *data, int choose, char *source, char *destination)
 						return -1;
 					else if (options.quit_read_errors == 0) {
 						some_errors++;
-						continue;
+						return 1;
 					}
 				}
+				else
+					break;
 			}
 			if (strcmp(direntry->d_name, ".") == 0 || strcmp(direntry->d_name, "..") == 0)
 				continue;
@@ -1111,7 +1114,7 @@ int read_write_data(DList *data, int choose, char *source, char *destination)
 				if (options.show_write_proc != 0)
 					printf("Deleting: %s\n", deeper);
 			}
-			if (S_ISREG(file_t->st_mode)) {
+			else if (S_ISREG(file_t->st_mode)) {
 				errno = 0;
 				if (unlink(test) != 0) {
 					perror("unlink");
@@ -1143,6 +1146,23 @@ int read_write_data(DList *data, int choose, char *source, char *destination)
 				if (options.show_write_proc != 0)
 					printf("Deleting: %s\n", test);
 			}
+		} // for (;;)
+		errno = 0;
+		if (closedir(dir) != 0) {
+			perror("closedir");
+			errors.dir_close_error_count++;
+			if (options.quit_read_errors == 1)
+				return -1;
+			else if (options.quit_read_errors == 0)
+				some_errors++;
+		}
+		if (file_t_init != 0) {
+			free(file_t);
+			file_t_init = 0;
+		}
+		if (direntry_init != 0) {
+			free(direntry);
+			direntry_init = 0;
 		}
 		if (some_errors > 0)
 			return 1;
@@ -1189,8 +1209,9 @@ int read_write_data(DList *data, int choose, char *source, char *destination)
 						errors.atimestamp_error_count++;
 						if (options.quit_write_errors == 1)
 							return -1;
-						else if (options.quit_write_errors == 0)
+						else if (options.quit_write_errors == 0) {
 							some_errors++;
+						}
 					}
 				}
 				if (options.preserve_m_time == 1) {
