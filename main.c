@@ -30,7 +30,7 @@
 #define PRINT_BOTH 103		// output from list_status() and calc_size() to both stdout and file
 #define NORMAL 104
 #define AS_RETURN_VAL 105
-#define BOTH 106
+#define IN_FILE 106
 #define BEFORE 107
 #define AFTER 108
 #define REGULAR 109
@@ -759,7 +759,7 @@ int main(int argc, char *argv[])
 				else if (options.copy_content_file == 1)
 					print_results(BEFORE,PRINT_BOTH,copyfile);
 				else if (options.just_copy_content_file == 1)
-					print_results(BEFORE,TO_FILE,copyfile);
+					print_results(BEFORE,PRINT_BOTH,copyfile);
 			}
 			printf("\nDestination directory is empty, entire source directory will be copied. Do you want to write the data? Type yes or no ...\n");
 			while (fgets(line,BUF,stdin) != NULL) {
@@ -777,7 +777,7 @@ int main(int argc, char *argv[])
 							else if (options.copy_content_file == 1)
 								print_results(AFTER,PRINT_BOTH,copyfile);
 							else if (options.just_copy_content_file == 1)
-								print_results(AFTER,TO_FILE,copyfile);
+								print_results(AFTER,PRINT_BOTH,copyfile);
 						}
 					}
 					else if (read_write_data_res == 1) 
@@ -811,7 +811,7 @@ int main(int argc, char *argv[])
 				else if (options.copy_content_file == 1)
 					print_results(BEFORE,PRINT_BOTH,copyfile);
 				else if (options.just_copy_content_file == 1)
-					print_results(BEFORE,TO_FILE,copyfile);
+					print_results(BEFORE,PRINT_BOTH,copyfile);
 			}
 			read_write_data_res = read_write_data(NULL,3,pathname1,pathname2);
 			if (read_write_data_res == 0) {
@@ -825,7 +825,7 @@ int main(int argc, char *argv[])
 						else if (options.copy_content_file == 1)
 							print_results(AFTER,PRINT_BOTH,copyfile);
 						else if (options.just_copy_content_file == 1)
-							print_results(AFTER,TO_FILE,copyfile);
+							print_results(AFTER,PRINT_BOTH,copyfile);
 					}
 			}
 			else if (read_write_data_res == 1) 
@@ -857,7 +857,7 @@ int main(int argc, char *argv[])
 				else if (options.copy_content_file == 1)
 					print_results(BEFORE,PRINT_BOTH,copyfile);
 				else if (options.just_copy_content_file == 1)
-					print_results(BEFORE,TO_FILE,copyfile);
+					print_results(BEFORE,PRINT_BOTH,copyfile);
 			}
 			printf("Source directory is empty, entire destination directory will be copied. Do you want to write the data? Type yes or no ...\n");
 			while (fgets(line,BUF,stdin) != NULL) {
@@ -875,7 +875,7 @@ int main(int argc, char *argv[])
 							else if (options.copy_content_file == 1)
 								print_results(AFTER,PRINT_BOTH,copyfile);
 							else if (options.just_copy_content_file == 1)
-								print_results(AFTER,TO_FILE,copyfile);
+								print_results(AFTER,PRINT_BOTH,copyfile);
 						}
 					}
 					else if (read_write_data_res == 1) 
@@ -910,7 +910,7 @@ int main(int argc, char *argv[])
 				else if (options.copy_content_file == 1)
 					print_results(BEFORE,PRINT_BOTH,copyfile);
 				else if (options.just_copy_content_file == 1)
-					print_results(BEFORE,TO_FILE,copyfile);
+					print_results(BEFORE,PRINT_BOTH,copyfile);
 			}
 			read_write_data_res = read_write_data(NULL,3,pathname2,pathname1);
 			if (read_write_data_res == 0) {
@@ -924,7 +924,7 @@ int main(int argc, char *argv[])
 						else if (options.copy_content_file == 1)
 							print_results(AFTER,PRINT_BOTH,copyfile);
 						else if (options.just_copy_content_file == 1)
-							print_results(AFTER,TO_FILE,copyfile);
+							print_results(AFTER,PRINT_BOTH,copyfile);
 					}
 			}
 			else if (read_write_data_res == 1) 
@@ -1216,7 +1216,7 @@ int main(int argc, char *argv[])
 		if (options.copy_content_file == 1 || options.just_copy_content_file == 1) {
 			if (copy_files == 1 && options.just_copy_extraneous_back != 1 && options.just_delete_extraneous != 1) {
 				if (options.less_detailed != 1)
-					detailed_output(file_list,TO_FILE,string1,copyfile);
+					detailed_output(file_list,IN_FILE,string1,copyfile);
 				else if (options.less_detailed == 1) {
 					write(copyfile, string1, strlen(string1));
 					for (file_list_element = file_list->head; file_list_element != NULL; file_list_element = file_list_element->next) {
@@ -1229,7 +1229,7 @@ int main(int argc, char *argv[])
 			if (options.ignore_symlinks != 1) {
 				if (copy_symlinks == 1 && options.just_copy_extraneous_back != 1 && options.just_delete_extraneous != 1) {
 					if (options.less_detailed != 1)
-						detailed_output(symlinks_list,TO_FILE,string1_1,copyfile);
+						detailed_output(symlinks_list,IN_FILE,string1_1,copyfile);
 					else if (options.less_detailed == 1) {
 						write(copyfile, string1_1, strlen(string1_1));
 						for (file_list_element = symlinks_list->head; file_list_element != NULL; file_list_element = file_list_element->next) {
@@ -1242,7 +1242,7 @@ int main(int argc, char *argv[])
 			}
 			if (copy_dirs == 1 && options.just_copy_extraneous_back != 1 && options.just_delete_extraneous != 1) {
 				if (options.less_detailed != 1)
-					detailed_output(dir_list,TO_FILE,string2,copyfile);
+					detailed_output(dir_list,IN_FILE,string2,copyfile);
 				else if (options.less_detailed == 1) {
 					write(copyfile, string2, strlen(string2));
 					for (dir_list_element = dir_list->head; dir_list_element != NULL; dir_list_element = dir_list_element->next) {
@@ -1254,7 +1254,7 @@ int main(int argc, char *argv[])
 			}
 			if (options.ow_main_larger == 1 && options.just_copy_extraneous_back != 1 && options.just_delete_extraneous != 1) {
 				if (options.less_detailed != 1)
-					detailed_output(file_ml_list,TO_FILE,string3,copyfile);
+					detailed_output(file_ml_list,IN_FILE,string3,copyfile);
 				else if (options.less_detailed == 1) {
 					write(copyfile, string3, strlen(string3));
 					for (file_list_element = file_ml_list->head; file_list_element != NULL; file_list_element = file_list_element->next) {
@@ -1266,7 +1266,7 @@ int main(int argc, char *argv[])
 			}
 			else if (options.ow_main_smaller == 1 && options.just_copy_extraneous_back != 1 && options.just_delete_extraneous != 1) {
 				if (options.less_detailed != 1)
-					detailed_output(file_ms_list,TO_FILE,string4,copyfile);
+					detailed_output(file_ms_list,IN_FILE,string4,copyfile);
 				else if (options.less_detailed == 1) {
 					write(copyfile, string4, strlen(string4));
 					for (file_list_element = file_ms_list->head; file_list_element != NULL; file_list_element = file_list_element->next) {
@@ -1278,7 +1278,7 @@ int main(int argc, char *argv[])
 			}
 			if (options.ow_main_newer == 1 && options.just_copy_extraneous_back != 1 && options.just_delete_extraneous != 1) {
 				if (options.less_detailed != 1)
-					detailed_output(file_mn_list,TO_FILE,string9,copyfile);
+					detailed_output(file_mn_list,IN_FILE,string9,copyfile);
 				else if (options.less_detailed == 1) {
 					write(copyfile, string9, strlen(string9));
 					for (file_list_element = file_mn_list->head; file_list_element != NULL; file_list_element = file_list_element->next) {
@@ -1290,7 +1290,7 @@ int main(int argc, char *argv[])
 			}
 			else if (options.ow_main_older == 1 && options.just_copy_extraneous_back != 1 && options.just_delete_extraneous != 1) {
 				if (options.less_detailed != 1)
-					detailed_output(file_mo_list,TO_FILE,string10,copyfile);
+					detailed_output(file_mo_list,IN_FILE,string10,copyfile);
 				else if (options.less_detailed == 1) {
 					write(copyfile, string10, strlen(string10));
 					for (file_list_element = file_mo_list->head; file_list_element != NULL; file_list_element = file_list_element->next) {
@@ -1303,7 +1303,7 @@ int main(int argc, char *argv[])
 			if (options.ignore_symlinks != 1) {
 				if (options.ow_main_larger == 1 && options.just_copy_extraneous_back != 1 && options.just_delete_extraneous != 1) {
 					if (options.less_detailed != 1)
-						detailed_output(symlinks_ml_list,TO_FILE,string12,copyfile);
+						detailed_output(symlinks_ml_list,IN_FILE,string12,copyfile);
 					else if (options.less_detailed == 1) {
 						write(copyfile, string12, strlen(string12));
 						for (file_list_element = symlinks_ml_list->head; file_list_element != NULL; file_list_element = file_list_element->next) {
@@ -1315,7 +1315,7 @@ int main(int argc, char *argv[])
 				}
 				else if (options.ow_main_smaller == 1 && options.just_copy_extraneous_back != 1 && options.just_delete_extraneous != 1) {
 					if (options.less_detailed != 1)
-						detailed_output(symlinks_ms_list,TO_FILE,string11,copyfile);
+						detailed_output(symlinks_ms_list,IN_FILE,string11,copyfile);
 					else if (options.less_detailed == 1) {
 						write(copyfile, string11, strlen(string11));
 						for (file_list_element = symlinks_ms_list->head; file_list_element != NULL; file_list_element = file_list_element->next) {
@@ -1329,7 +1329,7 @@ int main(int argc, char *argv[])
 			if (options.ignore_symlinks != 1) {
 				if (options.ow_main_newer == 1 && options.just_copy_extraneous_back != 1 && options.just_delete_extraneous != 1) {
 					if (options.less_detailed != 1)
-						detailed_output(symlinks_mn_list,TO_FILE,string13,copyfile);
+						detailed_output(symlinks_mn_list,IN_FILE,string13,copyfile);
 					else if (options.less_detailed == 1) {
 						write(copyfile, string13, strlen(string13));
 						for (file_list_element = symlinks_mn_list->head; file_list_element != NULL; file_list_element = file_list_element->next) {
@@ -1341,7 +1341,7 @@ int main(int argc, char *argv[])
 				}
 				else if (options.ow_main_older == 1 && options.just_copy_extraneous_back != 1 && options.just_delete_extraneous != 1) {
 					if (options.less_detailed != 1)
-						detailed_output(symlinks_mo_list,TO_FILE,string14,copyfile);
+						detailed_output(symlinks_mo_list,IN_FILE,string14,copyfile);
 					else if (options.less_detailed == 1) {
 						write(copyfile, string14, strlen(string14));
 						for (file_list_element = symlinks_mo_list->head; file_list_element != NULL; file_list_element = file_list_element->next) {
@@ -1354,7 +1354,7 @@ int main(int argc, char *argv[])
 			}
 			if (options.copy_extraneous_back == 1 || options.just_copy_extraneous_back == 1) {
 				if (options.less_detailed != 1)
-					detailed_output(file_surp_list,TO_FILE,string5,copyfile);
+					detailed_output(file_surp_list,IN_FILE,string5,copyfile);
 				else if (options.less_detailed == 1) {
 					if (files_extraneous == 1) {
 						write(copyfile, string5, strlen(string5));
@@ -1367,7 +1367,7 @@ int main(int argc, char *argv[])
 				}
 				if (options.ignore_symlinks != 1) {
 					if (options.less_detailed != 1)
-						detailed_output(symlinks_surp_list,TO_FILE,string5_1,copyfile);
+						detailed_output(symlinks_surp_list,IN_FILE,string5_1,copyfile);
 					else if (options.less_detailed == 1) {
 						if (symlinks_extraneous == 1) {
 							write(copyfile, string5_1, strlen(string5_1));
@@ -1381,7 +1381,7 @@ int main(int argc, char *argv[])
 				}
 				if (dirs_extraneous == 1) {
 					if (options.less_detailed != 1)
-						detailed_output(dir_surp_list,TO_FILE,string6,copyfile);
+						detailed_output(dir_surp_list,IN_FILE,string6,copyfile);
 					else if (options.less_detailed == 1) {
 						write(copyfile, string6, strlen(string6));
 						for (dir_list_element = dir_surp_list->head; dir_list_element != NULL; dir_list_element = dir_list_element->next) {
@@ -1394,7 +1394,7 @@ int main(int argc, char *argv[])
 			}
 			else if (options.delete_extraneous == 1 || options.just_delete_extraneous == 1) {
 				if (options.less_detailed != 1)
-					detailed_output(file_surp_list,TO_FILE,string7,copyfile);
+					detailed_output(file_surp_list,IN_FILE,string7,copyfile);
 				else if (options.less_detailed == 1) {
 					if (files_extraneous == 1) {
 						write(copyfile, string7, strlen(string7));
@@ -1407,7 +1407,7 @@ int main(int argc, char *argv[])
 				}
 				if (options.ignore_symlinks != 1) {
 					if (options.less_detailed != 1)
-						detailed_output(symlinks_surp_list,TO_FILE,string7_1,copyfile);
+						detailed_output(symlinks_surp_list,IN_FILE,string7_1,copyfile);
 					else if (options.less_detailed == 1) {
 						if (symlinks_extraneous == 1) {
 							write(copyfile, string7_1, strlen(string7_1));
@@ -1421,7 +1421,7 @@ int main(int argc, char *argv[])
 				}
 				if (dirs_extraneous == 1) {
 					if (options.less_detailed != 1)
-						detailed_output(dir_surp_list,TO_FILE,string8,copyfile);
+						detailed_output(dir_surp_list,IN_FILE,string8,copyfile);
 					else if (options.less_detailed == 1) {
 						write(copyfile, string8, strlen(string8));
 						for (dir_list_element = dir_surp_list->head; dir_list_element != NULL; dir_list_element = dir_list_element->next) {
@@ -1460,7 +1460,7 @@ int main(int argc, char *argv[])
 				else if (options.copy_content_file == 1)
 					print_results(BEFORE,PRINT_BOTH,copyfile);
 				else if (options.just_copy_content_file == 1)
-					print_results(BEFORE,TO_FILE,copyfile);
+					print_results(BEFORE,PRINT_BOTH,copyfile);
 			}
 			if (options.just_copy_extraneous_back != 1 && options.just_delete_extraneous != 1) {
 				if (copy_files == 1 || copy_dirs == 1 || copy_symlinks == 1) {
@@ -1560,7 +1560,7 @@ int main(int argc, char *argv[])
 									printf("\nError writing the extraneous files. Exiting.\n");
 									clean_tree(thread_data_a->file_tree_top_dir,0);
 									clean_tree(thread_data_b->file_tree_top_dir,0);
-									clean_up_exit(thread_data_a, thread_data_b);;
+									clean_up_exit(thread_data_a, thread_data_b);
 									destroy_data_structs();
 									exit(1);
 								}
@@ -1579,7 +1579,7 @@ int main(int argc, char *argv[])
 									printf("\nError writing the extraneous symbolic links. Exiting.\n");
 									clean_tree(thread_data_a->file_tree_top_dir,0);
 									clean_tree(thread_data_b->file_tree_top_dir,0);
-									clean_up_exit(thread_data_a, thread_data_b);;
+									clean_up_exit(thread_data_a, thread_data_b);
 									destroy_data_structs();
 									exit(1);
 								}
@@ -1598,7 +1598,7 @@ int main(int argc, char *argv[])
 									printf("\nError writing the extraneous directories. Exiting\n");
 									clean_tree(thread_data_a->file_tree_top_dir,0);
 									clean_tree(thread_data_b->file_tree_top_dir,0);
-									clean_up_exit(thread_data_a, thread_data_b);;
+									clean_up_exit(thread_data_a, thread_data_b);
 									destroy_data_structs();
 									exit(1);
 								}
@@ -1636,7 +1636,7 @@ int main(int argc, char *argv[])
 									printf("\nError deleting the extraneous files. Exiting.\n");
 									clean_tree(thread_data_a->file_tree_top_dir,0);
 									clean_tree(thread_data_b->file_tree_top_dir,0);
-									clean_up_exit(thread_data_a, thread_data_b);;
+									clean_up_exit(thread_data_a, thread_data_b);
 									destroy_data_structs();
 									exit(1);
 								}
@@ -1655,7 +1655,7 @@ int main(int argc, char *argv[])
 									printf("\nError deleting the extraneous symbolic links. Exiting.\n");
 									clean_tree(thread_data_a->file_tree_top_dir,0);
 									clean_tree(thread_data_b->file_tree_top_dir,0);
-									clean_up_exit(thread_data_a, thread_data_b);;
+									clean_up_exit(thread_data_a, thread_data_b);
 									destroy_data_structs();
 									exit(1);
 								}
@@ -1674,7 +1674,7 @@ int main(int argc, char *argv[])
 									printf("\nError deleting the extraneous directories. Exiting.\n");
 									clean_tree(thread_data_a->file_tree_top_dir,0);
 									clean_tree(thread_data_b->file_tree_top_dir,0);
-									clean_up_exit(thread_data_a, thread_data_b);;
+									clean_up_exit(thread_data_a, thread_data_b);
 									destroy_data_structs();
 									exit(1);
 								}
@@ -1712,7 +1712,7 @@ int main(int argc, char *argv[])
 							printf("There were some errors while overwriting the larger files. Exiting.\n");
 							clean_tree(thread_data_a->file_tree_top_dir,0);
 							clean_tree(thread_data_b->file_tree_top_dir,0);
-							clean_up_exit(thread_data_a, thread_data_b);;
+							clean_up_exit(thread_data_a, thread_data_b);
 							destroy_data_structs();
 							exit(1);
 						}
@@ -1747,7 +1747,7 @@ int main(int argc, char *argv[])
 							printf("There were some errors while overwriting the smaller files. Exiting.\n");
 							clean_tree(thread_data_a->file_tree_top_dir,0);
 							clean_tree(thread_data_b->file_tree_top_dir,0);
-							clean_up_exit(thread_data_a, thread_data_b);;
+							clean_up_exit(thread_data_a, thread_data_b);
 							destroy_data_structs();
 							exit(1);
 						}
@@ -1782,7 +1782,7 @@ int main(int argc, char *argv[])
 							printf("There were some errors while overwriting the older files. Exiting.\n");
 							clean_tree(thread_data_a->file_tree_top_dir,0);
 							clean_tree(thread_data_b->file_tree_top_dir,0);
-							clean_up_exit(thread_data_a, thread_data_b);;
+							clean_up_exit(thread_data_a, thread_data_b);
 							destroy_data_structs();
 							exit(1);
 						}
@@ -1817,7 +1817,7 @@ int main(int argc, char *argv[])
 							printf("There were some errors while overwriting the newer files. Exiting.\n");
 							clean_tree(thread_data_a->file_tree_top_dir,0);
 							clean_tree(thread_data_b->file_tree_top_dir,0);
-							clean_up_exit(thread_data_a, thread_data_b);;
+							clean_up_exit(thread_data_a, thread_data_b);
 							destroy_data_structs();
 							exit(1);
 						}
@@ -1843,7 +1843,7 @@ int main(int argc, char *argv[])
 					else if (options.copy_content_file == 1)
 						print_results(AFTER,PRINT_BOTH,copyfile);
 					else if (options.just_copy_content_file == 1)
-						print_results(AFTER,TO_FILE,copyfile);
+						print_results(AFTER,PRINT_BOTH,copyfile);
 				}
 			}
 		} // if (options.no_questions == 0) {
@@ -2155,7 +2155,7 @@ int main(int argc, char *argv[])
 					else if (options.copy_content_file == 1)
 						print_results(AFTER,PRINT_BOTH,copyfile);
 					else if (options.just_copy_content_file == 1)
-						print_results(AFTER,TO_FILE,copyfile);
+						print_results(AFTER,PRINT_BOTH,copyfile);
 				}
 			}
 		}  // else if (no_questions == 1
