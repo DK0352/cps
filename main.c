@@ -1353,28 +1353,32 @@ int main(int argc, char *argv[])
 				}
 			}
 			if (options.copy_extraneous_back == 1 || options.just_copy_extraneous_back == 1) {
-				if (options.less_detailed != 1)
-					detailed_output(file_surp_list,IN_FILE,string5,copyfile);
-				else if (options.less_detailed == 1) {
-					if (files_extraneous == 1) {
-						write(copyfile, string5, strlen(string5));
-						for (file_list_element = file_surp_list->head; file_list_element != NULL; file_list_element = file_list_element->next) {
-							strcpy(file_location,file_list_element->dir_location);
-							strcat(file_location,"\n");
-							write(copyfile, file_location, strlen(file_location));
-						}
-					}
-				}
-				if (options.ignore_symlinks != 1) {
+				if (files_extraneous == 1) {
 					if (options.less_detailed != 1)
-						detailed_output(symlinks_surp_list,IN_FILE,string5_1,copyfile);
+						detailed_output(file_surp_list,IN_FILE,string5,copyfile);
 					else if (options.less_detailed == 1) {
-						if (symlinks_extraneous == 1) {
-							write(copyfile, string5_1, strlen(string5_1));
-							for (file_list_element = symlinks_surp_list->head; file_list_element != NULL; file_list_element = file_list_element->next) {
+						if (files_extraneous == 1) {
+							write(copyfile, string5, strlen(string5));
+							for (file_list_element = file_surp_list->head; file_list_element != NULL; file_list_element = file_list_element->next) {
 								strcpy(file_location,file_list_element->dir_location);
 								strcat(file_location,"\n");
 								write(copyfile, file_location, strlen(file_location));
+							}
+						}
+					}
+				}
+				if (symlinks_extraneous == 1) {
+					if (options.ignore_symlinks != 1) {
+						if (options.less_detailed != 1)
+							detailed_output(symlinks_surp_list,IN_FILE,string5_1,copyfile);
+						else if (options.less_detailed == 1) {
+							if (symlinks_extraneous == 1) {
+								write(copyfile, string5_1, strlen(string5_1));
+								for (file_list_element = symlinks_surp_list->head; file_list_element != NULL; file_list_element = file_list_element->next) {
+									strcpy(file_location,file_list_element->dir_location);
+									strcat(file_location,"\n");
+									write(copyfile, file_location, strlen(file_location));
+								}
 							}
 						}
 					}
@@ -1393,28 +1397,32 @@ int main(int argc, char *argv[])
 				}
 			}
 			else if (options.delete_extraneous == 1 || options.just_delete_extraneous == 1) {
-				if (options.less_detailed != 1)
-					detailed_output(file_surp_list,IN_FILE,string7,copyfile);
-				else if (options.less_detailed == 1) {
-					if (files_extraneous == 1) {
-						write(copyfile, string7, strlen(string7));
-						for (file_list_element = file_surp_list->head; file_list_element != NULL; file_list_element = file_list_element->next) {
-							strcpy(file_location,file_list_element->dir_location);
-							strcat(file_location,"\n");
-							write(copyfile, file_location, strlen(file_location));
-						}
-					}
-				}
-				if (options.ignore_symlinks != 1) {
+				if (files_extraneous == 1) {
 					if (options.less_detailed != 1)
-						detailed_output(symlinks_surp_list,IN_FILE,string7_1,copyfile);
+						detailed_output(file_surp_list,IN_FILE,string7,copyfile);
 					else if (options.less_detailed == 1) {
-						if (symlinks_extraneous == 1) {
-							write(copyfile, string7_1, strlen(string7_1));
-							for (file_list_element = symlinks_surp_list->head; file_list_element != NULL; file_list_element = file_list_element->next) {
+						if (files_extraneous == 1) {
+							write(copyfile, string7, strlen(string7));
+							for (file_list_element = file_surp_list->head; file_list_element != NULL; file_list_element = file_list_element->next) {
 								strcpy(file_location,file_list_element->dir_location);
 								strcat(file_location,"\n");
 								write(copyfile, file_location, strlen(file_location));
+							}
+						}
+					}
+				}
+				if (symlinks_extraneous == 1) {
+					if (options.ignore_symlinks != 1) {
+						if (options.less_detailed != 1)
+							detailed_output(symlinks_surp_list,IN_FILE,string7_1,copyfile);
+						else if (options.less_detailed == 1) {
+							if (symlinks_extraneous == 1) {
+								write(copyfile, string7_1, strlen(string7_1));
+								for (file_list_element = symlinks_surp_list->head; file_list_element != NULL; file_list_element = file_list_element->next) {
+									strcpy(file_location,file_list_element->dir_location);
+									strcat(file_location,"\n");
+									write(copyfile, file_location, strlen(file_location));
+								}
 							}
 						}
 					}
@@ -1591,7 +1599,7 @@ int main(int argc, char *argv[])
 									copied.copied_directories_extraneous = 1;
 								}
 								else if (read_write_data_res == 1) {
-									printf("\nSome extraneous directories were written successfully, but there were also some errors.\n");
+									printf("\nSome extraneous directories were written successfully, but there were some errors.\n");
 									copied.copied_directories_extraneous = 1;
 								}
 								else if (read_write_data_res == -1) {
@@ -1629,7 +1637,7 @@ int main(int argc, char *argv[])
 									copied.deleted_files_extraneous = 1;
 								}
 								else if (read_write_data_res == 1) {
-									printf("\nDeleting some extraneous files was successful, but there were also some errors.\n");
+									printf("\nDeleting some extraneous files was successful, but there were some errors.\n");
 									copied.deleted_files_extraneous = 1;
 								}
 								else if (read_write_data_res == -1) {
@@ -1648,7 +1656,7 @@ int main(int argc, char *argv[])
 									copied.deleted_symlinks_extraneous = 1;
 								}
 								else if (read_write_data_res == 1) {
-									printf("\nDeleting some extraneous symbolic links was successful, but there were also some errors.\n");
+									printf("\nDeleting some extraneous symbolic links was successful, but there were some errors.\n");
 									copied.deleted_symlinks_extraneous = 1;
 								}
 								else if (read_write_data_res == -1) {
@@ -1667,7 +1675,7 @@ int main(int argc, char *argv[])
 									copied.deleted_directories_extraneous = 1;
 								}
 								else if (read_write_data_res == 1) {
-									printf("\nDeleting some extraneous directories was successfull, but there were also some errors.\n");
+									printf("\nDeleting some extraneous directories was successfull, but there were some errors.\n");
 									copied.deleted_directories_extraneous = 1;
 								}
 								else if (read_write_data_res == -1) {
@@ -2004,70 +2012,6 @@ int main(int argc, char *argv[])
 					}
 				}
 			}
-			/*if (options.just_copy_extraneous_back == 1) {
-				if (files_extraneous == 1) {
-					read_write_data_res = read_write_data(data_copy_info.files_extraneous_list,1,NULL,NULL);
-					if (read_write_data_res == 0)
-						printf("\nExtraneous files were written successfully.\n");
-					else if (read_write_data_res == 1)
-						printf("\nSome extraneous files were written successfully, but there were also some errors.\n");
-					else if (read_write_data_res == -1) {
-						printf("\nError writing the extraneous files. Exiting.\n");
-						clean_tree(thread_data_a->file_tree_top_dir,0);
-						clean_tree(thread_data_b->file_tree_top_dir,0);
-						clean_up_exit(thread_data_a, thread_data_b);;
-						destroy_data_structs();
-						exit(1);
-					}
-				}
-				if (dirs_extraneous == 1) {
-					read_write_data(data_copy_info.dirs_extraneous_list,2,NULL,NULL);
-					if (read_write_data_res == 0)
-						printf("\nExtraneous directories were written successfully.\n");
-					else if (read_write_data_res == 1)
-						printf("\nSome extraneous directories were written successfully, but there were also some errors.\n");
-					else if (read_write_data_res == -1) {
-						printf("\nError writing the extraneous directories. Exiting\n");
-						clean_tree(thread_data_a->file_tree_top_dir,0);
-						clean_tree(thread_data_b->file_tree_top_dir,0);
-						clean_up_exit(thread_data_a, thread_data_b);;
-						destroy_data_structs();
-						exit(1);
-					}
-				}
-			}
-			else if (options.just_delete_extraneous == 1) {
-				if (files_extraneous == 1) {
-					read_write_data_res = read_write_data(data_copy_info.files_extraneous_list,5,NULL,NULL);
-					if (read_write_data_res == 0)
-						printf("\nDeleting the extraneous files was successful.\n");
-					else if (read_write_data_res == 1) 
-						printf("\nDeleting some extraneous files was successful, but there were also some errors.\n");
-					else if (read_write_data_res == -1) {
-						printf("\nError deleting the extraneous files. Exiting.\n");
-						clean_tree(thread_data_a->file_tree_top_dir,0);
-						clean_tree(thread_data_b->file_tree_top_dir,0);
-						clean_up_exit(thread_data_a, thread_data_b);;
-						destroy_data_structs();
-						exit(1);
-					}
-				}
-				if (dirs_extraneous == 1) {
-					read_write_data_res = read_write_data(data_copy_info.dirs_extraneous_list,6,NULL,NULL);
-					if (read_write_data_res == 0)
-						printf("\nDeleting the extraneous directories was successful.\n");
-					else if (read_write_data_res == 1)
-						printf("\nDeleting some extraneous directories was successfull, but there were also some errors.\n");
-					else if (read_write_data_res == -1) {
-						printf("\nError deleting the extraneous directories. Exiting.\n");
-						clean_tree(thread_data_a->file_tree_top_dir,0);
-						clean_tree(thread_data_b->file_tree_top_dir,0);
-						clean_up_exit(thread_data_a, thread_data_b);;
-						destroy_data_structs();
-						exit(1);
-					}
-				}
-			}*/
 			if (options.ow_main_smaller == 1 && options.just_copy_extraneous_back != 1 && options.just_delete_extraneous != 1) {
 				read_write_data_res = read_write_data(data_copy_info.diff_size_ms_list,4,NULL,NULL);
 				if (read_write_data_res == 0) {
