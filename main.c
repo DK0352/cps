@@ -428,7 +428,7 @@ int main(int argc, char *argv[])
 
 	if (argc < 2) {
 		printf("USAGE: cps directory1 directory2 or cps OPTIONS directory1 directory2\n");
-		printf("For help type man cps or cps -h\n");
+		printf("For list of commands type cps -h or cps --help\n");
 		exit(0);
 	}
 	if (options.show_version == 1 && options.show_help == 0) {
