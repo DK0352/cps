@@ -12,6 +12,13 @@ Build and install:
 make
 sudo make install
 ```
+If you encounter the error sys/acl.h: No such file or directory, it is because the required ACL package is not installed on your system. To install it on Debian/Ubuntu, use:
+
+```
+apt install libacl1-dev
+```
+On RPM-based systems, the package is called libacl-devel.
+
 
 Some examples of use:
 
