@@ -106,6 +106,23 @@ struct Data_Copy_Info {
 	unsigned long	ac_dir_num_b;		// after copying number of directories (destination)
 };
 
+struct data_found {
+		int copy_files;			// there are files to copy if 1
+		int copy_symlinks;		// there are symbolic links to copy if 1
+		int copy_dirs;			// there are directories to copy if 1
+		int files_extraneous;		// there are extraneous files to copy or delete if 1
+		int symlinks_extraneous;	// there are extraneous symlinks if 1
+		int dirs_extraneous;		// there are extraneous directories to copy or delete if 1
+		int ow_main_smaller;		// there are files with the same name, smaller in the main location to overwrite if 1
+		int ow_main_larger;		// there are files with the same name, larger in the main location to overwrite if 1
+		int ow_main_newer;		// there are files with the same name, newer in the main location to overwrite if 1
+		int ow_main_older;		// there are files with the same name, older in the main location to overwrite if 1
+		int ow_symlinks_main_smaller;	// there are symbolic links with the same name, smaller in the main location to overwrite if 1
+		int ow_symlinks_main_larger;	// there are symbolic links with the same name, larger in the main location to overwrite if 1
+		int ow_symlinks_main_newer;	// there are symbolic links with the same name, newer in the main location to overwrite if 1
+		int ow_symlinks_main_older;	// there are symbolic links with the same name, older in the main location to overwrite if 1
+};
+
 struct copied_or_not {
 	int copied_files;
 	int copied_symlinks;
